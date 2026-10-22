@@ -1,0 +1,38 @@
+# Source ledger and evidence boundaries
+
+Checked October 22, 2026. Only public documentation was consulted. Tax and broker facts can change; recheck exact applicable editions, access and terms before dependent implementation or release. These sources support requirements, not a conclusion that the application exists or works.
+
+| ID | Primary source | What was checked | Limits / next review |
+| --- | --- | --- | --- |
+| S01 | [IRS Publication 550](https://www.irs.gov/publications/p550) | Wash Sales; substantially identical facts-and-circumstances language; share matching; Stocks and Bonds and adequate identification | Page presents 2025 edition; not a security-pair approval list or a complete interpretation for every household case |
+| S02 | [IRS Revenue Ruling 2008-5](https://www.irs.gov/pub/irs-drop/rr-08-05.pdf) | Stated IRA/Roth loss-disallowance facts and holding, including no IRA basis increase | Does not settle every other retirement vehicle or relationship |
+| S03 | [IRS Topic 409](https://www.irs.gov/taxtopics/tc409) | Holding-period classification, capital-loss netting/deduction/carryover context | Do not hardcode the page's annual bracket thresholds into a generic future model |
+| S04 | [2026 Form 1099-B instructions](https://www.irs.gov/instructions/i1099b) | Box 1g reporting requirement and same-account/same-CUSIP covered-security boundary | Reporting scope is not a complete statement of investor tax responsibility |
+| S05 | [SEC staff guidance release on robo-advisers](https://www.sec.gov/newsroom/press-releases/2017-52) | Algorithmic advisory-service context and applicable advisory obligations | Historic guidance, not a legal classification of Prosper or an exemption analysis |
+| S06 | [IBKR Open Positions Flex reference](https://www.ibkrguides.com/reportingreference/reportguide/open%20positionsfq.htm) | Lot detail, cost-basis fields, timestamps/holding-period fields | No query, account access or actual export tested; current field/format behavior needs qualification |
+| S07 | [Fidelity Trader+ Desktop positions guide](https://www.fidelity.com/trading/trader-desktop-user-guide/positions) | CSV position export and adjusted wash-sale display | Does not establish complete individual-lot export coverage |
+| S08 | [Schwab individual developer guide](https://developer.schwab.com/user-guides/individual-developer/become-individual-developer), [portal overview](https://developer.schwab.com/user-guides) | Individual Trader API program and access-request workflow in official indexed content | Text retrieval did not render individual guide body; no authenticated schema, access grant or lot capability verified |
+| S09 | [S&P DJI data and index licensing](https://www.spglobal.com/spdji/en/about-us/data-index-licensing/) | Separate index/constituent/corporate-action data licensing | No license acquired; permissible use depends on actual agreement/provider |
+| S10 | [MSCI index terms](https://www.msci.com/legal/index-terms) | Published restrictions on reproduction, redistribution and uses of index data | Requires source-specific rights review; public website access is not assumed redistribution permission |
+| S11 | [Official OpenAI AGENTS.md documentation](https://learn.chatgpt.com/docs/agent-configuration/agents-md) | Persistent project instructions, discovery and layering | This session did not test a fresh agent loading the created files |
+| S12 | [Official OpenAI workflow example](https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex) | Project instructions versus optional workflow document conventions | Our adopted workflow is project policy, not built-in behavior for every filename |
+| S13 | [Architecture technology review and inline primary sources](../architecture/TECHNOLOGY_TRADEOFFS.md) | Official documentation for storage/WASM, Polars, UI/API, solvers, risk/research, packaging and verification alternatives | Baseline adopted by owner; no packages installed, integrated, benchmarked or qualified |
+| S14 | [IBKR Tax Optimizer window](https://www.ibkrguides.com/traderworkstation/the-tax-optimizer-window.htm) | Specific Lot matching interface and remaining-time display, revisited for critical review | No account session, actual deadline, exported confirmation or broker workflow qualified |
+| S15 | [SQLite transactions](https://sqlite.org/lang_transaction.html), [backup API](https://sqlite.org/backup.html) | Single-writer transaction behavior and consistent database backup options | Application atomicity, backup bundle and restore are design requirements, not implemented controls |
+| S16 | [Tax-aware portfolio construction](https://web.stanford.edu/~boyd/papers/tax_aware_portfolio.html), [separable portfolio optimization](https://stanford.edu/~boyd/papers/portf_constr_lcso.html) | Primary author summaries/abstracts on tax-lot formulations, relaxations/heuristics and discrete restrictions | Full derivations/reference code not reproduced; paper assumptions/performance do not establish Prosper compliance or outcomes |
+
+## What is design judgment
+
+The adopted scope, modular Python architecture, local store, constrained optimization direction, scale target, schedule ranges, review gates and conservative exclusions originated as design recommendations and were accepted by the owner. Primary sources above do not validate those engineering choices or estimate delivery time. The revised effort envelope is planning judgment, not external research or observed throughput.
+
+Official solver, risk-library and technology documentation was reviewed for the architecture comparison. The critical review also checked primary research author summaries/abstracts and revisited IRS wash-sale/identification/special-loss-character material, broker lot-matching and SQLite recovery/transaction documentation. No research algorithm, live brokerage API, risk dataset or market-data vendor was independently implemented/evaluated; no tax practitioner or legal adviser was engaged. Continuous-solver/shrinkage direction is adopted; detailed formulation, data/settings and numerical qualification remain open. No statements about expected tax alpha, broker commission rates or personalized tax rates were relied on.
+
+## Maintaining source-backed rules
+
+For each implemented rule, retain source URL/edition, relevant section, checked date, supported factual scope, expected cases and reviewer disposition. Recheck on tax-year changes and before a release affecting that behavior. When a source is ambiguous or changes, mark the dependent capability unsupported until resolved rather than silently preserving a stale assumption.
+
+Keep quotations brief. Store our own explanations, pointers and synthetic arithmetic cases rather than copying entire publications into source. Third-party code and data need independent license/rights review even when the project code is open source.
+
+## Next-step workflow references
+
+Checked October 22, 2026: [official AGENTS.md discovery documentation](https://learn.chatgpt.com/docs/agent-configuration/agents-md) supports using repository instructions as the entry point; [official GPT-6.1 Sol documentation](https://developers.openai.com/api/docs/models/gpt-6.1-sol) lists high reasoning effort. The [developer commands reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli) was consulted; this project does not install a native `/next` command. Natural-language invocation is the portable project convention. The conservative fit rubric and stop-after-decomposition rule are owner-requested project policy, not a benchmark of model capacity. Current-conversation renaming was exercised through the app's title tool; future tool availability is not assumed.

@@ -1,0 +1,11 @@
+# Contribution framework
+
+Prosper has a locally verified Python development baseline and a local Git repository. There is no public repository, chosen software license, runnable investor application or accepted public contribution workflow yet. No license grant is implied by the open-source goal; ownership, license and contribution terms must be resolved before external contributions/public distribution.
+
+Start with [AGENTS.md](AGENTS.md), the [project plan](docs/PROJECT_PLAN.md), [decisions](docs/DECISIONS.md) and [current status](docs/STATUS.md). Follow the [agent workflow](docs/engineering/AGENT_WORKFLOW.md) for scoped work and evidence. Authority follows the current request and next-step assessment; T003.1 did not authorize its successor. Use the exercised commands and project-local environment and ordinary tool paths in the [development guide](docs/engineering/DEVELOPMENT.md).
+
+Future contributions should begin with an investor outcome and independently reasoned acceptance cases. Tax/risk/basis changes need sourced semantics and appropriate review; an isolated UI or documentation fix does not require reopening the entire architecture. Keep behavior, tests and documentation together in a small reviewable slice.
+
+Use synthetic data and do not include proprietary index/market data, real brokerage exports or account details. External library, solver and dataset licenses need review before incorporation. An open-source software license does not cover third-party data.
+
+A Windows GitHub Actions workflow is prepared in `.github/workflows/checks.yml`; hosted execution has not occurred. No active Git hooks, remote branch protection, CLA, developer certificate of origin or issue templates are installed. Git uses LF-normalized text and explicit binary attributes, with `.editorconfig` matching the convention; global Git settings are unchanged. Use the supplemental manifest update/check command in the development guide before committing authored changes. Future source hosting follows the owner's GitHub preference; remote creation/upload, repository visibility and public licensing remain separate steps.

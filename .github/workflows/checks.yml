@@ -1,0 +1,35 @@
+name: Development checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-python:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version-file: .python-version
+          architecture: x64
+      - name: Bootstrap locked developer environment
+        run: .\scripts\dev.ps1 -Command bootstrap
+      - name: Lint, type, test and documentation checks
+        run: .\scripts\dev.ps1 -Command check
+      - name: Build and import wheel in a fresh environment
+        run: .\scripts\dev.ps1 -Command package
