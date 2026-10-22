@@ -1,6 +1,6 @@
 # Adopted architecture
 
-Status: architecture adopted by the project owner on October 22, 2026. See [ADR-0001](decisions/0001-adopt-project-architecture.md). [T003.1](../tasks/T003.1-development-baseline.md) now supplies a locally verified minimal Python package/developer environment only; no financial behavior, database, web server or external integration exists. Architecture acceptance is not implementation verification or authorization.
+Status: architecture adopted by the project owner on October 22, 2026. See [ADR-0001](decisions/0001-adopt-project-architecture.md). T003.1 supplies the locally verified Python developer baseline and [T003.2](../tasks/T003.2-exact-values.md) adds exact-value/synthetic diagnostic allocation primitives. No checkpoint importer, tax/risk engine, database, web server or external integration exists. Architecture acceptance is not implementation verification or authorization.
 
 The [technology tradeoff review](TECHNOLOGY_TRADEOFFS.md) explains the reasoning, strong alternatives, pros/cons and qualification triggers for thirteen primary choices. Its recommended baseline and staged learning policy are now adopted; alternatives and unqualified experimental components remain explicitly separate.
 
