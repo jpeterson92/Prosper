@@ -4,7 +4,9 @@ Updated October 22, 2026.
 
 ## Authorization and current result
 
-Latest task: **standard local filesystem development setup**, explicitly requested by the owner after moving Prosper to `C:\Users\jpete\Documents\Projects\Prosper`. The owner authorized revisiting Google Drive-driven decisions and better local dependency placement, with GitHub intended for future source backup/change control. This task changes development configuration, documentation and local verification only. It does not invoke `/next` or begin T003.2/application features. [ADR-0003](architecture/decisions/0003-adopt-standard-local-development.md) and D037 adopt the new setup; [setup evidence](tasks/SETUP-local-filesystem.md) records commands/results and remaining limitations.
+Latest task: **connect the owner-created GitHub repository**. The owner supplied [jpeterson92/Prosper](https://github.com/jpeterson92/Prosper) after the local setup handoff. The repository was empty when inspected; origin is now connected over HTTPS. Initial push was rejected by GitHub authentication, so no source has been uploaded and no CI run exists. Repository-local Git Credential Manager configuration uses Windows Credential Manager; global Git settings and repository visibility are unchanged. Authentication is the remaining dependency. This infrastructure continuation does not invoke `/next` or authorize a successor feature.
+
+Previous completed task: **standard local filesystem development setup**, explicitly requested by the owner after moving Prosper to `C:\Users\jpete\Documents\Projects\Prosper`. The owner authorized revisiting Google Drive-driven decisions and better local dependency placement, with GitHub intended for future source backup/change control. This task changes development configuration, documentation and local verification only. It does not invoke `/next` or begin T003.2/application features. [ADR-0003](architecture/decisions/0003-adopt-standard-local-development.md) and D037 adopt the new setup; [setup evidence](tasks/SETUP-local-filesystem.md) records commands/results and remaining limitations.
 
 The core typed Python/SQLite, React/TypeScript/Vite, FastAPI/Pydantic, analytical/research and conditional desktop choices retain their product/financial rationale. They did not depend on Google Drive. Private investor data remains outside the source repository for publication privacy and lifecycle/recovery reasons. Synthetic development artifacts may use ignored local folders.
 
@@ -15,11 +17,11 @@ The core typed Python/SQLite, React/TypeScript/Vite, FastAPI/Pydantic, analytica
 - Project-local `.venv` editable development with 20 locked distributions including Prosper; ignored `.tools/uv` bootstrap, normal user uv cache and project-local checker/test caches. The old external temporary environments are no longer required or referenced by active setup commands and were left untouched.
 - `scripts/dev.ps1` bootstrap/sync/check/package operations, four toolchain qualification tests, separate fresh wheel installation/import smoke check, and `scripts/check_project.py` for authored text/local links/manifest validation.
 - UTF-8/LF editor/Git conventions, expanded generated/private-file ignore rules, and a prepared SHA-pinned read-only Windows GitHub Actions workflow. Hosted execution remains unperformed.
-- A local Git repository, with no remote. See candidate identity below for the current commit/permission result. The supplemental [manifest](PLANNING_MANIFEST.sha256) identifies authored content and excludes itself, Git internals and ignored generated/private state.
+- A local Git repository with origin `https://github.com/jpeterson92/Prosper.git`, currently awaiting authenticated upload. See candidate identity below for the current commit/permission result. The supplemental [manifest](PLANNING_MANIFEST.sha256) identifies authored content and excludes itself, Git internals and ignored generated/private state.
 
 ## What does not exist
 
-No financial/application behavior, exact-value primitives, tax/risk engine, optimizer, broker adapter, database, API/UI, investor installer or released application. No real portfolios/accounts, trades, public repository, remote upload, selected project software license or deployment. No independent software/tax/legal review, investor acceptance, fresh-agent instruction-loading check or hosted CI pass has occurred. The four tests qualify the toolchain only and cover none of V01-V47's financial/application scenarios.
+No financial/application behavior, exact-value primitives, tax/risk engine, optimizer, broker adapter, database, API/UI, investor installer or released application. No real portfolios/accounts, trades, remote upload, selected project software license or deployment. No independent software/tax/legal review, investor acceptance, fresh-agent instruction-loading check or hosted CI pass has occurred. The four tests qualify the toolchain only and cover none of V01-V47's financial/application scenarios.
 
 ## Local setup verification
 
@@ -33,7 +35,7 @@ Same-agent source/configuration and policy-consistency review completed. Indepen
 
 ## Candidate identity
 
-Local staging and `git diff --cached --check` succeeded using the existing author identity; all 51 staged files have LF working/index text. This setup is being recorded as the initial local `main` checkpoint after final checks. Its exact commit ID is reported in the task handoff and can be read with `git rev-parse HEAD`; the evidence file in that commit describes its tree without embedding a self-referential commit hash. No remote, push or public release is implied. The [setup evidence](tasks/SETUP-local-filesystem.md) and supplemental authored-tree manifest record verification limits; neither is a release signature.
+Initial local baseline: `234382dcf3f82b9b25eaeab7d27e453dcdbc185f` on `main`. The GitHub-connection follow-up changes documentation and the supplemental manifest only; its exact local commit is reported in the handoff and resolved by `git rev-parse HEAD`. Origin is connected, but the attempted push failed authentication, so no upstream tracking branch or uploaded commit exists yet. Local links/manifest, whitespace and policy consistency are checked for this documentation update; application/toolchain tests were not rerun because executable source, lock and workflow are unchanged. [Setup evidence](tasks/SETUP-local-filesystem.md) records the original qualification and this continuation. No financial-use release is implied.
 
 ## Next task and remaining gates
 
@@ -41,9 +43,9 @@ Local staging and `git diff --cached --check` succeeded using the existing autho
 
 T002/T017 must obtain early G1 evidence for a supported broker/manual workflow and permitted benchmark/quote/history inputs before substantial broker-facing/quantitative work. T018 carries written state/recovery requirements into future slices. G2/G3 still require model, specialist and investor evidence before financial use. Ready means ready to attempt, not accepted/released.
 
-The decision register has **25 accepted, 5 confirmed and 7 open** entries (37 total). Open: D010 broker/workflow; D012 risk data/settings, discrete method and investor limits; D014 license; D016 distribution/service legal qualification; D017 supported tax year/freshness; D018 remote visibility/setup, name/release/support details (GitHub preference now confirmed within its rationale); D027 first experiment. No previously accepted product choice needs repeated approval solely because the folder changed.
+The decision register has **25 accepted, 5 confirmed and 7 open** entries (37 total). Open: D010 broker/workflow; D012 risk data/settings, discrete method and investor limits; D014 license; D016 distribution/service legal qualification; D017 supported tax year/freshness; D018 name/public distribution/release/support details (owner-created GitHub repository and connected origin now recorded); D027 first experiment. No previously accepted product choice needs repeated approval solely because the folder changed.
 
-The next optional infrastructure action is owner-directed GitHub repository/visibility selection, remote connection and initial upload, followed by an observed hosted workflow run and appropriate branch protection. GitHub source backup does not cover ignored files/private investor state, which needs its own future application backup/recovery flow.
+The next infrastructure action is complete GitHub authentication, push the reviewed local history to the connected origin, then observe hosted CI and assess appropriate branch protection. The attempted push did not upload source. No visibility or repository-setting changes were made. GitHub source backup does not cover ignored files/private investor state, which needs its own future application backup/recovery flow.
 
 ## Historical evidence
 

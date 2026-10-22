@@ -69,7 +69,7 @@ See [architecture](architecture/ARCHITECTURE.md), [data contracts](architecture/
 
 ## Local development and source control
 
-The owner moved the project out of Google Drive and adopted a standard local filesystem baseline in [ADR-0003](architecture/decisions/0003-adopt-standard-local-development.md). Development dependencies live in project-local `.venv`; normal caches and ignored synthetic artifacts are allowed. Private investor data remains outside source. GitHub is the intended source backup/change-control host; a Windows CI workflow is prepared, with remote setup/upload and hosted verification still separate. Core architecture choices retain their product/financial rationale and qualification gates. See the [development guide](engineering/DEVELOPMENT.md) and [setup evidence](tasks/SETUP-local-filesystem.md).
+The owner moved the project out of Google Drive and adopted a standard local filesystem baseline in [ADR-0003](architecture/decisions/0003-adopt-standard-local-development.md). Development dependencies live in project-local `.venv`; normal caches and ignored synthetic artifacts are allowed. Private investor data remains outside source. The owner created [jpeterson92/Prosper](https://github.com/jpeterson92/Prosper) for source backup/change control and origin is connected. A Windows CI workflow is prepared; initial upload is currently blocked on authentication and hosted verification remains unperformed. Core architecture choices retain their product/financial rationale and qualification gates. See the [development guide](engineering/DEVELOPMENT.md) and [setup evidence](tasks/SETUP-local-filesystem.md).
 
 ## Milestones and acceptance gates
 
