@@ -73,8 +73,22 @@ try {
                 $prosperWheels = @(Get-ChildItem -LiteralPath (Join-Path $prosperProbe 'dist') -Filter '*.whl')
                 if ($prosperWheels.Count -ne 1) { throw 'Expected exactly one built wheel.' }
                 $prosperProbePython = Join-Path $prosperProbe '.venv\Scripts\python.exe'
+                # Qualify exact locked runtime dependencies without installing editable Prosper.
+                $prosperPriorTarget = $env:UV_PROJECT_ENVIRONMENT
+                $prosperPriorVirtual = $env:VIRTUAL_ENV
+                try {
+                    $env:UV_PROJECT_ENVIRONMENT = Join-Path $prosperProbe '.venv'
+                    $env:VIRTUAL_ENV = Join-Path $prosperProbe '.venv'
+                    & $prosperExecutable -m uv sync --locked --offline --no-dev --no-install-project --python $prosperProbePython
+                    if ($LASTEXITCODE -ne 0) { throw 'Locked runtime dependency installation failed.' }
+                } finally {
+                    $env:UV_PROJECT_ENVIRONMENT = $prosperPriorTarget
+                    $env:VIRTUAL_ENV = $prosperPriorVirtual
+                }
                 & $prosperExecutable -m uv pip install --offline --no-deps --python $prosperProbePython $prosperWheels[0].FullName
                 if ($LASTEXITCODE -ne 0) { throw 'Wheel install failed.' }
+                & $prosperExecutable -m uv pip check --python $prosperProbePython
+                if ($LASTEXITCODE -ne 0) { throw 'Wheel runtime dependency check failed.' }
                 Push-Location -LiteralPath $prosperProbe
                 try {
                     & $prosperProbePython -I -c "import sys, prosper; from pathlib import Path; from importlib.metadata import version; p = Path(prosper.__file__).resolve(); assert p.is_relative_to(Path(sys.prefix).resolve()), p; assert p.with_name('py.typed').is_file(); print('Wheel import OK:', version('prosper-local'), p)"

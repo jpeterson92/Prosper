@@ -1,6 +1,6 @@
 # Data-contract framework
 
-Status: conceptual semantics adopted as part of the October 22, 2026 project baseline. These tables are not implemented schemas or public API compatibility promises. T001-T004 will qualify precise formats/fields and turn accepted semantics into versioned schemas and synthetic fixtures.
+Status: conceptual semantics adopted as part of the October 22, 2026 project baseline. These tables describe conceptual semantics rather than public API compatibility promises. [T004.1.1](../tasks/T004.1.1-synthetic-bundle-parsing.md) implements the first closed synthetic schema/fixtures and structural parser; cross-record financial reconciliation and workflow/state contracts remain unimplemented.
 
 ## Shared conventions
 

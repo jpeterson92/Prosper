@@ -1,6 +1,6 @@
 # T003/T004: Synthetic import foundation child plan
 
-Date: October 22, 2026. Stage: **T003.1 and T003.2 locally verified; T004.1 decomposed by a later planning-only invocation**. Parent IDs T003 and T004 are retained from the [project plan](../PROJECT_PLAN.md). This plan sequences their foundation work; it does not complete either parent or T003's later solver qualification. The original decomposition evidence below remains historical; [T003.1 execution evidence](T003.1-development-baseline.md), [T003.2 evidence](T003.2-exact-values.md) and the [T004.1 child plan](T004.1-checkpoint-validation-plan.md) record subsequent work.
+Date: October 22, 2026. Stage: **T003.1, T003.2 and T004.1.1 locally verified; T004.1.2 ready to attempt**. Parent IDs T003 and T004 are retained from the [project plan](../PROJECT_PLAN.md). This plan sequences their foundation work; it does not complete either parent or T003's later solver qualification. The original decomposition evidence below remains historical; [T003.1 execution evidence](T003.1-development-baseline.md), [T003.2 evidence](T003.2-exact-values.md) and the [T004.1 child plan](T004.1-checkpoint-validation-plan.md) record subsequent work.
 
 ## Authority and observed base (original decomposition)
 
@@ -28,8 +28,8 @@ Decision: decompose the parent and stop after documentation verification. A read
 | 1 | [T003.1](#t0031-reproducible-python-development-baseline) | Repeatable local Python development and candidate identity | Existing G0/architecture documents | **verified** locally |
 | 2 | [T003.2](#t0032-exact-value-primitives) | Qualified exact-value primitives | T003.1 locally verified | **verified** locally |
 | 3 | [T004.1](#t0041-canonical-checkpoint-validation) | Parent: validated synthetic checkpoint with located diagnostics | Both T004.1 children below | **waiting on dependency** |
-| 3a | [T004.1.1](T004.1-checkpoint-validation-plan.md#t00411-strict-synthetic-bundle-parsing) | Strictly parsed synthetic bundle and evidence identity | T003.2 locally verified; scoped schema-library qualification included | **ready** to attempt |
-| 3b | [T004.1.2](T004.1-checkpoint-validation-plan.md#t00412-checkpoint-reconciliation-and-readiness) | Reconciled checkpoint and truthful incomplete/readiness reasons | T004.1.1 locally verified | **waiting on dependency** |
+| 3a | [T004.1.1](T004.1-checkpoint-validation-plan.md#t00411-strict-synthetic-bundle-parsing) | Strictly parsed synthetic bundle and evidence identity | T003.2 locally verified; schema library qualified | **verified** locally |
+| 3b | [T004.1.2](T004.1-checkpoint-validation-plan.md#t00412-checkpoint-reconciliation-and-readiness) | Reconciled checkpoint and truthful incomplete/readiness reasons | T004.1.1 locally verified | **ready** to attempt |
 | 4 | [T003.3](#t0033-exact-checkpoint-persistence) | Exact immutable checkpoint/evidence persistence | T004.1 locally verified | **waiting on dependency** |
 | 5 | [T004.2](#t0042-preview-and-atomic-import-commit) | Safe preview/commit application workflow | T003.3 locally verified | **waiting on dependency** |
 | 6 | [T004.3](#t0043-foundation-backup-and-restore) | Consistent recovery of foundation state and evidence | T004.2 locally verified | **waiting on dependency** |

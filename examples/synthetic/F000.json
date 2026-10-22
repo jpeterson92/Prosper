@@ -1,0 +1,307 @@
+{
+  "metadata": {
+    "schema_version": "synthetic-checkpoint-v1",
+    "semantics_version": "authoritative-checkpoint-v1",
+    "fictional": true,
+    "bundle_id": "F000",
+    "source_id": "SYNTHETIC-REFERENCE",
+    "source_version": "1",
+    "profile_id": "DEMO-HOUSEHOLD",
+    "cutoff": "2026-10-20T16:00:00-04:00",
+    "source_timezone": "America/New_York",
+    "inclusion": {
+      "value": "Prior authoritative checkpoint includes all stipulated earlier activity; BUY-001 has not occurred.",
+      "reason": null
+    },
+    "included_activity_ids": [],
+    "stipulations": [
+      "Fictional prior checkpoint: FAAA 10 at 100, FBBB 5 at 200, settled USD cash 500, old lots only.",
+      "Available/unsettled cash and household history completeness were not stipulated for this prior checkpoint; preserve unknowns.",
+      "No tax, broker, risk or planning qualification is implied."
+    ]
+  },
+  "accounts": [
+    {
+      "id": "DEMO-TAXABLE-1",
+      "source_ref": "SRC-ACCOUNT-1",
+      "alias": "Fictional taxable account",
+      "profile_id": "DEMO-HOUSEHOLD",
+      "currency": "USD",
+      "role": "traded",
+      "classification": {
+        "value": "U.S. individual taxable account, stipulated",
+        "reason": null
+      },
+      "relationship": {
+        "value": "Self-directed fictional owner",
+        "reason": null
+      },
+      "lot_method": {
+        "value": null,
+        "reason": "broker_not_qualified"
+      }
+    }
+  ],
+  "securities": [
+    {
+      "id": "SEC-FAAA",
+      "source_ref": "SRC-SEC-FAAA",
+      "issuer_id": {
+        "value": "ISSUER-FAAA",
+        "reason": null
+      },
+      "share_class_id": {
+        "value": "CLASS-FAAA",
+        "reason": null
+      },
+      "ticker": "FAAA",
+      "currency": "USD",
+      "security_type": {
+        "value": "Ordinary common equity",
+        "reason": null
+      },
+      "tax_classification": {
+        "value": "Ordinary domestic-corporation common equity, synthetic stipulation",
+        "reason": null
+      },
+      "adjustments": {
+        "value": "No special distributions or corporate actions stipulated",
+        "reason": null
+      }
+    },
+    {
+      "id": "SEC-FBBB",
+      "source_ref": "SRC-SEC-FBBB",
+      "issuer_id": {
+        "value": "ISSUER-FBBB",
+        "reason": null
+      },
+      "share_class_id": {
+        "value": "CLASS-FBBB",
+        "reason": null
+      },
+      "ticker": "FBBB",
+      "currency": "USD",
+      "security_type": {
+        "value": "Ordinary common equity",
+        "reason": null
+      },
+      "tax_classification": {
+        "value": "Ordinary domestic-corporation common equity, synthetic stipulation",
+        "reason": null
+      },
+      "adjustments": {
+        "value": "No special distributions or corporate actions stipulated",
+        "reason": null
+      }
+    }
+  ],
+  "positions": [
+    {
+      "id": "POSITION-FAAA",
+      "source_ref": "SRC-POSITION-FAAA",
+      "account_id": "DEMO-TAXABLE-1",
+      "security_id": "SEC-FAAA",
+      "checkpoint_id": "F000",
+      "quantity": {
+        "value": "10",
+        "reason": null
+      }
+    },
+    {
+      "id": "POSITION-FBBB",
+      "source_ref": "SRC-POSITION-FBBB",
+      "account_id": "DEMO-TAXABLE-1",
+      "security_id": "SEC-FBBB",
+      "checkpoint_id": "F000",
+      "quantity": {
+        "value": "5",
+        "reason": null
+      }
+    }
+  ],
+  "lots": [
+    {
+      "id": "LOT-A-OLD",
+      "source_ref": "SRC-LOT-A-OLD",
+      "account_id": "DEMO-TAXABLE-1",
+      "security_id": "SEC-FAAA",
+      "checkpoint_id": "F000",
+      "quantity": {
+        "value": "10",
+        "reason": null
+      },
+      "acquired": {
+        "value": "2024-01-02",
+        "reason": null
+      },
+      "holding_evidence": {
+        "value": "No carried holding period or adjustments stipulated",
+        "reason": null
+      },
+      "basis": {
+        "value": "1000",
+        "reason": null
+      },
+      "basis_quantum": {
+        "value": "0.01",
+        "reason": null
+      },
+      "adjustments": {
+        "value": "No basis adjustments stipulated",
+        "reason": null
+      }
+    },
+    {
+      "id": "LOT-B-OLD",
+      "source_ref": "SRC-LOT-B-OLD",
+      "account_id": "DEMO-TAXABLE-1",
+      "security_id": "SEC-FBBB",
+      "checkpoint_id": "F000",
+      "quantity": {
+        "value": "5",
+        "reason": null
+      },
+      "acquired": {
+        "value": "2024-01-02",
+        "reason": null
+      },
+      "holding_evidence": {
+        "value": "No carried holding period or adjustments stipulated",
+        "reason": null
+      },
+      "basis": {
+        "value": "1000",
+        "reason": null
+      },
+      "basis_quantum": {
+        "value": "0.01",
+        "reason": null
+      },
+      "adjustments": {
+        "value": "No basis adjustments stipulated",
+        "reason": null
+      }
+    }
+  ],
+  "cash": [
+    {
+      "id": "CASH-USD",
+      "source_ref": "SRC-CASH-USD",
+      "account_id": "DEMO-TAXABLE-1",
+      "checkpoint_id": "F000",
+      "currency": "USD",
+      "settled": {
+        "value": "500",
+        "reason": null
+      },
+      "available": {
+        "value": null,
+        "reason": "not_stipulated"
+      },
+      "unsettled": {
+        "value": null,
+        "reason": "not_stipulated"
+      }
+    }
+  ],
+  "activity": [],
+  "quotes": [
+    {
+      "id": "MARK-FAAA",
+      "source_ref": "SRC-MARK-FAAA",
+      "security_id": "SEC-FAAA",
+      "currency": "USD",
+      "price": {
+        "value": "100",
+        "reason": null
+      },
+      "as_of": {
+        "value": "2026-10-20T16:00:00-04:00",
+        "reason": null
+      },
+      "kind": {
+        "value": "Synthetic valuation mark, not execution quote",
+        "reason": null
+      },
+      "session": {
+        "value": "Closing checkpoint",
+        "reason": null
+      },
+      "adjustments": {
+        "value": "Unadjusted fictional mark",
+        "reason": null
+      }
+    },
+    {
+      "id": "MARK-FBBB",
+      "source_ref": "SRC-MARK-FBBB",
+      "security_id": "SEC-FBBB",
+      "currency": "USD",
+      "price": {
+        "value": "200",
+        "reason": null
+      },
+      "as_of": {
+        "value": "2026-10-20T16:00:00-04:00",
+        "reason": null
+      },
+      "kind": {
+        "value": "Synthetic valuation mark, not execution quote",
+        "reason": null
+      },
+      "session": {
+        "value": "Closing checkpoint",
+        "reason": null
+      },
+      "adjustments": {
+        "value": "Unadjusted fictional mark",
+        "reason": null
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "id": "COVERAGE-HOUSEHOLD",
+      "scope": "household",
+      "account_id": {
+        "value": null,
+        "reason": "not_applicable_household_scope"
+      },
+      "starts": {
+        "value": null,
+        "reason": "not_stipulated_for_prior_checkpoint"
+      },
+      "ends": {
+        "value": null,
+        "reason": "not_stipulated_for_prior_checkpoint"
+      },
+      "status": "unknown",
+      "evidence": {
+        "value": null,
+        "reason": "not_stipulated_for_prior_checkpoint"
+      },
+      "activity_types": [],
+      "automation": {
+        "value": null,
+        "reason": "not_stipulated"
+      },
+      "other_accounts": {
+        "value": null,
+        "reason": "not_stipulated"
+      },
+      "outstanding_restrictions": {
+        "value": null,
+        "reason": "not_stipulated"
+      },
+      "verification_date": {
+        "value": null,
+        "reason": "not_stipulated"
+      },
+      "expiry_date": {
+        "value": null,
+        "reason": "freshness_policy_not_qualified"
+      }
+    }
+  ]
+}
