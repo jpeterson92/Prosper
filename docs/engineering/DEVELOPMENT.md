@@ -2,7 +2,7 @@
 
 Updated October 22, 2026. [ADR-0003](../architecture/decisions/0003-adopt-standard-local-development.md) adopts a standard local filesystem checkout and supersedes the original Google Drive/external-temp procedure. The current checkout is `C:\Users\jpete\Documents\Projects\Prosper`; commands do not hardcode that machine path. [T003.1](../tasks/T003.1-development-baseline.md) is historical evidence of the first bootstrap; [setup evidence](../tasks/SETUP-local-filesystem.md) records the migration checks.
 
-This developer package includes T003.2 exact-value/synthetic diagnostic allocation primitives and T004.1.1 strictly parsed synthetic bundles/evidence identity. No investor application, tax engine, API, database or UI exists. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
+This guide owns exercised developer commands; [STATUS](../STATUS.md) and task reports own current module coverage and observed results. No investor application, tax engine, API, database or UI exists. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
 
 ## Prerequisites and first setup
 
