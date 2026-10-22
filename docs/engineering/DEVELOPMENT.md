@@ -2,7 +2,7 @@
 
 Updated October 22, 2026. [ADR-0003](../architecture/decisions/0003-adopt-standard-local-development.md) adopts a standard local filesystem checkout and supersedes the original Google Drive/external-temp procedure. The current checkout is `C:\Users\jpete\Documents\Projects\Prosper`; commands do not hardcode that machine path. [T003.1](../tasks/T003.1-development-baseline.md) is historical evidence of the first bootstrap; [setup evidence](../tasks/SETUP-local-filesystem.md) records the migration checks.
 
-This is a minimal developer package and toolchain, with no financial/application behavior, API, database or UI. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
+This is a minimal developer package and toolchain with T003.2 exact-value/synthetic diagnostic allocation primitives. No investor application, tax engine, API, database or UI exists. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
 
 ## Prerequisites and first setup
 
@@ -55,7 +55,7 @@ New-Item -ItemType Directory -Force '.local/pytest' | Out-Null
 .venv\Scripts\python.exe scripts/check_project.py
 ```
 
-The four bootstrap tests qualify editable installed imports from an unrelated working directory, deliberate Ruff/type errors, and positive/negative pytest/Hypothesis execution. Expected failing subprocesses are asserted by passing outer tests. They validate no financial behavior. `package` separately builds a wheel offline, creates a fresh isolated environment, installs only that wheel, then imports with Python isolation enabled and verifies the package/typing marker came from that environment. It leaves synthetic output in ignored `.local/package-check`; it is no release installer or reproducible-build claim.
+The four bootstrap tests qualify editable installed imports from an unrelated working directory, deliberate Ruff/type errors, and positive/negative pytest/Hypothesis execution. Expected failing subprocesses are asserted by passing outer tests. They validate no financial behavior. T003.2's separate 56 primitive cases include four deterministic property tests against rational references; [task evidence](../tasks/T003.2-exact-values.md) records their scope and actual results. `package` separately builds a wheel offline, creates a fresh isolated environment, installs only that wheel, then imports with Python isolation enabled and verifies the package/typing marker came from that environment. It leaves synthetic output in ignored `.local/package-check`; it is no release installer or reproducible-build claim.
 
 Pinned development versions remain Ruff **0.17.2**, mypy **2.4.0** strict, pytest **9.1.1**, Hypothesis **6.170.5**, Hatchling **1.32.4**, uv **0.13.5**. [The dependency inventory](DEVELOPMENT_DEPENDENCIES.md) lists the 19 external distributions and metadata/license limits. Prosper has no runtime dependencies or selected public software license. Add API/frontend/numerical tools only in their owning child tasks. A filesystem move is not a reason to install the entire future stack.
 

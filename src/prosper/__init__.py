@@ -1,1 +1,1 @@
-"""Prosper's synthetic development package; no financial behavior is implemented."""
+"""Prosper's synthetic development core; no investor application or tax engine."""
