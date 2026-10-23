@@ -75,6 +75,13 @@ tbody th { font-weight: 600; }
 .diagnostic h1 { font-size: 28px; }
 .diagnostic p { font-size: 13px; }
 .footnote { font-size: 12px; color: #52665c; }
+.lifecycle { border-color: #91b59c; background: #fafff9; }
+.lifecycle p { font-size: 13px; }
+.lifecycle-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.review-check { display: flex; align-items: flex-start; gap: 9px; line-height: 1.6; margin: 18px 0; }
+.resume-command { border-top: 1px solid #d4dfd5; margin-top: 22px; padding-top: 14px; }
+.resume-command label { margin-top: 12px; }
+.lifecycle > button { margin: 8px 10px 0 0; }
 @media (max-width: 700px) {
   main { padding: 26px 18px 44px; }
   .page-header { display: block; }

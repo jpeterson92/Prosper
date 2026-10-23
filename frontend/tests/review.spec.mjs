@@ -85,7 +85,8 @@ for (const seeded of [false, true]) {
       await page.getByRole("button", { name: "Retrieve preview", exact: true }).click();
       await expect(reviewStatus(page)).toContainText("Retained preview retrieved.");
       await expect(preview).toContainText(identity);
-      await expect(page.getByRole("button", { name: /commit|reject|approve.*trade/i })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: /approve.*trade/i })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Commit reviewed preview", exact: true })).toBeDisabled();
       const after = inspect(directory);
       expect(after.current).toEqual(before.current);
       for (const table of ["checkpoints", "import_commands", "import_activations"]) expect(after.counts[table]).toBe(before.counts[table]);

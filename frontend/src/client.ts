@@ -3,6 +3,12 @@ import type { paths, components } from "./generated/api";
 
 export type Current = components["schemas"]["CurrentResponse"];
 export type Preview = components["schemas"]["PreviewResponse"];
+export type CommitRequest = components["schemas"]["CommitRequest"];
+export type Command = components["schemas"]["CommandResponse"];
+
+function generation(value: number) {
+  if (!Number.isSafeInteger(value) || value < 0) throw new ClientError("request_failed");
+}
 
 export class ClientError extends Error {
   constructor(readonly code: "session_unavailable" | "request_failed", readonly status?: number) {
@@ -34,9 +40,7 @@ export async function connect(origin = window.location.origin) {
     async current(): Promise<Current> {
       const result = await client.GET("/api/v1/current");
       if (!result.data) throw new ClientError("request_failed", result.response.status);
-      if (!Number.isSafeInteger(result.data.generation) || result.data.generation < 0) {
-        throw new ClientError("request_failed");
-      }
+      generation(result.data.generation);
       return result.data;
     },
     async stage(raw: Uint8Array<ArrayBuffer>): Promise<Preview> {
@@ -51,6 +55,24 @@ export async function connect(origin = window.location.origin) {
     async preview(identity: string): Promise<Preview> {
       const result = await client.GET("/api/v1/previews/{identity}", {
         params: { path: { identity } },
+      });
+      if (!result.data) throw new ClientError("request_failed", result.response.status);
+      return result.data;
+    },
+    async commit(body: CommitRequest): Promise<Command> {
+      generation(body.expected_generation);
+      const result = await client.POST("/api/v1/commit", { body });
+      if (!result.data) throw new ClientError("request_failed", result.response.status);
+      generation(result.data.generation);
+      generation(result.data.expected_generation);
+      if (result.data.activation_generation !== null) generation(result.data.activation_generation);
+      if (result.data.command_key !== body.command_key || result.data.preview_sha256 !== body.preview_sha256 ||
+          result.data.expected_generation !== body.expected_generation) throw new ClientError("request_failed");
+      return result.data;
+    },
+    async reject(identity: string): Promise<Preview> {
+      const result = await client.POST("/api/v1/reject", {
+        body: { schema_version: "synthetic-import-api-v1", preview_sha256: identity },
       });
       if (!result.data) throw new ClientError("request_failed", result.response.status);
       return result.data;
