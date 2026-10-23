@@ -10,7 +10,7 @@ import re
 import stat
 from dataclasses import dataclass
 from pathlib import Path, PureWindowsPath
-from typing import Literal
+from typing import Literal, Self
 from uuid import uuid4
 
 from prosper.bundle import MAX_BYTES
@@ -167,6 +167,16 @@ def _publish(staged: Path, final: Path) -> None:
 
 
 class EvidenceStore:
+    @classmethod
+    def existing(cls, runtime: RuntimeBoundary) -> Self:
+        """Read adapter without directory creation; never initialize missing state."""
+        runtime.check()
+        if not runtime.root.is_dir():
+            raise EvidenceError("runtime_missing")
+        result = cls.__new__(cls)
+        result.runtime = runtime
+        return result
+
     def __init__(self, runtime: RuntimeBoundary) -> None:
         self.runtime = runtime
         try:

@@ -10,7 +10,7 @@ import stat
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import cast
+from typing import Self, cast
 
 from prosper.bundle import ParsedBundle, parse_bundle
 from prosper.bundle_schema import CANONICALIZATION_VERSION
@@ -176,6 +176,17 @@ class CheckpointStore:
     New raw versions append even for an existing source ID; storing a version
     does not accept a correction or select it as the active portfolio.
     """
+
+    @classmethod
+    def existing(cls, evidence: EvidenceStore) -> Self:
+        """Construct a guarded adapter without creating/upgrading a database.
+
+        Readers still verify schema on their connection. Missing DBs stay missing.
+        """
+        result = cls.__new__(cls)
+        result.evidence = evidence
+        result._guard_paths()
+        return result
 
     def __init__(self, evidence: EvidenceStore) -> None:
         self.evidence = evidence

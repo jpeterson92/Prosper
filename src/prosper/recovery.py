@@ -164,77 +164,85 @@ def _receipt(item: BackupFile) -> EvidenceReceipt:
 
 
 def _verify_state(store: CheckpointStore) -> tuple[StateSummary, tuple[EvidenceReceipt, ...]]:
-    """Reconstruct every row, including inactive checkpoints and failed commands."""
-    service = ImportService(store)
-    receipts: dict[str, EvidenceReceipt] = {}
     with closing(store._connect()) as connection:
         connection.execute("BEGIN")
-        store._check_schema(connection)
-        if connection.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
-            raise RecoveryError("backup_database_corrupt")
-        checkpoints = connection.execute("SELECT * FROM checkpoints ORDER BY sequence").fetchall()
-        previews = connection.execute(
-            "SELECT * FROM import_previews ORDER BY raw_sha256"
-        ).fetchall()
-        for row in checkpoints:
-            receipt = store._load(cast(tuple[object, ...], row)).receipt
-            receipts[receipt.relative_reference] = receipt
-        for row in previews:
-            receipt = service.previews._row(connection, row[0]).receipt
-            prior = receipts.get(receipt.relative_reference, receipt)
-            if prior != receipt:
-                raise RecoveryError("backup_reference_mismatch")
-            receipts[receipt.relative_reference] = receipt
-        history = service._history(connection)
-        commands = connection.execute("SELECT * FROM import_commands").fetchall()
-        for row in commands:
-            command = _decode(cast(tuple[object, ...], row))
-            preview = service.previews._row(connection, command.preview_sha256)
-            if (
-                command.generation > len(history)
-                or _check_recorded_time(command.recorded_at)
-                < _check_recorded_time(preview.recorded_at)
-                or (
-                    command.activation_generation is not None
-                    and history[command.activation_generation - 1].receipt.raw_sha256
-                    != command.preview_sha256
-                )
-            ):
-                raise RecoveryError("backup_command_relation_invalid")
-        if len(receipts) > MAX_OBJECTS:
-            raise RecoveryError("backup_size_exceeded")
-        return (
-            StateSummary(
-                checkpoints=len(checkpoints),
-                previews=len(previews),
-                commands=len(commands),
-                generation=len(history),
-            ),
-            tuple(receipts[key] for key in sorted(receipts)),
-        )
+        return _verify_connection(store, connection)
+
+
+def _verify_connection(
+    store: CheckpointStore, connection: sqlite3.Connection
+) -> tuple[StateSummary, tuple[EvidenceReceipt, ...]]:
+    """Reconstruct every row on the caller's coherent read snapshot."""
+    service = ImportService(store)
+    receipts: dict[str, EvidenceReceipt] = {}
+    store._check_schema(connection)
+    if connection.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
+        raise RecoveryError("backup_database_corrupt")
+    checkpoints = connection.execute("SELECT * FROM checkpoints ORDER BY sequence").fetchall()
+    previews = connection.execute("SELECT * FROM import_previews ORDER BY raw_sha256").fetchall()
+    for row in checkpoints:
+        receipt = store._load(cast(tuple[object, ...], row)).receipt
+        receipts[receipt.relative_reference] = receipt
+    for row in previews:
+        receipt = service.previews._row(connection, row[0]).receipt
+        prior = receipts.get(receipt.relative_reference, receipt)
+        if prior != receipt:
+            raise RecoveryError("backup_reference_mismatch")
+        receipts[receipt.relative_reference] = receipt
+    history = service._history(connection)
+    commands = connection.execute("SELECT * FROM import_commands").fetchall()
+    for row in commands:
+        command = _decode(cast(tuple[object, ...], row))
+        preview = service.previews._row(connection, command.preview_sha256)
+        if (
+            command.generation > len(history)
+            or _check_recorded_time(command.recorded_at) < _check_recorded_time(preview.recorded_at)
+            or (
+                command.activation_generation is not None
+                and history[command.activation_generation - 1].receipt.raw_sha256
+                != command.preview_sha256
+            )
+        ):
+            raise RecoveryError("backup_command_relation_invalid")
+    if len(receipts) > MAX_OBJECTS:
+        raise RecoveryError("backup_size_exceeded")
+    return (
+        StateSummary(
+            checkpoints=len(checkpoints),
+            previews=len(previews),
+            commands=len(commands),
+            generation=len(history),
+        ),
+        tuple(receipts[key] for key in sorted(receipts)),
+    )
 
 
 def _references(boundary: RuntimeBoundary) -> tuple[EvidenceReceipt, ...]:
-    """Read reference metadata from a snapshot, without opening any evidence paths."""
+    """Read reference metadata from a snapshot without opening evidence paths."""
     database = boundary.path(DATABASE_NAME)
     with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as connection:
         connection.execute("PRAGMA trusted_schema=OFF")
-        CheckpointStore._check_schema(connection)
-        if connection.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
-            raise RecoveryError("backup_database_corrupt")
-        rows = connection.execute(
-            "SELECT raw_sha256, evidence_length, evidence_reference, evidence_version "
-            "FROM checkpoints UNION "
-            "SELECT raw_sha256, evidence_length, evidence_reference, evidence_version "
-            "FROM import_previews LIMIT ?",
-            (MAX_OBJECTS + 1,),
-        ).fetchall()
-        if len(rows) > MAX_OBJECTS:
-            raise RecoveryError("backup_size_exceeded")
-        receipts = tuple(EvidenceReceipt(*row) for row in rows)
-        if len({item.relative_reference for item in receipts}) != len(receipts):
-            raise RecoveryError("backup_reference_mismatch")
-        return tuple(sorted(receipts, key=lambda item: item.relative_reference))
+        connection.execute("BEGIN")
+        return _references_connection(connection)
+
+
+def _references_connection(connection: sqlite3.Connection) -> tuple[EvidenceReceipt, ...]:
+    CheckpointStore._check_schema(connection)
+    if connection.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
+        raise RecoveryError("backup_database_corrupt")
+    rows = connection.execute(
+        "SELECT raw_sha256, evidence_length, evidence_reference, evidence_version "
+        "FROM checkpoints UNION "
+        "SELECT raw_sha256, evidence_length, evidence_reference, evidence_version "
+        "FROM import_previews LIMIT ?",
+        (MAX_OBJECTS + 1,),
+    ).fetchall()
+    if len(rows) > MAX_OBJECTS:
+        raise RecoveryError("backup_size_exceeded")
+    receipts = tuple(EvidenceReceipt(*row) for row in rows)
+    if len({item.relative_reference for item in receipts}) != len(receipts):
+        raise RecoveryError("backup_reference_mismatch")
+    return tuple(sorted(receipts, key=lambda item: item.relative_reference))
 
 
 def _step(name: str) -> None:
