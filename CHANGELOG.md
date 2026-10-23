@@ -4,6 +4,10 @@ This file summarizes authored changes. Entries under Unreleased are development 
 
 ## Unreleased
 
+### October 23, 2026: protected diagnostic loopback runtime
+
+- Added [T003.4.1 protected diagnostic loopback runtime](docs/tasks/T003.4.1-loopback-runtime.md): exact host/origin/development-port policy, in-memory per-launch bearer acquisition, protected diagnostic/shutdown operations, bounded timed request buffering and real HTTP/process security cases. Qualified the locked FastAPI/minimal Uvicorn stack; telemetry and request logs are disabled. No financial HTTP routes or browser UI are included. STATUS owns current verification and next-task authority.
+
 ### October 22, 2026: synthetic checkpoint foundation
 
 - Added [bounded exact decimal primitives](docs/tasks/T003.2-exact-values.md): original source text/quantum, explicit unknowns, deterministic arithmetic and a synthetic diagnostic basis-allocation rule.

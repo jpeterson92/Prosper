@@ -28,6 +28,24 @@ Metadata may omit a precise SPDX expression. The inventory preserves classifier-
 
 The isolated tools bootstrap also contained ensurepip's pip 24.0; this was supplied by the existing Python installation and used only to install uv 0.13.5. It is not in the project environments or project lock. The existing Python/Git/PowerShell installations are prerequisites, not newly installed dependencies. Further backend/API/frontend packages enter only in their corresponding child tasks with updated qualification and rights inventory.
 
+## T003.4.1 local API runtime qualification
+
+Observed October 23, 2026 on CPython 3.12.4 Windows x64. FastAPI is the adopted API direction; minimal Uvicorn supplies the actual local h11/asyncio process. Direct versions are pinned, transitive versions/hashes are locked. No standard extras, frontend, SDK or telemetry exporter were installed. Nine new external distributions bring the development environment to 33 distributions including Prosper, and the wheel runtime to 15 including Prosper. These installed license labels are metadata evidence, not a legal/security audit or public distribution/license commitment; D014/D016 remain open.
+
+| Distribution | Exact version | Role | Installed license metadata |
+| --- | --- | --- | --- |
+| fastapi | 0.161.1 | Adopted typed API | MIT expression |
+| uvicorn | 0.54.0 | Minimal local ASGI server | BSD-3-Clause expression |
+| starlette | 1.9.0 | Required ASGI routing/lifecycle | BSD-3-Clause expression |
+| anyio | 4.15.1 | Required async framework | MIT expression |
+| annotated-doc | 0.0.5 | Required annotation metadata | MIT expression |
+| click | 8.5.0 | Server dependency | BSD-3-Clause expression |
+| h11 | 0.16.0 | Explicit HTTP/1.1 protocol | MIT classifier; no License-Expression |
+| idna | 3.20 | Required identifier codec | BSD-3-Clause expression |
+| opentelemetry-api | 1.45.1 | FastAPI required API dependency | Apache-2.0 expression |
+
+FastAPI/Uvicorn public metadata declares Python >=3.10. Installed metadata labels Starlette and h11 Alpha and FastAPI/Uvicorn Beta; functional local qualification is bounded to this exact lock and host, not a maturity/security certification. FastAPI's required telemetry API does not imply an exporter; the application explicitly disables automatic configuration/tracing/metrics/logs, including when `FASTAPI_OTEL_AUTO_CONFIGURE=true` is inherited. Existing exact Pydantic versions remain unchanged. [PyPI FastAPI metadata](https://pypi.org/pypi/fastapi/0.161.1/json), [Uvicorn metadata](https://pypi.org/pypi/uvicorn/0.54.0/json), [official origin guidance](https://fastapi.tiangolo.com/tutorial/cors/) and installed server/framework source informed qualification. No package source was modified or vendored. [Task evidence](../tasks/T003.4.1-loopback-runtime.md) records the actual check/package results.
+
 ## T004.1.1 runtime schema qualification
 
 Observed October 22, 2026 on the same CPython 3.12.4 Windows x64 development host. Pydantic is the already adopted schema direction, introduced only when implementing real typed bundle models. Public PyPI metadata reported Pydantic 2.14.1 supporting Python >=3.10; project installation, strict typing, generic Fact/ExactValue validators, JSON-schema generation and the fresh wheel runtime check were exercised. No timezone/email extras, FastAPI or frontend packages were installed. All four newly introduced distributions declare MIT in installed License-Expression metadata; this inventory does not establish a legal/vulnerability audit or select Prosper's license.

@@ -1,5 +1,7 @@
 # Verification suites
 
+`test_local_api.py` adds 28 real HTTP/process security cases for T003.4.1: exact loopback host/origin/session bootstrap, trusted development port, same-origin GET metadata, preflight, bearer/cookie/query refusal, body/header/deadline bounds, early denial, disabled WebSockets, shutdown and restart invalidation. It captures process output without printing tokens and enables inherited telemetry auto-configuration to check the explicit application override. [Task evidence](../docs/tasks/T003.4.1-loopback-runtime.md) owns observed full-suite/package/installed results and unverified browser/security boundaries. No financial route or UI is exercised by these diagnostic cases.
+
 `test_bootstrap.py` contains four locally exercised toolchain qualification tests: editable package import from an unrelated working directory, negative Ruff/type-check probes and positive/negative pytest/Hypothesis execution. They create synthetic probe files in fresh ignored project-local scratch directories when run through the helper and validate no financial behavior. Use the [development guide](../docs/engineering/DEVELOPMENT.md) and `scripts/dev.ps1 -Command check`; no empty test collection is treated as passing.
 
 The [validation plan](../docs/engineering/VALIDATION.md) and [written reference portfolio](../docs/domain/REFERENCE_PORTFOLIO.md) still define unimplemented financial/application expectations.

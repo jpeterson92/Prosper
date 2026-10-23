@@ -57,7 +57,32 @@ New-Item -ItemType Directory -Force '.local/pytest' | Out-Null
 
 The four bootstrap tests qualify editable installed imports from an unrelated working directory, deliberate Ruff/type errors, and positive/negative pytest/Hypothesis execution. Expected failing subprocesses are asserted by passing outer tests. They validate no financial behavior. T003.2's separate 56 primitive cases include four deterministic property tests against rational references; [task evidence](../tasks/T003.2-exact-values.md) records their scope and actual results. T004.1.1 adds 82 parser cases including two deterministic property tests. `package` builds a wheel offline, creates a fresh isolated environment, installs only the exact locked runtime dependencies via `uv sync --locked --offline --no-dev --no-install-project`, then installs Prosper's wheel with no editable source. It checks installed dependency compatibility and imports with Python isolation enabled, verifying package/typing-marker origin. The environment target and VIRTUAL_ENV overrides are process-scoped and restored. The isolated parser smoke in task evidence exercises the actual installed module with F000/F001. It leaves synthetic output in ignored `.local/package-check`; it is no release installer or reproducible-build claim.
 
-Pinned development versions remain Ruff **0.17.2**, mypy **2.4.0** strict, pytest **9.1.1**, Hypothesis **6.170.5**, Hatchling **1.32.4**, uv **0.13.5**. [The dependency inventory](DEVELOPMENT_DEPENDENCIES.md) lists the 19 external distributions and metadata/license limits. Prosper's runtime dependency is now Pydantic 2.14.1 with its locked required packages, qualified in T004.1.1. No public Prosper software license is selected. Add API/frontend/numerical tools only in their owning child tasks. A filesystem move is not a reason to install the entire future stack.
+Pinned development versions remain Ruff **0.17.2**, mypy **2.4.0** strict, pytest **9.1.1**, Hypothesis **6.170.5**, Hatchling **1.32.4**, uv **0.13.5**. [The dependency inventory](DEVELOPMENT_DEPENDENCIES.md) retains baseline and subsequent runtime metadata/license limits. Runtime now includes Pydantic 2.14.1 and T003.4.1's pinned FastAPI/minimal Uvicorn stack described below. No public Prosper software license is selected. Add frontend/numerical tools only in their owning child tasks. A filesystem move is not a reason to install the entire future stack.
+
+## Protected synthetic loopback runtime
+
+T003.4.1 adds a diagnostic process, separate from investor installation or financial API access. From the checkout root:
+
+```powershell
+.venv/Scripts/python.exe -m prosper.local_api
+```
+
+The launcher owns an IPv4 socket bound only to `127.0.0.1`, using an OS-selected port by default. `--port <1-65535>` selects an explicit port. It prints one public JSON `origin` line, never a token; HTTP processing starts immediately afterward. Address conflicts/invalid ports fail without a traceback or secret-bearing output. Stop with the protected shutdown operation or normal process termination.
+
+| Request | Required boundary | Response |
+| --- | --- | --- |
+| `POST /session` with empty body | Exact allowed Origin, exact Host including API port, `X-Prosper-Bootstrap: 1` | In-memory per-launch bearer token; repeated acquisition returns the same token |
+| `GET /diagnostic` | Allowed Origin and `Authorization: Bearer <token>` | Closed synthetic status model; `planning_ready: false` |
+| `POST /shutdown` with empty body | Allowed Origin and bearer token | Invalidates the session and stops this process |
+| `OPTIONS` | Allowed Origin, requested GET/POST and only listed headers | Narrow CORS preflight; no session or financial state |
+
+Same-origin browser GETs can omit Origin only when they include `Sec-Fetch-Site: same-origin` and the bearer token. Missing Origin on bootstrap/mutation, opaque `null` and other origins are rejected. Host must always be the exact `127.0.0.1:<API-port>` authority; `localhost`, other ports/names, wildcard hosts and forwarded/proxy headers grant no access. All other paths require a bearer before routing, including disabled docs/OpenAPI paths. Tokens belong only in memory and the authorization header; query strings are refused, cookies grant no session, responses are no-store and no token is persisted. Browser execution is still unverified; these are real HTTP/process checks, with browser integration owned by T004.4.
+
+Development cross-origin access is disabled by default. `--development-port 5173` explicitly allows exactly `http://127.0.0.1:5173` in addition to the API origin, without changing the bind address; the actual frontend port must match. No wildcard, automatic port fallback, credential cookie or remote serving is provided. The trusted local development server can acquire the session; malicious local processes or code at an explicitly trusted origin are outside this browser-origin boundary. It is not OS-user authentication, TLS or a sandbox against local malware.
+
+Requests pass host/origin/session checks before reading bodies. Header totals are capped at 16 KiB in the ASGI guard, with h11's incomplete-event limit also 16 KiB. Declared/streamed bodies are limited to 2 MiB, accumulated in one bounded byte buffer with a three-second receive deadline before any route parser; this diagnostic slice rejects every nonempty body. Uvicorn uses h11/asyncio, transport read backpressure, a 16-request concurrency guard, no WebSockets, two-second keepalive and three-second graceful shutdown. Connections close after responses. These are engineering limits, not a measured throughput/DoS guarantee; idle sockets/incomplete-header attacks and hostile-local-process resistance remain unqualified.
+
+Access/error request logging and FastAPI tracing/metrics/logs/automatic telemetry configuration are explicitly disabled. No SDK/exporter, Swagger/CDN assets or remote data service is installed by this feature. [Dependency inventory](DEVELOPMENT_DEPENDENCIES.md#t00341-local-api-runtime-qualification) records the locked stack and license metadata; [task evidence](../tasks/T003.4.1-loopback-runtime.md) owns commands, installed-wheel qualification and limitations. The import services remain library-only until T003.4.2. Do not launch the internal ASGI application through an arbitrary server or treat another host/proxy configuration as qualified.
 
 ## Synthetic evidence adapter
 
