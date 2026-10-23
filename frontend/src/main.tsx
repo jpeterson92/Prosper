@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { runProbe } from "./probe";
+import { Review } from "./review";
 import "./style.css";
 
 function Probe() {
@@ -16,18 +17,18 @@ function Probe() {
       setStatus("Connection unavailable. Check that the configured synthetic runtime is running, then try again.");
     } finally { setBusy(false); }
   }
-  return <main>
+  return <div className="diagnostic">
     <p className="eyebrow">PROSPER / DEVELOPMENT</p>
     <h1>Synthetic browser probe</h1>
     <p>This diagnostic checks the protected local connection using fictional development data.</p>
     <section aria-label="Connection diagnostic">
       <span className="badge">Synthetic data only</span>
       <h2>Local connection</h2>
-      <p role="status">{status}</p>
+      <p role="status" aria-label="Diagnostic status">{status}</p>
       <button disabled={busy} onClick={() => void run()}>{busy ? "Checking…" : "Check connection"}</button>
     </section>
     <p className="footnote">Technical diagnostic. Portfolio review and import actions arrive in a later stage.</p>
-  </main>;
+  </div>;
 }
 
-createRoot(document.getElementById("root")!).render(<Probe />);
+createRoot(document.getElementById("root")!).render(<main><Review /><details className="developer"><summary>Developer connection diagnostic</summary><Probe /></details></main>);

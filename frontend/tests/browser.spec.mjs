@@ -42,9 +42,10 @@ for (const seeded of [false, true]) {
       const token = await server.session();
       const before = fixture("inspect", directory);
       await page.goto(server.origin);
+      await page.getByText("Developer connection diagnostic", { exact: true }).click();
       await page.getByRole("button", { name: "Check connection" }).click();
-      await expect(page.getByRole("status")).toContainText(`F001/F004 transport verified. Active generation: ${seeded ? 1 : 0}`);
-      await expect(page.getByRole("button")).toHaveCount(1);
+      await expect(page.getByRole("status", { name: "Diagnostic status" })).toContainText(`F001/F004 transport verified. Active generation: ${seeded ? 1 : 0}`);
+      await expect(page.getByRole("button", { name: /commit|reject|approve.*trade/i })).toHaveCount(0);
       const after = fixture("inspect", directory);
       expect(after.current).toEqual(before.current);
       expect(after.counts.checkpoints).toBe(before.counts.checkpoints);
@@ -103,8 +104,9 @@ test("real browser denies foreign origin, missing/invalid session and old token 
       await restarted.session();
       const status = await page.evaluate(async (token) => (await fetch("/api/v1/current", { headers: { Authorization: `Bearer ${token}` } })).status, oldToken);
       expect(status).toBe(401);
+      await page.getByText("Developer connection diagnostic", { exact: true }).click();
       await page.getByRole("button", { name: "Check connection" }).click();
-      await expect(page.getByRole("status")).toContainText("transport verified");
+      await expect(page.getByRole("status", { name: "Diagnostic status" })).toContainText("transport verified");
     } finally { await restarted.stop(); }
   } finally { if (!stopped) await server.stop(); await foreign.stop(); }
 });
@@ -114,9 +116,10 @@ test("diagnostic error status is safe and usable", async ({ page }) => {
   try {
     await page.goto(server.origin);
     await page.route("**/session", (route) => route.fulfill({ status: 503, contentType: "text/plain", body: "synthetic refusal" }));
-    await page.getByRole("button", { name: "Check connection" }).click();
-    await expect(page.getByRole("status")).toContainText("Connection unavailable.");
-    await expect(page.getByRole("button")).toBeEnabled();
+    await page.getByText("Developer connection diagnostic", { exact: true }).click();
+      await page.getByRole("button", { name: "Check connection" }).click();
+    await expect(page.getByRole("status", { name: "Diagnostic status" })).toContainText("Connection unavailable.");
+    await expect(page.getByRole("button", { name: "Check connection" })).toBeEnabled();
     await mkdir(results, { recursive: true });
     await page.screenshot({ path: path.join(results, "probe-error.png"), fullPage: true });
   } finally { await server.stop(); }
@@ -132,9 +135,10 @@ for (const kind of ["non-json", "unsafe-generation"]) {
         contentType: kind === "non-json" ? "text/plain" : "application/json",
         body: kind === "non-json" ? "synthetic protocol failure" : '{"generation":9007199254740993,"checkpoint":null,"planning_ready":false,"schema_version":"synthetic-import-api-v1"}',
       }));
+      await page.getByText("Developer connection diagnostic", { exact: true }).click();
       await page.getByRole("button", { name: "Check connection" }).click();
-      await expect(page.getByRole("status")).toContainText("Connection unavailable.");
-      await expect(page.getByRole("button")).toBeEnabled();
+      await expect(page.getByRole("status", { name: "Diagnostic status" })).toContainText("Connection unavailable.");
+      await expect(page.getByRole("button", { name: "Check connection" })).toBeEnabled();
     } finally { await server.stop(); }
   });
 }
