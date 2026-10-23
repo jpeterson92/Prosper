@@ -85,7 +85,7 @@ def test_f000_f001_reopen_independent_values_and_sql_types(store: CheckpointStor
         assert row[:5] == ("text", "text", "181", "text", "12")
         assert row[5] == "2026-10-22T16:00:00-04:00"
         assert row[6] == current.recorded_at and row[5] != row[6]
-        assert connection.execute("PRAGMA user_version").fetchone() == (2,)
+        assert connection.execute("PRAGMA user_version").fetchone() == (3,)
     ignored = subprocess.run(
         ["git", "check-ignore", str(store.evidence.runtime.root)], cwd=SOURCE, capture_output=True
     )

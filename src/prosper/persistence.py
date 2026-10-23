@@ -20,7 +20,7 @@ from prosper.evidence import EvidenceReceipt, EvidenceStore
 STORAGE_VERSION = "checkpoint-sqlite-v1"
 DATABASE_NAME = "checkpoints-v1.sqlite3"
 APPLICATION_ID = 0x50525350
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 _COLUMNS = (
     "raw_sha256",
     "canonical_sha256",
@@ -60,7 +60,7 @@ _SCHEMA = """CREATE TABLE checkpoints (
     evidence_reference TEXT NOT NULL,
     inspection_version TEXT NOT NULL
 ) STRICT"""
-_PREVIEW_SCHEMA = """CREATE TABLE import_previews (
+_PREVIEW_SCHEMA_V2 = """CREATE TABLE import_previews (
     raw_sha256 TEXT PRIMARY KEY NOT NULL,
     recorded_at TEXT NOT NULL,
     state TEXT NOT NULL CHECK(state IN ('staged', 'rejected')),
@@ -71,6 +71,29 @@ _PREVIEW_SCHEMA = """CREATE TABLE import_previews (
     preview_version TEXT NOT NULL,
     CHECK((state = 'staged' AND rejected_at IS NULL) OR
           (state = 'rejected' AND rejected_at IS NOT NULL))
+) STRICT"""
+_PREVIEW_SCHEMA = _PREVIEW_SCHEMA_V2.replace(
+    "('staged', 'rejected')", "('staged', 'rejected', 'committed')"
+).replace("state = 'staged' AND", "state IN ('staged', 'committed') AND")
+_ACTIVATION_SCHEMA = """CREATE TABLE import_activations (
+    generation INTEGER PRIMARY KEY CHECK(generation > 0),
+    raw_sha256 TEXT NOT NULL UNIQUE,
+    recorded_at TEXT NOT NULL
+) STRICT"""
+_RECEIPT_SCHEMA = """CREATE TABLE import_commands (
+    scope TEXT NOT NULL,
+    command_key TEXT NOT NULL,
+    payload_version TEXT NOT NULL,
+    payload_sha256 TEXT NOT NULL,
+    preview_sha256 TEXT NOT NULL,
+    expected_generation INTEGER NOT NULL CHECK(expected_generation >= 0),
+    outcome TEXT NOT NULL CHECK(outcome IN (
+        'committed', 'duplicate', 'stale_generation', 'preview_rejected',
+        'preview_invalid', 'identity_review_required', 'source_conflict')),
+    generation INTEGER NOT NULL CHECK(generation >= 0),
+    activation_generation INTEGER,
+    recorded_at TEXT NOT NULL,
+    PRIMARY KEY(scope, command_key)
 ) STRICT"""
 
 
@@ -173,6 +196,8 @@ class CheckpointStore:
                     try:
                         connection.execute(_SCHEMA)
                         connection.execute(_PREVIEW_SCHEMA)
+                        connection.execute(_ACTIVATION_SCHEMA)
+                        connection.execute(_RECEIPT_SCHEMA)
                         connection.execute(f"PRAGMA application_id={APPLICATION_ID}")
                         connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                         self._guard_paths()
@@ -185,9 +210,21 @@ class CheckpointStore:
                     # altered schema or initialize an existing empty database.
                     connection.execute("BEGIN IMMEDIATE")
                     try:
-                        if connection.execute("PRAGMA user_version").fetchone() == (1,):
-                            self._check_schema(connection, version=1)
+                        prior_version = connection.execute("PRAGMA user_version").fetchone()
+                        if prior_version in ((1,), (2,)):
+                            self._check_schema(connection, version=prior_version[0])
+                            if prior_version == (2,):
+                                connection.execute(
+                                    "ALTER TABLE import_previews RENAME TO old_previews"
+                                )
                             connection.execute(_PREVIEW_SCHEMA)
+                            if prior_version == (2,):
+                                connection.execute(
+                                    "INSERT INTO import_previews SELECT * FROM old_previews"
+                                )
+                                connection.execute("DROP TABLE old_previews")
+                            connection.execute(_ACTIVATION_SCHEMA)
+                            connection.execute(_RECEIPT_SCHEMA)
                             connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                             _before_upgrade_commit(connection)
                         self._check_schema(connection)
@@ -226,7 +263,15 @@ class CheckpointStore:
     @staticmethod
     def _check_schema(connection: sqlite3.Connection, *, version: int = SCHEMA_VERSION) -> None:
         expected = [("table", "checkpoints", _SCHEMA)]
-        if version == SCHEMA_VERSION:
+        if version == 2:
+            expected.append(("table", "import_previews", _PREVIEW_SCHEMA_V2))
+        if version == 3:
+            expected.extend(
+                [
+                    ("table", "import_activations", _ACTIVATION_SCHEMA),
+                    ("table", "import_commands", _RECEIPT_SCHEMA),
+                ]
+            )
             expected.append(("table", "import_previews", _PREVIEW_SCHEMA))
         if (
             connection.execute("PRAGMA application_id").fetchone() != (APPLICATION_ID,)
@@ -301,33 +346,7 @@ class CheckpointStore:
                 self._check_schema(connection)
                 connection.execute("BEGIN IMMEDIATE")
                 try:
-                    existing = connection.execute(
-                        "SELECT * FROM checkpoints WHERE raw_sha256=?",
-                        (checkpoint.source.raw_sha256,),
-                    ).fetchone()
-                    if existing is not None:
-                        stored = self._load(cast(tuple[object, ...], existing))
-                    else:
-                        if receipt is None:
-                            receipt = self.evidence.publish(checkpoint.source.raw_bytes)
-                        if self.evidence.read(receipt) != checkpoint.source.raw_bytes:
-                            raise PersistenceError("evidence_checkpoint_mismatch")
-                        recorded = (
-                            datetime.now(UTC)
-                            .isoformat(timespec="microseconds")
-                            .replace("+00:00", "Z")
-                        )
-                        columns = ",".join(_COLUMNS)
-                        placeholders = ",".join("?" for _ in _COLUMNS)
-                        connection.execute(
-                            f"INSERT INTO checkpoints ({columns}) VALUES ({placeholders})",
-                            _values(inspection.source, receipt, recorded, inspection.version),
-                        )
-                        row = connection.execute(
-                            "SELECT * FROM checkpoints WHERE raw_sha256=?", (receipt.raw_sha256,)
-                        ).fetchone()
-                        stored = self._load(cast(tuple[object, ...], row))
-                        _before_commit(connection)
+                    stored = self._append_in_transaction(connection, inspection, receipt)
                     self._guard_paths()
                     self.evidence.read(stored.receipt)
                     connection.commit()
@@ -337,3 +356,35 @@ class CheckpointStore:
                     raise
         except sqlite3.Error:
             raise PersistenceError("database_append_failed") from None
+
+    def _append_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        inspection: Inspection,
+        receipt: EvidenceReceipt | None,
+    ) -> StoredCheckpoint:
+        """Internal shared write boundary; caller owns commit/rollback and validation."""
+        if not connection.in_transaction or inspection.validated is None:
+            raise PersistenceError("checkpoint_transaction_required")
+        existing = connection.execute(
+            "SELECT * FROM checkpoints WHERE raw_sha256=?", (inspection.source.raw_sha256,)
+        ).fetchone()
+        if existing is not None:
+            return self._load(cast(tuple[object, ...], existing))
+        if receipt is None:
+            receipt = self.evidence.publish(inspection.source.raw_bytes)
+        if self.evidence.read(receipt) != inspection.source.raw_bytes:
+            raise PersistenceError("evidence_checkpoint_mismatch")
+        recorded = datetime.now(UTC).isoformat(timespec="microseconds").replace("+00:00", "Z")
+        columns = ",".join(_COLUMNS)
+        placeholders = ",".join("?" for _ in _COLUMNS)
+        connection.execute(
+            f"INSERT INTO checkpoints ({columns}) VALUES ({placeholders})",
+            _values(inspection.source, receipt, recorded, inspection.version),
+        )
+        row = connection.execute(
+            "SELECT * FROM checkpoints WHERE raw_sha256=?", (receipt.raw_sha256,)
+        ).fetchone()
+        stored = self._load(cast(tuple[object, ...], row))
+        _before_commit(connection)
+        return stored

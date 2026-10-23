@@ -1,4 +1,4 @@
-"""Durable synthetic preview/rejection; no portfolio activation or commit command."""
+"""Durable synthetic preview/rejection, shared by the atomic import service."""
 
 import hashlib
 import re
@@ -28,7 +28,7 @@ class PreviewError(PersistenceError):
 class ImportPreview:
     receipt: EvidenceReceipt
     recorded_at: str
-    state: Literal["staged", "rejected"]
+    state: Literal["staged", "rejected", "committed"]
     rejected_at: str | None
     parsing: ParseResult
     inspection: Inspection | None
@@ -65,13 +65,13 @@ class PreviewService:
             or any(not isinstance(row[i], str) for i in (0, 1, 2, 4, 6, 7))
             or type(row[5]) is not int
             or row[7] != PREVIEW_VERSION
-            or row[2] not in ("staged", "rejected")
+            or row[2] not in ("staged", "rejected", "committed")
         ):
             raise PreviewError("stored_preview_metadata_mismatch")
         recorded = cast(str, row[1])
         started = _check_recorded_time(recorded)
         rejected = row[3]
-        if row[2] == "staged":
+        if row[2] in ("staged", "committed"):
             if rejected is not None:
                 raise PreviewError("stored_preview_transition_invalid")
         elif not isinstance(rejected, str) or _check_recorded_time(rejected) < started:
@@ -95,7 +95,18 @@ class PreviewService:
         ).fetchone()
         if row is None:
             raise PreviewError("preview_missing")
-        return self._load(cast(tuple[object, ...], row))
+        result = self._load(cast(tuple[object, ...], row))
+        if result.state == "committed":
+            activation = connection.execute(
+                "SELECT generation FROM import_activations WHERE raw_sha256=?", (identity,)
+            ).fetchone()
+            checkpoint = connection.execute(
+                "SELECT * FROM checkpoints WHERE raw_sha256=?", (identity,)
+            ).fetchone()
+            if activation is None or checkpoint is None:
+                raise PreviewError("stored_preview_transition_invalid")
+            self.store._load(cast(tuple[object, ...], checkpoint))
+        return result
 
     def get(self, identity: str) -> ImportPreview:
         self._identity(identity)
@@ -150,6 +161,8 @@ class PreviewService:
                         )
                     else:
                         prior = self._load(cast(tuple[object, ...], existing))
+                        if raw is None and prior.state == "committed":
+                            raise PreviewError("committed_preview_cannot_reject")
                         if raw is None and prior.state == "staged":
                             connection.execute(
                                 "UPDATE import_previews SET state='rejected', rejected_at=? "

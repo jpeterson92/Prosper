@@ -62,6 +62,8 @@ def legacy(service: PreviewService) -> list[tuple[object, ...]]:
     # user_version=1, and no workflow tables. Preserve populated rows verbatim.
     with closing(connect(service)) as connection, connection:
         connection.execute("DROP TABLE import_previews")
+        connection.execute("DROP TABLE import_activations")
+        connection.execute("DROP TABLE import_commands")
         connection.execute("PRAGMA user_version=1")
         persistence.CheckpointStore._check_schema(connection, version=1)
         return connection.execute("SELECT * FROM checkpoints").fetchall()
@@ -292,7 +294,8 @@ def test_sql_lifecycle_constraints_reject_inconsistent_states(service: PreviewSe
     service.stage(raw(document()))
     with closing(connect(service)) as connection, connection:
         for sql in (
-            "UPDATE import_previews SET state='committed'",
+            "UPDATE import_previews SET state='unsupported'",
+            "UPDATE import_previews SET state='committed', rejected_at='invalid'",
             "UPDATE import_previews SET state='rejected'",
             "UPDATE import_previews SET rejected_at='2026-10-23T00:00:00.000000Z'",
         ):
@@ -334,7 +337,7 @@ def test_upgrade_preserves_all_checkpoint_rows_and_append_behavior(service: Prev
     reopened = PreviewService(CheckpointStore(service.store.evidence))
     with closing(connect(service)) as connection:
         assert connection.execute("SELECT * FROM checkpoints").fetchall() == rows
-        assert connection.execute("PRAGMA user_version").fetchone() == (2,)
+        assert connection.execute("PRAGMA user_version").fetchone() == (3,)
     assert tuple(reopened.store.get(i) for i in reopened.store.list_ids()) == old
     seed(reopened, raw(data))
     assert len(reopened.store.list_ids()) == 3
@@ -349,7 +352,7 @@ def test_failed_upgrade_restores_exact_prior_schema_and_rows(
 
     def fail(connection: sqlite3.Connection) -> None:
         assert connection.in_transaction
-        assert connection.execute("PRAGMA user_version").fetchone() == (2,)
+        assert connection.execute("PRAGMA user_version").fetchone() == (3,)
         raise sqlite3.OperationalError("synthetic upgrade interruption")
 
     with monkeypatch.context() as patch:
