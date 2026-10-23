@@ -79,6 +79,14 @@ These defaults apply to implementation, planning and configuration work. They go
 
 Routine authorized debugging, checks and remediation continue autonomously. Ask only for a consequential unresolved decision, missing information or permission actually required by the applicable boundary. Do not ask the owner to reconfirm already authorized routine steps.
 
+## GitHub synchronization and hosted CI handoff
+
+Owner-directed source synchronization uses a nonblocking hosted-CI handoff. This applies to sync completion; required local verification, independent financial review and release/acceptance gates remain unchanged. GitHub Actions continues to run normally.
+
+1. At the start of each authorized GitHub sync, inspect the preceding relevant run for the target branch/revision and any known unresolved CI failure. Record the exact revision, run link and observed result. If a previous run is still pending or running, note that state without waiting.
+2. If that inspection reveals failure, inspect its diagnostics and fix routine in-scope failures before the new upload, with appropriate local verification. Preserve consequential authority boundaries; report a concrete unresolved blocker if a fix requires a decision or access outside the authorized scope. Do not silently discard a known failure because a newer run was canceled or superseded.
+3. Complete the required local checks, documentation, commit and push; verify the remote reference. Finish the task without waiting, polling or watching for the newly triggered Actions run to finish. A single immediate status/link lookup is optional; report the new run as pending/running or unverified unless success was actually observed. Do not create a monitor or follow-up automation by default. Check its result on the next authorized sync.
+
 ## Conversation naming and handoff
 
 After selecting mode/task and before substantive edits, use the available Codex conversation-title tool to rename **only the current conversation**. When the tool supports an omitted thread ID meaning the calling conversation, prefer that rather than guessing IDs or listing unrelated chats. Reconcile the title at the end if the mode or actual scope changed. Do not create a new chat or rename older chats automatically.
