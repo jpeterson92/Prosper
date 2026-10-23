@@ -12,6 +12,7 @@ The project also serves as a current FinTech learning/interview showcase. The ow
 2. Read the [product specification](docs/product/SPEC.md) for the investor workflow and initial acceptance criteria.
 3. Review [decisions](docs/DECISIONS.md). Accepted architecture, conditional evaluations and genuinely open details are distinguished.
 4. See [current status](docs/STATUS.md) before starting another session.
+   The [change log](CHANGELOG.md) summarizes development changes and links to their evidence.
 5. Read the [critical pre-implementation review](docs/reviews/2026-10-22-pre-implementation-review.md) for product/engineering findings and their adopted disposition in [ADR-0002](docs/architecture/decisions/0002-adopt-critical-review-actions.md).
 
 The adopted first-product plan is a local application that imports tax lots and activity, reconciles them, compares a stock portfolio with a supplied benchmark, proposes an explainable harvest within explicit risk limits, and reconciles trades afterward. The investor controls account activity and execution.
@@ -48,7 +49,7 @@ Say **let's work on the next step** or **next**. The agent will inspect current 
 
 ## Development status
 
-Follow the [development guide](docs/engineering/DEVELOPMENT.md): run `scripts/dev.ps1 -Command bootstrap` once, then `scripts/dev.ps1 -Command check` and `scripts/dev.ps1 -Command package`. Dependencies live in the ignored project-local `.venv`; future dependency refreshes use `scripts/dev.ps1 -Command sync`. These commands are locally verified developer operations. Tests exercise the toolchain, bounded exact-value/synthetic allocation and strict synthetic parsing/evidence identity; they do not establish tax correctness or qualified broker accounting. There is no application run command or investor installation flow yet.
+Follow the [development guide](docs/engineering/DEVELOPMENT.md): run `scripts/dev.ps1 -Command bootstrap` once, then `scripts/dev.ps1 -Command check` and `scripts/dev.ps1 -Command package`. Dependencies live in the ignored project-local `.venv`; future dependency refreshes use `scripts/dev.ps1 -Command sync`. These commands are locally verified developer operations. The 259-test suite exercises the toolchain, exact-value/synthetic allocation, strict parsing, checkpoint inspection, original-evidence storage and exact SQLite persistence; it does not establish tax correctness, qualified broker accounting or investor acceptance. There is no application run command or investor installation flow yet. See the [change log](CHANGELOG.md) and [current status](docs/STATUS.md) for the development boundary.
 
 This project assumes a standard local filesystem folder. Git/GitHub version authored source and lockfiles; environments, caches and generated synthetic artifacts are ignored and rebuildable. Keep real brokerage files, private portfolio databases/reports and credentials outside the repository. Git ignore rules do not remove already tracked files. See [SECURITY.md](SECURITY.md).
 

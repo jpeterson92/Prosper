@@ -4,9 +4,9 @@ Updated October 22, 2026. This file owns current state and the single next-task 
 
 ## Current task and authority
 
-**Build T003.3.2: exact immutable SQLite checkpoints**, authorized by the owner's direct `/next`. All six fit criteria passed against `374eb2da38bd4a8e164c55eda5a259deda2e7f54`, preserving existing uncommitted workflow edits. [Task evidence](tasks/T003.3.2-sqlite-checkpoints.md) records assessment, timing and results. Branch: `codex/t003.3.2-sqlite-checkpoints`. Conversation: **Prosper | Build T003.3.2: persist exact SQLite checkpoints**.
+**Sync accumulated source to GitHub**, explicitly authorized by the owner's request to sync all changes with documentation. [Synchronization evidence](tasks/SYNC-2026-10-22-github.md) and the [change log](../CHANGELOG.md) summarize scope and verification. Conversation: **Prosper | Sync: publish verified foundation to GitHub**. This is source synchronization, not a next-stage build or product release.
 
-T003.3.2 and its bounded T003.3 parent are implemented and locally verified. This invocation stops before T004.2 active-import workflow. No broker/account access, real data, subagent, push, merge, deployment or financial-use acceptance is included. Authorization and verification gates are unchanged.
+T003.3.2 and its bounded T003.3 parent remain implemented and locally verified. The authorized sync includes the seven accumulated local commits and remaining workflow-guidance changes, using a fast-forward main update and ordinary push. No T004.2 implementation, broker/account access, real data, subagent, release, deployment or financial-use acceptance is included. Financial/acceptance gates are unchanged.
 
 ## What exists
 
@@ -17,7 +17,7 @@ T003.3.2 and its bounded T003.3 parent are implemented and locally verified. Thi
 - T004.1.2 reference/cutoff/inclusion checks, exact position/lot/cash/basis/valuation inspection, scoped incomplete/contradictory readiness and snapshot comparison. Validated means inspection-valid under synthetic source assertions; planning-ready remains false. Cash buckets stay separate; `settled_cash_nav` values holdings plus supplied settled cash without assuming other buckets are zero.
 - T003.3.1 explicit synthetic/private runtime boundaries, immutable versioned original-evidence publication and bounded hash/length-verified retrieval. Private-mode qualification used only synthetic scratch; no investor runtime is installed. Missing/corrupt/redirected/multiple-link objects fail explicitly. Receipts do not commit imports.
 - T003.3.2 standard-library SQLite 3.45.3, version-one STRICT canonical-TEXT checkpoint storage, immutable append/read, raw duplicate reuse, source/recorded-time separation and verified reconstruction from original evidence. Failed inserts/evidence checks roll back references; prior versions remain queryable. Stored versions do not select an active portfolio or accept corrections.
-- Local Git and the connected owner-created [GitHub source repository](https://github.com/jpeterson92/Prosper); earlier main baseline was uploaded. This and preceding feature branches remain local/unmerged. Source backup does not cover private investor state or ignored artifacts.
+- Local Git and the connected owner-created [GitHub source repository](https://github.com/jpeterson92/Prosper). The accumulated feature history is being synchronized to main under this explicit request; final remote/CI evidence is recorded in the sync report. Source backup does not cover private investor state or ignored artifacts.
 
 ## Current evidence and limits
 
@@ -39,11 +39,11 @@ The [decision register](DECISIONS.md) retains 25 accepted, 5 confirmed and 7 ope
 
 ## Identity and historical evidence
 
-Workflow configuration, October 22: at the owner's request, [AGENTS.md](../AGENTS.md) adopts [efficient execution defaults](engineering/NEXT_STEP.md#efficient-execution-defaults), referenced by the agent workflow. This documentation-only change preserves the in-progress T003.3.1 build, its task pointer, financial checks and authority gates. `scripts/check_project.py --write-manifest`, the subsequent read-only checker (67 authored files, 44 Markdown files, 321 links), `git diff --check` and same-agent instruction/diff review passed. No application tests were run for this configuration task. Changes are uncommitted over `d13b729a12869a2527f1f82bfe3fcb01e130fb49` alongside separate in-progress build changes; the manifest records file identities. Next: apply these defaults on the next authorized task and compare timings across similar tasks. Fresh-session adherence and a speed improvement remain unverified.
+Workflow configuration, October 22: at the owner's request, [AGENTS.md](../AGENTS.md) adopts [efficient execution defaults](engineering/NEXT_STEP.md#efficient-execution-defaults), referenced by the agent workflow. The original documentation-only configuration checks passed while T003.3.1 was in progress; the later build reports preserve that chronology. This sync incorporates those previously separate uncommitted policy edits. Fresh-session adherence and a speed improvement remain unverified.
 
 The exact final local commit is reported in the handoff and resolved with `git rev-parse HEAD`, avoiding a self-referential hash. The [authored manifest](PLANNING_MANIFEST.sha256) fingerprints source/tests/fixtures/docs/lock; ignored/private state and Git internals are excluded. Publication, merge and release are separate owner-directed actions.
 
-Concurrent edits to AGENTS.md, NEXT_STEP.md and AGENT_WORKFLOW.md were discovered during verification and preserved outside this task's commit. The working-tree manifest includes their current hashes; the committed manifest matches the task's staged tree. Remaining concurrent changes are not part of the evidence-adapter implementation.
+The earlier evidence/SQLite build commits deliberately excluded concurrent AGENTS/NEXT_STEP/AGENT_WORKFLOW edits. This explicitly authorized synchronization now includes them and regenerates one manifest for the complete authored tree.
 
 - [Parser execution](tasks/T004.1.1-synthetic-bundle-parsing.md) and [T004.1 decomposition](tasks/T004.1-checkpoint-validation-plan.md).
 - [T003.3 decomposition and storage acceptance](tasks/T003.3-checkpoint-persistence-plan.md); planning only, no storage experiments.

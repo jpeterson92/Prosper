@@ -40,6 +40,10 @@ This is the authoritative project agent policy. `CLAUDE.md` imports it. Keep det
 - For future tax/optimizer changes, use independently justified expected outcomes and independent review where feasible. Do not claim agent-written tests establish tax correctness.
 - Do not spawn subagents unless the user or task instructions explicitly authorize delegation. Worktrees, if later used, do not isolate databases, credentials, ports, or other shared state.
 
+## Efficient execution
+
+Use the [efficient execution defaults](docs/engineering/NEXT_STEP.md#efficient-execution-defaults) for all authorized work: inspect required current context once, read focused dependencies, implement cohesive batches, run required verification without redundant repeats, and keep one material evidence record. Reassess scope when new evidence warrants it; do not add planning stages, abstractions or approval requests to routine work. These defaults do not reduce financial checks, independent-review requirements or authority boundaries.
+
 ## Verification and completion
 
 The [development guide](docs/engineering/DEVELOPMENT.md) records the exercised `scripts/dev.ps1` bootstrap/sync/check/package commands. Use the project-local `.venv`, normal tool caches and ignored generated-artifact folders. Standard local filesystem folders are the baseline; external temporary environments and sync-provider path restrictions are superseded by ADR-0003. Current coverage and unverified behavior are recorded in STATUS and task reports; do not infer financial, independent-review or release qualification from code or a passing subset of tests. Do not invent passing tests, CI or broker checks. For documentation changes check local links, consistency and the applicable authority boundary; document only commands actually exercised.

@@ -22,6 +22,8 @@ A decomposition run must stop after writing and verifying bounded substages. The
 
 ## Normal task loop
 
+Apply the authoritative [efficient execution defaults](NEXT_STEP.md#efficient-execution-defaults): focused intake, cohesive implementation/check batches, material evidence in one owning record and lightweight timing. Use the existing brief when it already fits; the loop does not require another planning document or repeated approval.
+
 1. Write a brief describing user outcome, scope, authoritative requirements, constraints, independently justified examples and done conditions.
 2. Resolve consequential unknowns before their dependent work. Continue independent useful work while a decision is pending.
 3. Use a short execution plan when changes cross modules, data semantics, tax/risk policy or migration boundaries. Small local fixes do not need a new planning document.
