@@ -9,7 +9,21 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs/PLANNING_MANIFEST.sha256"
-TEXT_SUFFIXES = {".md", ".py", ".ps1", ".toml", ".lock", ".yml", ".yaml", ".json"}
+TEXT_SUFFIXES = {
+    ".md",
+    ".py",
+    ".ps1",
+    ".toml",
+    ".lock",
+    ".yml",
+    ".yaml",
+    ".json",
+    ".ts",
+    ".tsx",
+    ".mjs",
+    ".css",
+    ".html",
+}
 
 
 def authored_files() -> list[Path]:

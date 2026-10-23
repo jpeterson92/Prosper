@@ -14,13 +14,14 @@ from typing import Literal
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from prosper.evidence import EvidenceStore, RuntimeBoundary
 from prosper.import_api import BODY_MEDIA_TYPES, CONTROL_BODY_BYTES, install_import_routes
 from prosper.imports import ImportService
 from prosper.persistence import CheckpointStore
+from prosper.web_assets import CONTENT_POLICY, WebAssets
 
 MAX_BODY_BYTES = 2 * 1024 * 1024
 MAX_HEADER_BYTES = 16 * 1024
@@ -92,11 +93,13 @@ class _RequestBoundary:
         policy: LocalPolicy,
         session: _Session,
         body_routes: dict[str, bytes] | None = None,
+        assets: WebAssets | None = None,
     ) -> None:
         self.app = app
         self.policy = policy
         self.session = session
         self.body_routes = body_routes or {}
+        self.assets = assets
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "websocket":
@@ -118,6 +121,7 @@ class _RequestBoundary:
                         (b"referrer-policy", b"no-referrer"),
                         (b"connection", b"close"),
                         (b"vary", b"Origin"),
+                        (b"content-security-policy", CONTENT_POLICY.encode("ascii")),
                     ]
                 )
                 if origin is not None:
@@ -146,6 +150,15 @@ class _RequestBoundary:
             await deny(403, "host_denied")
             return
         candidate = headers.get(b"origin", b"").decode("latin-1")
+        asset = self.assets.files.get(scope["path"]) if self.assets is not None else None
+        # Public code must load before bootstrap. Only snapshotted build files get
+        # this exception, after peer/host checks and before any financial route.
+        public_asset = asset is not None and scope["method"] == "GET"
+        asset_navigation = (
+            public_asset
+            and b"origin" not in headers
+            and headers.get(b"sec-fetch-site") in (b"none", b"same-origin")
+        )
         # Same-origin browser GETs can omit Origin. Fetch Metadata is browser-controlled;
         # require an explicit same-origin assertion as well as the bearer check below.
         same_origin_get = (
@@ -153,7 +166,7 @@ class _RequestBoundary:
             and scope["method"] == "GET"
             and headers.get(b"sec-fetch-site") == b"same-origin"
         )
-        if candidate not in self.policy.origins and not same_origin_get:
+        if candidate not in self.policy.origins and not same_origin_get and not asset_navigation:
             await deny(403, "origin_denied")
             return
         origin = candidate if candidate else None
@@ -169,6 +182,12 @@ class _RequestBoundary:
             return
         if not self.session.active:
             await deny(401, "session_closed")
+            return
+        if public_asset and asset is not None:
+            if headers.get(b"content-length", b"0") != b"0" or b"transfer-encoding" in headers:
+                await deny(400, "body_not_allowed")
+                return
+            await Response(asset[0], media_type=asset[1])(scope, receive, protected_send)
             return
         method = scope["method"]
         if method == "OPTIONS":
@@ -267,6 +286,7 @@ def _application(
     policy: LocalPolicy,
     request_shutdown: Callable[[], None],
     service: ImportService | None = None,
+    assets: WebAssets | None = None,
 ) -> ASGIApp:
     session = _Session()
 
@@ -308,7 +328,9 @@ def _application(
 
     if service is not None:
         install_import_routes(app, service)
-    return _RequestBoundary(app, policy, session, BODY_MEDIA_TYPES if service is not None else None)
+    return _RequestBoundary(
+        app, policy, session, BODY_MEDIA_TYPES if service is not None else None, assets
+    )
 
 
 def serve(
@@ -316,6 +338,7 @@ def serve(
     port: int = 0,
     development_port: int | None = None,
     runtime: RuntimeBoundary | None = None,
+    ui_dist: Path | None = None,
 ) -> None:
     """Own the socket for one process lifetime; publish only a public origin on stdout."""
     if type(port) is not int or not 0 <= port <= 65535:
@@ -327,6 +350,7 @@ def serve(
     # Validate before binding; zero is only the launcher's OS-selected API port.
     if development_port is not None:
         LocalPolicy(1 if development_port != 1 else 2, development_port)
+    assets = WebAssets.load(ui_dist) if ui_dist is not None else None
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
         if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
             listener.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
@@ -342,7 +366,7 @@ def serve(
             server.should_exit = True
 
         config = uvicorn.Config(
-            _application(policy, request_shutdown, service),
+            _application(policy, request_shutdown, service, assets),
             host=HOST,
             port=actual_port,
             loop="asyncio",
@@ -378,6 +402,7 @@ def main() -> None:
     parser.add_argument("--development-port", type=int, default=None)
     parser.add_argument("--synthetic-runtime", type=Path, default=None)
     parser.add_argument("--source-root", type=Path, default=None)
+    parser.add_argument("--ui-dist", type=Path, default=None)
     args = parser.parse_args()
     try:
         if (args.synthetic_runtime is None) != (args.source_root is None):
@@ -387,7 +412,12 @@ def main() -> None:
             if args.synthetic_runtime is not None
             else None
         )
-        serve(port=args.port, development_port=args.development_port, runtime=runtime)
+        serve(
+            port=args.port,
+            development_port=args.development_port,
+            runtime=runtime,
+            ui_dist=args.ui_dist,
+        )
     except (ValueError, OSError):
         parser.exit(2, "local_runtime_start_failed\n")
 

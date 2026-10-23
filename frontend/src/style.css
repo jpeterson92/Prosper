@@ -1,0 +1,17 @@
+:root { font-family: system-ui, sans-serif; color: #19352e; background: #f3f6f3; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 850px; margin: 0 auto; padding: 72px 28px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .17em; color: #46645b; }
+h1 { font-size: clamp(30px, 5vw, 46px); letter-spacing: -.04em; line-height: 1.12; margin: 18px 0; }
+p { line-height: 1.65; max-width: 650px; }
+section { margin: 34px 0; border: 1px solid #c9d6cd; border-radius: 14px; padding: 28px; background: white; }
+.badge { display: inline-block; border-radius: 20px; padding: 6px 10px; font-size: 12px; font-weight: 600; background: #e5efe8; }
+h2 { font-size: 22px; margin-bottom: 10px; }
+[role=status] { min-height: 54px; }
+button { background: #205c49; color: white; border: 0; border-radius: 7px; padding: 13px 20px; font: inherit; cursor: pointer; }
+button:hover { background: #174735; }
+button:focus-visible { outline: 3px solid #8bbfa7; outline-offset: 3px; }
+button:disabled { opacity: .6; cursor: wait; }
+.footnote { font-size: 13px; color: #52665c; }
+@media (max-width: 480px) { main { padding: 36px 20px; } section { padding: 21px; } }

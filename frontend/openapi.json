@@ -1,0 +1,2157 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FastAPI",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/session": {
+      "post": {
+        "summary": "Acquire Session",
+        "operationId": "acquire_session_session_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Acquire Session Session Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/diagnostic": {
+      "get": {
+        "summary": "Diagnostic",
+        "operationId": "diagnostic_diagnostic_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Diagnostic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shutdown": {
+      "post": {
+        "summary": "Shutdown",
+        "operationId": "shutdown_shutdown_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Shutdown Shutdown Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/previews": {
+      "post": {
+        "summary": "Stage Preview",
+        "operationId": "stage_preview_api_v1_previews_post",
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "maxLength": 2097152,
+                "contentMediaType": "application/octet-stream",
+                "title": "Raw",
+                "default": ""
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/previews/{identity}": {
+      "get": {
+        "summary": "Get Preview",
+        "operationId": "get_preview_api_v1_previews__identity__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/current": {
+      "get": {
+        "summary": "Current",
+        "operationId": "current_api_v1_current_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/commit": {
+      "post": {
+        "summary": "Commit",
+        "operationId": "commit_api_v1_commit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/reject": {
+      "post": {
+        "summary": "Reject",
+        "operationId": "reject_api_v1_reject_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "APIError": {
+        "properties": {
+          "error": {
+            "type": "string",
+            "title": "Error"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/APIIssue"
+            },
+            "type": "array",
+            "title": "Issues",
+            "default": []
+          },
+          "further_issues": {
+            "type": "boolean",
+            "title": "Further Issues",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "APIError"
+      },
+      "APIIssue": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "path": {
+            "$ref": "#/components/schemas/Location",
+            "default": []
+          },
+          "offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offset"
+          },
+          "path_truncated": {
+            "type": "boolean",
+            "title": "Path Truncated",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "APIIssue"
+      },
+      "Account": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "source_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Ref"
+          },
+          "alias": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Alias"
+          },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Profile Id"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD",
+            "title": "Currency"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "traded",
+              "monitor_only"
+            ],
+            "title": "Role"
+          },
+          "classification": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "lot_method": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_ref",
+          "alias",
+          "profile_id",
+          "currency",
+          "role",
+          "classification",
+          "relationship",
+          "lot_method"
+        ],
+        "title": "Account"
+      },
+      "Activity": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "source_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Ref"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Account Id"
+          },
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "activity_type": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell",
+              "dividend",
+              "transfer",
+              "fee",
+              "corporate_action"
+            ],
+            "title": "Activity Type"
+          },
+          "lot_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "type": "array",
+            "title": "Lot Ids"
+          },
+          "trade_date": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          },
+          "settlement_date": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "price": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "fees": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "cash_movement": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "inclusion_evidence": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "correction_evidence": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "basis_treatment": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_ref",
+          "account_id",
+          "security_id",
+          "activity_type",
+          "lot_ids",
+          "trade_date",
+          "settlement_date",
+          "quantity",
+          "price",
+          "principal",
+          "fees",
+          "cash_movement",
+          "inclusion_evidence",
+          "correction_evidence",
+          "basis_treatment"
+        ],
+        "title": "Activity"
+      },
+      "BundleDocument": {
+        "properties": {
+          "metadata": {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            },
+            "type": "array",
+            "title": "Accounts"
+          },
+          "securities": {
+            "items": {
+              "$ref": "#/components/schemas/Security"
+            },
+            "type": "array",
+            "title": "Securities"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/Position"
+            },
+            "type": "array",
+            "title": "Positions"
+          },
+          "lots": {
+            "items": {
+              "$ref": "#/components/schemas/Lot"
+            },
+            "type": "array",
+            "title": "Lots"
+          },
+          "cash": {
+            "items": {
+              "$ref": "#/components/schemas/Cash"
+            },
+            "type": "array",
+            "title": "Cash"
+          },
+          "activity": {
+            "items": {
+              "$ref": "#/components/schemas/Activity"
+            },
+            "type": "array",
+            "title": "Activity"
+          },
+          "quotes": {
+            "items": {
+              "$ref": "#/components/schemas/Quote"
+            },
+            "type": "array",
+            "title": "Quotes"
+          },
+          "coverage": {
+            "items": {
+              "$ref": "#/components/schemas/Coverage"
+            },
+            "type": "array",
+            "title": "Coverage"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "metadata",
+          "accounts",
+          "securities",
+          "positions",
+          "lots",
+          "cash",
+          "activity",
+          "quotes",
+          "coverage"
+        ],
+        "title": "BundleDocument"
+      },
+      "Cash": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "source_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Ref"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Account Id"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Checkpoint Id"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD",
+            "title": "Currency"
+          },
+          "settled": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "available": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "unsettled": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_ref",
+          "account_id",
+          "checkpoint_id",
+          "currency",
+          "settled",
+          "available",
+          "unsettled"
+        ],
+        "title": "Cash"
+      },
+      "CashResponse": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "settled": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "available": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "unsettled": {
+            "$ref": "#/components/schemas/ValueResponse"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "settled",
+          "available",
+          "unsettled"
+        ],
+        "title": "CashResponse"
+      },
+      "CheckpointResponse": {
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/ReceiptResponse"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceResponse"
+          },
+          "inspection": {
+            "$ref": "#/components/schemas/InspectionResponse"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sequence",
+          "recorded_at",
+          "receipt",
+          "source",
+          "inspection"
+        ],
+        "title": "CheckpointResponse"
+      },
+      "CommandResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "synthetic-import-api-v1",
+            "title": "Schema Version",
+            "default": "synthetic-import-api-v1"
+          },
+          "scope": {
+            "type": "string",
+            "const": "synthetic-portfolio-import-v1",
+            "title": "Scope"
+          },
+          "command_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Command Key"
+          },
+          "payload_version": {
+            "type": "string",
+            "const": "activate-preview-v1",
+            "title": "Payload Version"
+          },
+          "payload_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "preview_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "expected_generation": {
+            "$ref": "#/components/schemas/Generation"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "committed",
+              "duplicate",
+              "stale_generation",
+              "preview_rejected",
+              "preview_invalid",
+              "identity_review_required",
+              "source_conflict"
+            ],
+            "title": "Outcome"
+          },
+          "generation": {
+            "$ref": "#/components/schemas/Generation"
+          },
+          "activation_generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activation Generation"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scope",
+          "command_key",
+          "payload_version",
+          "payload_sha256",
+          "preview_sha256",
+          "expected_generation",
+          "outcome",
+          "generation",
+          "activation_generation",
+          "recorded_at"
+        ],
+        "title": "CommandResponse"
+      },
+      "CommitRequest": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "synthetic-import-api-v1",
+            "title": "Schema Version"
+          },
+          "preview_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "command_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Command Key"
+          },
+          "expected_generation": {
+            "$ref": "#/components/schemas/Generation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "preview_sha256",
+          "command_key",
+          "expected_generation"
+        ],
+        "title": "CommitRequest"
+      },
+      "Coverage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "household",
+              "account"
+            ],
+            "title": "Scope"
+          },
+          "account_id": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata___PydanticGeneralMetadata_pattern____A-Za-z0-9__A-Za-z0-9_____0_127________"
+          },
+          "starts": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          },
+          "ends": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial",
+              "unknown",
+              "contradictory"
+            ],
+            "title": "Status"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "activity_types": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "type": "array",
+            "title": "Activity Types"
+          },
+          "automation": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "other_accounts": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "outstanding_restrictions": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "verification_date": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          },
+          "expiry_date": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "scope",
+          "account_id",
+          "starts",
+          "ends",
+          "status",
+          "evidence",
+          "activity_types",
+          "automation",
+          "other_accounts",
+          "outstanding_restrictions",
+          "verification_date",
+          "expiry_date"
+        ],
+        "title": "Coverage"
+      },
+      "CurrentResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "synthetic-import-api-v1",
+            "title": "Schema Version",
+            "default": "synthetic-import-api-v1"
+          },
+          "generation": {
+            "$ref": "#/components/schemas/Generation"
+          },
+          "checkpoint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckpointResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "planning_ready": {
+            "type": "boolean",
+            "const": false,
+            "title": "Planning Ready",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "generation",
+          "checkpoint"
+        ],
+        "title": "CurrentResponse"
+      },
+      "Diagnostic": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "synthetic_diagnostic",
+            "title": "Status",
+            "default": "synthetic_diagnostic"
+          },
+          "planning_ready": {
+            "type": "boolean",
+            "const": false,
+            "title": "Planning Ready",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Diagnostic"
+      },
+      "Digest": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value",
+          "reason"
+        ],
+        "title": "Fact[Annotated[ExactValue, BeforeValidator, PlainSerializer, WithJsonSchema]]"
+      },
+      "Fact_Annotated_str__Strict_strict_True___AfterValidator__": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value",
+          "reason"
+        ],
+        "title": "Fact[Annotated[str, Strict(strict=True), AfterValidator]]"
+      },
+      "Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value",
+          "reason"
+        ],
+        "title": "Fact[Annotated[str, Strict(strict=True), FieldInfo(annotation=NoneType, required=True, metadata=[MaxLen(max_length=4096)]), AfterValidator]]"
+      },
+      "Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata___PydanticGeneralMetadata_pattern____A-Za-z0-9__A-Za-z0-9_____0_127________": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value",
+          "reason"
+        ],
+        "title": "Fact[Annotated[str, Strict(strict=True), FieldInfo(annotation=NoneType, required=True, metadata=[_PydanticGeneralMetadata(pattern='^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$')])]]"
+      },
+      "FindingResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "path": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "blocking": {
+            "type": "boolean",
+            "title": "Blocking"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "path",
+          "blocking",
+          "reason"
+        ],
+        "title": "FindingResponse"
+      },
+      "Generation": {
+        "type": "integer",
+        "exclusiveMaximum": 9223372036854776000,
+        "minimum": 0
+      },
+      "InspectionResponse": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "synthetic-inspection-v1",
+            "title": "Version",
+            "default": "synthetic-inspection-v1"
+          },
+          "traded_account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Traded Account Id"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/PositionResponse"
+            },
+            "type": "array",
+            "title": "Positions"
+          },
+          "cash": {
+            "items": {
+              "$ref": "#/components/schemas/CashResponse"
+            },
+            "type": "array",
+            "title": "Cash"
+          },
+          "settled_cash_nav": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "total_basis": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "market_minus_basis": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "readiness": {
+            "$ref": "#/components/schemas/ReadinessResponse"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingResponse"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "further_findings": {
+            "type": "boolean",
+            "title": "Further Findings"
+          },
+          "inspection_valid": {
+            "type": "boolean",
+            "title": "Inspection Valid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "traded_account_id",
+          "positions",
+          "cash",
+          "settled_cash_nav",
+          "total_basis",
+          "market_minus_basis",
+          "readiness",
+          "findings",
+          "further_findings",
+          "inspection_valid"
+        ],
+        "title": "InspectionResponse"
+      },
+      "KnownValue": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "const": "known",
+            "title": "State",
+            "default": "known"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "original_text": {
+            "type": "string",
+            "title": "Original Text"
+          },
+          "source_quantum": {
+            "type": "string",
+            "title": "Source Quantum"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value",
+          "original_text",
+          "source_quantum"
+        ],
+        "title": "KnownValue"
+      },
+      "Location": {
+        "items": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "type": "array"
+      },
+      "Lot": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "source_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Ref"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Account Id"
+          },
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Checkpoint Id"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "acquired": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          },
+          "holding_evidence": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "basis": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "basis_quantum": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "adjustments": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_ref",
+          "account_id",
+          "security_id",
+          "checkpoint_id",
+          "quantity",
+          "acquired",
+          "holding_evidence",
+          "basis",
+          "basis_quantum",
+          "adjustments"
+        ],
+        "title": "Lot"
+      },
+      "Metadata": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "synthetic-checkpoint-v1",
+            "title": "Schema Version"
+          },
+          "semantics_version": {
+            "type": "string",
+            "const": "authoritative-checkpoint-v1",
+            "title": "Semantics Version"
+          },
+          "fictional": {
+            "type": "boolean",
+            "const": true,
+            "title": "Fictional"
+          },
+          "bundle_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Bundle Id"
+          },
+          "source_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Id"
+          },
+          "source_version": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Source Version"
+          },
+          "profile_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Profile Id"
+          },
+          "cutoff": {
+            "type": "string",
+            "title": "Cutoff"
+          },
+          "source_timezone": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Source Timezone"
+          },
+          "inclusion": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "included_activity_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "type": "array",
+            "title": "Included Activity Ids"
+          },
+          "stipulations": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "type": "array",
+            "title": "Stipulations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "semantics_version",
+          "fictional",
+          "bundle_id",
+          "source_id",
+          "source_version",
+          "profile_id",
+          "cutoff",
+          "source_timezone",
+          "inclusion",
+          "included_activity_ids",
+          "stipulations"
+        ],
+        "title": "Metadata"
+      },
+      "Position": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "source_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Ref"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Account Id"
+          },
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Checkpoint Id"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_ref",
+          "account_id",
+          "security_id",
+          "checkpoint_id",
+          "quantity"
+        ],
+        "title": "Position"
+      },
+      "PositionResponse": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "security_id": {
+            "type": "string",
+            "title": "Security Id"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "lot_quantity": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "price": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "market_value": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "basis": {
+            "$ref": "#/components/schemas/ValueResponse"
+          },
+          "market_minus_basis": {
+            "$ref": "#/components/schemas/ValueResponse"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "security_id",
+          "quantity",
+          "lot_quantity",
+          "price",
+          "market_value",
+          "basis",
+          "market_minus_basis"
+        ],
+        "title": "PositionResponse"
+      },
+      "PreviewResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "synthetic-import-api-v1",
+            "title": "Schema Version",
+            "default": "synthetic-import-api-v1"
+          },
+          "version": {
+            "type": "string",
+            "const": "synthetic-preview-v1",
+            "title": "Version",
+            "default": "synthetic-preview-v1"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/ReceiptResponse"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "staged",
+              "rejected",
+              "committed"
+            ],
+            "title": "State"
+          },
+          "rejected_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejected At"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/APIIssue"
+            },
+            "type": "array",
+            "title": "Issues"
+          },
+          "further_issues": {
+            "type": "boolean",
+            "title": "Further Issues"
+          },
+          "inspection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InspectionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "planning_ready": {
+            "type": "boolean",
+            "const": false,
+            "title": "Planning Ready",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "receipt",
+          "recorded_at",
+          "state",
+          "rejected_at",
+          "source",
+          "issues",
+          "further_issues",
+          "inspection"
+        ],
+        "title": "PreviewResponse"
+      },
+      "Quote": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "source_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Ref"
+          },
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD",
+            "title": "Currency"
+          },
+          "price": {
+            "$ref": "#/components/schemas/Fact_Annotated_ExactValue__BeforeValidator__PlainSerializer__WithJsonSchema__"
+          },
+          "as_of": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___AfterValidator__"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "session": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "adjustments": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_ref",
+          "security_id",
+          "currency",
+          "price",
+          "as_of",
+          "kind",
+          "session",
+          "adjustments"
+        ],
+        "title": "Quote"
+      },
+      "ReadinessResponse": {
+        "properties": {
+          "inspection": {
+            "$ref": "#/components/schemas/ReadinessState"
+          },
+          "basis": {
+            "$ref": "#/components/schemas/ReadinessState"
+          },
+          "valuation": {
+            "$ref": "#/components/schemas/ReadinessState"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/ReadinessState"
+          },
+          "planning_ready": {
+            "type": "boolean",
+            "const": false,
+            "title": "Planning Ready",
+            "default": false
+          },
+          "planning_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Planning Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "inspection",
+          "basis",
+          "valuation",
+          "coverage",
+          "planning_reasons"
+        ],
+        "title": "ReadinessResponse"
+      },
+      "ReadinessState": {
+        "type": "string",
+        "enum": [
+          "complete",
+          "incomplete",
+          "contradictory"
+        ]
+      },
+      "ReceiptResponse": {
+        "properties": {
+          "raw_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "byte_length": {
+            "type": "integer",
+            "title": "Byte Length"
+          },
+          "storage_version": {
+            "type": "string",
+            "const": "evidence-bytes-v1",
+            "title": "Storage Version",
+            "default": "evidence-bytes-v1"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "raw_sha256",
+          "byte_length"
+        ],
+        "title": "ReceiptResponse"
+      },
+      "RejectRequest": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "synthetic-import-api-v1",
+            "title": "Schema Version"
+          },
+          "preview_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "preview_sha256"
+        ],
+        "title": "RejectRequest"
+      },
+      "Security": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Id"
+          },
+          "source_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Source Ref"
+          },
+          "issuer_id": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata___PydanticGeneralMetadata_pattern____A-Za-z0-9__A-Za-z0-9_____0_127________"
+          },
+          "share_class_id": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata___PydanticGeneralMetadata_pattern____A-Za-z0-9__A-Za-z0-9_____0_127________"
+          },
+          "ticker": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Ticker"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD",
+            "title": "Currency"
+          },
+          "security_type": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "tax_classification": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          },
+          "adjustments": {
+            "$ref": "#/components/schemas/Fact_Annotated_str__Strict_strict_True___FieldInfo_annotation_NoneType__required_True__metadata__MaxLen_max_length_4096_____AfterValidator__"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_ref",
+          "issuer_id",
+          "share_class_id",
+          "ticker",
+          "currency",
+          "security_type",
+          "tax_classification",
+          "adjustments"
+        ],
+        "title": "Security"
+      },
+      "SourceResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "parsed_unvalidated",
+            "title": "Status",
+            "default": "parsed_unvalidated"
+          },
+          "canonicalization_version": {
+            "type": "string",
+            "const": "canonical-json-v1",
+            "title": "Canonicalization Version",
+            "default": "canonical-json-v1"
+          },
+          "canonical_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "document": {
+            "$ref": "#/components/schemas/BundleDocument"
+          },
+          "source_values": {
+            "items": {
+              "$ref": "#/components/schemas/SourceValue"
+            },
+            "type": "array",
+            "title": "Source Values"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "canonical_sha256",
+          "document",
+          "source_values"
+        ],
+        "title": "SourceResponse"
+      },
+      "SourceValue": {
+        "properties": {
+          "path": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "exact": {
+            "$ref": "#/components/schemas/KnownValue"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "path",
+          "exact"
+        ],
+        "title": "SourceValue"
+      },
+      "UnknownValue": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "const": "unknown",
+            "title": "State",
+            "default": "unknown"
+          },
+          "value": {
+            "type": "null",
+            "title": "Value"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reasons"
+        ],
+        "title": "UnknownValue"
+      },
+      "ValueResponse": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/KnownValue"
+          },
+          {
+            "$ref": "#/components/schemas/UnknownValue"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "state",
+          "mapping": {
+            "known": "#/components/schemas/KnownValue",
+            "unknown": "#/components/schemas/UnknownValue"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

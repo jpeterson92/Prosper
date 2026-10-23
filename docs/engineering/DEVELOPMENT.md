@@ -2,7 +2,7 @@
 
 Updated October 23, 2026. [ADR-0003](../architecture/decisions/0003-adopt-standard-local-development.md) adopts a standard local filesystem checkout and supersedes the original Google Drive/external-temp procedure. The current checkout is `C:\Users\jpete\Documents\Projects\Prosper`; commands do not hardcode that machine path. [T003.1](../tasks/T003.1-development-baseline.md) is historical evidence of the first bootstrap; [setup evidence](../tasks/SETUP-local-filesystem.md) records the migration checks.
 
-This guide owns exercised developer commands; [STATUS](../STATUS.md) and task reports own current module coverage and observed results. The synthetic application includes SQLite/evidence storage, atomic import services and protected local HTTP access; no tax engine, investor installation or UI exists. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
+This guide owns exercised developer commands; [STATUS](../STATUS.md) and task reports own current module coverage and observed results. The synthetic application includes SQLite/evidence storage, atomic import services, protected local HTTP access and a minimal browser transport diagnostic. Financial review UI, tax engine and investor installation remain future work. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
 
 ## Prerequisites and first setup
 
@@ -61,6 +61,8 @@ Pinned development versions remain Ruff **0.17.2**, mypy **2.4.0** strict, pytes
 
 ## Protected synthetic loopback runtime
 
+T004.4.1.1 adds the qualified [frontend bootstrap/check/build commands and built diagnostic launcher](../../frontend/README.md). Its optional `--ui-dist` snapshots only a trusted build's root HTML and bounded direct JS/CSS assets. Public bootstrap assets receive the same peer/host, no-query and security-header checks; every financial route and protected schema retains session/origin enforcement. No runtime-directory serving is added. [Browser execution evidence](../tasks/T004.4.1.1-browser-client.md) supersedes the earlier browser-unverified limitation only for this diagnostic and its exercised cases; financial review remains T004.4.1.2.
+
 T003.4.1 adds the diagnostic process; T003.4.2 optionally exposes the existing synthetic import services through it. Investor installation and financial-use qualification remain separate. From the checkout root:
 
 ```powershell
@@ -76,7 +78,7 @@ The launcher owns an IPv4 socket bound only to `127.0.0.1`, using an OS-selected
 | `POST /shutdown` with empty body | Allowed Origin and bearer token | Invalidates the session and stops this process |
 | `OPTIONS` | Allowed Origin, requested GET/POST and only listed headers | Narrow CORS preflight; no session or financial state |
 
-Same-origin browser GETs can omit Origin only when they include `Sec-Fetch-Site: same-origin` and the bearer token. Missing Origin on bootstrap/mutation, opaque `null` and other origins are rejected. Host must always be the exact `127.0.0.1:<API-port>` authority; `localhost`, other ports/names, wildcard hosts and forwarded/proxy headers grant no access. All other paths require a bearer before routing, including docs paths and the optionally enabled OpenAPI path. Tokens belong only in memory and the authorization header; query strings are refused, cookies grant no session, responses are no-store and no token is persisted. Browser execution is still unverified; these are real HTTP/process checks, with browser integration owned by T004.4.
+Same-origin browser GETs can omit Origin only when they include `Sec-Fetch-Site: same-origin` and the bearer token. Missing Origin on bootstrap/mutation, opaque `null` and other origins are rejected. Host must always be the exact `127.0.0.1:<API-port>` authority; `localhost`, other ports/names, wildcard hosts and forwarded/proxy headers grant no access. All other paths require a bearer before routing, including docs paths and the optionally enabled OpenAPI path. Tokens belong only in memory and the authorization header; query strings are refused, cookies grant no session, responses are no-store and no token is persisted. These original T003.4.1 results are HTTP/process checks; T004.4.1.1 now qualifies actual browser behavior for its bounded diagnostic, with full review UI still owned by T004.4.1.2.
 
 Development cross-origin access is disabled by default. `--development-port 5173` explicitly allows exactly `http://127.0.0.1:5173` in addition to the API origin, without changing the bind address; the actual frontend port must match. No wildcard, automatic port fallback, credential cookie or remote serving is provided. The trusted local development server can acquire the session; malicious local processes or code at an explicitly trusted origin are outside this browser-origin boundary. It is not OS-user authentication, TLS or a sandbox against local malware.
 

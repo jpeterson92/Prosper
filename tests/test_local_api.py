@@ -11,10 +11,98 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pytest
 
 from prosper.local_api import MAX_BODY_BYTES, LocalPolicy
+from prosper.web_assets import CONTENT_POLICY, MAX_ASSET_BYTES, WebAssets
+
+
+def build_fixture(root: Path) -> Path:
+    (root / "assets").mkdir(parents=True)
+    (root / "index.html").write_bytes(b"<!doctype html><title>Synthetic probe</title>")
+    (root / "assets" / "index-demo.js").write_bytes(b"export const synthetic = true;")
+    return root
+
+
+def test_asset_snapshot_stays_immutable(tmp_path: Path) -> None:
+    root = build_fixture(tmp_path / "dist")
+    assets = WebAssets.load(root)
+    (root / "assets" / "index-demo.js").write_bytes(b"changed")
+    assert assets.files["/assets/index-demo.js"][0] == b"export const synthetic = true;"
+    assert set(assets.files) == {"/", "/assets/index-demo.js"}
+
+
+@pytest.mark.parametrize("name", ["secret.json", "runtime.sqlite", "source.js.map", "nested"])
+def test_asset_non_build_files_refused(tmp_path: Path, name: str) -> None:
+    root = build_fixture(tmp_path / "dist")
+    (root / "assets" / name).write_bytes(b"synthetic-private")
+    with pytest.raises(ValueError, match="unsupported_build_asset"):
+        WebAssets.load(root)
+
+
+def test_asset_hardlink_refused(tmp_path: Path) -> None:
+    root = build_fixture(tmp_path / "dist")
+    (root / "alias.js").hardlink_to(root / "assets" / "index-demo.js")
+    with pytest.raises(ValueError, match="plain_asset_required"):
+        WebAssets.load(root)
+
+
+def test_asset_oversize_refused(tmp_path: Path) -> None:
+    root = build_fixture(tmp_path / "dist")
+    (root / "assets" / "index-demo.js").write_bytes(b"x" * (MAX_ASSET_BYTES + 1))
+    with pytest.raises(ValueError, match="asset_size_limit"):
+        WebAssets.load(root)
+
+
+def test_asset_redirected_directory_refused(tmp_path: Path) -> None:
+    root = build_fixture(tmp_path / "dist")
+    # Windows junctions exercise the same reparse boundary without symlink privileges.
+    if os.name == "nt":
+        result = subprocess.run(
+            ["cmd", "/c", "mklink", "/J", str(tmp_path / "alias"), str(root)],
+            capture_output=True,
+        )
+        assert result.returncode == 0
+    else:
+        (tmp_path / "alias").symlink_to(root, target_is_directory=True)
+    with pytest.raises(ValueError, match="redirected_asset"):
+        WebAssets.load(tmp_path / "alias")
+
+
+def test_real_asset_bootstrap_keeps_api_protected(tmp_path: Path) -> None:
+    root = build_fixture(tmp_path / "dist")
+    with runtime("--ui-dist", str(root)) as api:
+        status, headers, body = api.request("GET", "/", {"Sec-Fetch-Site": "none"})
+        assert status == 200 and body.startswith(b"<!doctype html>")
+        assert headers["content-security-policy"] == CONTENT_POLICY
+        assert headers["cache-control"] == "no-store"
+        assert headers["x-content-type-options"] == "nosniff"
+        status, _, body = api.request(
+            "GET", "/assets/index-demo.js", {"Sec-Fetch-Site": "same-origin"}
+        )
+        assert status == 200 and body == b"export const synthetic = true;"
+        for route in ("/session", "/diagnostic", "/api/v1/current", "/openapi.json"):
+            status, _, _ = api.request("GET", route, {"Sec-Fetch-Site": "same-origin"})
+            assert status == 401
+        token = api.session()
+        assert api.request("GET", "/diagnostic", api.authorized(token))[0] == 200
+        for route in (
+            "/assets/../index.html",
+            "/assets/%2e%2e/index.html",
+            "/index.html",
+            "/assets/runtime.sqlite",
+            "/.local/state.sqlite",
+            "/assets/index-demo.js/extra",
+        ):
+            status, _, body = api.request("GET", route, api.authorized(token))
+            assert status == 404 and b"synthetic-private" not in body
+        assert api.request("GET", "/?token=blocked", api.authorized(token))[0] == 400
+        assert api.request("GET", "/", {"Origin": "http://127.0.0.1:12345"})[0] == 403
+        assert api.request("GET", "/", {"Origin": api.origin, "Host": "localhost"})[0] == 403
+        assert api.request("POST", "/", {"Origin": api.origin})[0] == 401
+        assert api.request("GET", "/", {"Origin": api.origin}, b"x")[0] == 400
 
 
 @dataclass(repr=False)
