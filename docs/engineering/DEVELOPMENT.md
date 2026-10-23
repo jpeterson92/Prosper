@@ -59,6 +59,28 @@ The four bootstrap tests qualify editable installed imports from an unrelated wo
 
 Pinned development versions remain Ruff **0.17.2**, mypy **2.4.0** strict, pytest **9.1.1**, Hypothesis **6.170.5**, Hatchling **1.32.4**, uv **0.13.5**. [The dependency inventory](DEVELOPMENT_DEPENDENCIES.md) lists the 19 external distributions and metadata/license limits. Prosper's runtime dependency is now Pydantic 2.14.1 with its locked required packages, qualified in T004.1.1. No public Prosper software license is selected. Add API/frontend/numerical tools only in their owning child tasks. A filesystem move is not a reason to install the entire future stack.
 
+## Synthetic evidence adapter
+
+T003.3.1 adds a library boundary, not an investor launcher. The following API is exercised by synthetic filesystem tests and the isolated installed-wheel smoke described in [task evidence](../tasks/T003.3.1-immutable-evidence.md). From the checkout root, with the project environment:
+
+```python
+from pathlib import Path
+from prosper.evidence import EvidenceStore, RuntimeBoundary
+
+source = Path.cwd().resolve()
+boundary = RuntimeBoundary(source / ".local/evidence/demo", source, "synthetic")
+store = EvidenceStore(boundary)
+raw = (source / "examples/synthetic/F001.json").read_bytes()
+receipt = store.publish(raw)
+assert EvidenceStore(boundary).read(receipt) == raw
+```
+
+Constructing the boundary validates paths without creating them; opening the store creates only the explicit runtime's versioned object/staging directories. Synthetic mode requires a child of source `.local`; `.local` itself is not an evidence root. Private mode requires a separate, nonoverlapping local directory and is tested only with synthetic scratch here. No default per-user runtime is installed. The source boundary and mode are trusted caller configuration, never imported file content. The adapter cannot identify whether arbitrary bytes are real portfolio data; caller authorization still governs data use.
+
+Receipts contain `storage_version`, `raw_sha256`, `byte_length` and `relative_reference`. The `evidence-bytes-v1/objects/<sha256>.bin` object contains original bytes; canonical identity remains the parser's separate responsibility. `EvidenceError.code` gives safe failure details without payloads or paths. Publication uses exclusive staging, flush/fsync, close, a same-volume hard link that cannot replace an existing object, and removal of that operation's staging name. Unsupported filesystems fail explicitly; there is no copying fallback. Verified repeated publication reuses the same complete object. Reads enforce the parser's 2 MiB byte bound, regular single-link files, size and SHA-256.
+
+Existing symlinks, Windows junctions/reparse points, unsafe relative references and invalid private/source overlap are rejected and rechecked during operations. This local boundary assumes no hostile concurrent directory replacement; it does not establish ACL isolation, encrypted storage, authenticity or power-loss durability. Failed/interrupted publication may retain staging files; interruption after linking may leave a complete object with two names, which reads reject until separately qualified recovery. No automatic orphan cleanup, backup/restore or database reference commit is implemented. Use the existing full check/package commands; [STATUS](../STATUS.md) records current results and next task.
+
 ## Text, candidate identity and GitHub
 
 `.editorconfig` and `.gitattributes` standardize authored text as UTF-8 without BOM with LF endings and explicit binary treatment. Global Git/editor settings are unchanged. `scripts/check_project.py` checks authored files using Git's non-ignored file inventory, text encoding/endings, conflict markers, Markdown fences/local links/headings and the supplemental [manifest](../PLANNING_MANIFEST.sha256). Regenerate the manifest after authored edits before the final check/commit; it excludes itself, Git internals and ignored generated/private state. It is a source-tree fingerprint, not a release signature. Git commit IDs are the primary history/change-control identity when available. Git itself is a prerequisite for the checker, including before the first commit.

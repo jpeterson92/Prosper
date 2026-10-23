@@ -4,9 +4,9 @@ Updated October 22, 2026. This file owns current state and the single next-task 
 
 ## Current task and authority
 
-**Plan T003.3: decompose exact checkpoint persistence**, under the owner's direct `/next`. Fresh inspection against clean `0dfa234814d68502b6fa36c2422cfb1e4ee1ca04` found that bounded changes and completion margin need decomposition; the other four fit criteria pass. The [child plan](tasks/T003.3-checkpoint-persistence-plan.md) records evidence, complete briefs and scope boundaries. Branch: `codex/t003.3-persistence-plan`. Conversation: **Prosper | Plan T003.3: split evidence and checkpoint persistence**.
+**Build T003.3.1: immutable evidence and runtime boundary**, authorized by the owner's direct `/next`. All six fit criteria passed against clean `d13b729a12869a2527f1f82bfe3fcb01e130fb49`; [task evidence](tasks/T003.3.1-immutable-evidence.md) records the assessment and actual results. Branch: `codex/t003.3.1-immutable-evidence`. Conversation: **Prosper | Build T003.3.1: preserve immutable evidence**.
 
-This invocation changes documentation only and stops before child implementation. T003.3.1 owns immutable original evidence and runtime-path qualification; T003.3.2 waits for that verified interface before adding exact immutable SQLite checkpoint versions. No application, executable test/fixture, dependency, evidence store or database schema was created. No broker/account access, real data, subagent, push, merge, deployment or financial-use acceptance is included. Authorization and verification gates are unchanged.
+The evidence adapter is implemented and locally verified with synthetic inputs. This invocation stops before SQLite persistence. No broker/account access, real data, subagent, push, merge, deployment or financial-use acceptance is included. Authorization and verification gates are unchanged.
 
 ## What exists
 
@@ -15,13 +15,14 @@ This invocation changes documentation only and stops before child implementation
 - T003.2 exact decimal values, source text/quantum, explicit unknowns, precision-80 arithmetic and synthetic diagnostic allocation.
 - T004.1.1 frozen strict synthetic bundle models, bounded JSON parser, source/normalized identity and fictional F000/F001 fixtures. Parse success remains `parsed_unvalidated`.
 - T004.1.2 reference/cutoff/inclusion checks, exact position/lot/cash/basis/valuation inspection, scoped incomplete/contradictory readiness and snapshot comparison. Validated means inspection-valid under synthetic source assertions; planning-ready remains false. Cash buckets stay separate; `settled_cash_nav` values holdings plus supplied settled cash without assuming other buckets are zero.
+- T003.3.1 explicit synthetic/private runtime boundaries, immutable versioned original-evidence publication and bounded hash/length-verified retrieval. Private-mode qualification used only synthetic scratch; no investor runtime is installed. Missing/corrupt/redirected/multiple-link objects fail explicitly. Receipts do not commit imports.
 - Local Git and the connected owner-created [GitHub source repository](https://github.com/jpeterson92/Prosper); earlier main baseline was uploaded. This and preceding feature branches remain local/unmerged. Source backup does not cover private investor state or ignored artifacts.
 
 ## Current evidence and limits
 
-Previous implementation evidence at the incoming commit: the standard helper check passed lint/format, strict typing and **179 tests** (37 checkpoint, 82 parser, 56 exact-value, four bootstrap). Offline fresh-wheel/runtime verification and isolated installed-module F000/F001 smoke passed. Exact commands, artifact identity, review findings and wall-clock phases are in the [execution report](tasks/T004.1.2-checkpoint-reconciliation.md). These application checks were not rerun for this documentation-only invocation. No current-revision hosted CI result is claimed.
+The standard helper check passed lint/format, strict mypy and **222 tests** (43 evidence, 37 checkpoint, 82 parser, 56 exact-value, four bootstrap), with no skips. Both Windows junction and symlink rejection and actual hard-link no-replace publication were exercised. Offline fresh-wheel/runtime qualification and separate installed-module write/read processes passed. [Task evidence](tasks/T003.3.1-immutable-evidence.md) records commands, exact wheel identity, review findings and limits. No current-revision hosted CI result is claimed.
 
-Current planning verification: `.venv\Scripts\python.exe scripts/check_project.py --write-manifest` and the subsequent read-only checker passed **64 authored files, 43 Markdown files and 312 local links**. `git diff --check` passed. Scope/diff review found only the child plan, parent plan, roadmap, status and manifest changed. Same-agent review maps every original T003.3 acceptance obligation to a child; no unresolved finding blocks the planning outcome. Application check/package, filesystem/SQLite qualification, independent review, hosted CI and investor acceptance were not run in this invocation.
+Final authored text/links/manifest verification passed **67 files, 44 Markdown files and 327 local links**; `git diff --check` passed. Application code/tests did not change after the passing full check/package. No unresolved finding blocks this task's bounded outcome. Interrupted publication can leave staging files or an untrusted multiple-link object; automatic cleanup/complete recovery remain T004.3. No ACL isolation, hostile concurrent path-replacement or power-loss guarantee is established.
 
 F001 yields 12 FAAA/5 FBBB, settled cash 319, settled-cash NAV 2399, basis 2181 and market-minus-basis -101. F000 comparison yields +2 FAAA, -181 cash, +181 basis and -101 value; the descriptive bridge shows -100 prior-holdings mark effect and 1 reported new-event fee. No transaction replay or investment return is implemented. F002/F003 block validation; F004/F009 preserve incomplete basis/coverage while holdings inspection can remain available. Basis/fees are not reconstructed or counted twice.
 
@@ -29,7 +30,7 @@ Same-agent review and independently derived expectations were exercised; indepen
 
 ## Next task and remaining gates
 
-**Single next candidate: [T003.3.1: immutable evidence and runtime boundary](tasks/T003.3-checkpoint-persistence-plan.md#t00331-immutable-evidence-and-runtime-boundary)**, ready to attempt after fresh fit/dependency assessment. T003.1, T003.2, T004.1.1 and T004.1.2 remain locally verified; the in-memory T004.1 parent is complete within its synthetic boundary. T003.3.2 waits for T003.3.1; T004.2 still waits for the complete T003.3 parent. No child implementation began here.
+**Single next candidate: [T003.3.2: exact immutable SQLite checkpoints](tasks/T003.3-checkpoint-persistence-plan.md#t00332-exact-immutable-sqlite-checkpoints)**, ready to attempt after fresh fit/dependency assessment of the verified evidence/runtime interface and a minimal physical schema. T003.3.1 is locally verified; T004.2 still waits for the complete T003.3 parent. No SQLite schema, database or successor implementation began here.
 
 T002/T017 must obtain G1 broker/manual-workflow and permitted data evidence before substantial broker-facing/quantitative work. T018 carries recovery/state requirements into later slices. G2/G3 still need independent model/specialist/investor evidence. Ready is not accepted/released.
 
@@ -37,7 +38,11 @@ The [decision register](DECISIONS.md) retains 25 accepted, 5 confirmed and 7 ope
 
 ## Identity and historical evidence
 
+Workflow configuration, October 22: at the owner's request, [AGENTS.md](../AGENTS.md) adopts [efficient execution defaults](engineering/NEXT_STEP.md#efficient-execution-defaults), referenced by the agent workflow. This documentation-only change preserves the in-progress T003.3.1 build, its task pointer, financial checks and authority gates. `scripts/check_project.py --write-manifest`, the subsequent read-only checker (67 authored files, 44 Markdown files, 321 links), `git diff --check` and same-agent instruction/diff review passed. No application tests were run for this configuration task. Changes are uncommitted over `d13b729a12869a2527f1f82bfe3fcb01e130fb49` alongside separate in-progress build changes; the manifest records file identities. Next: apply these defaults on the next authorized task and compare timings across similar tasks. Fresh-session adherence and a speed improvement remain unverified.
+
 The exact final local commit is reported in the handoff and resolved with `git rev-parse HEAD`, avoiding a self-referential hash. The [authored manifest](PLANNING_MANIFEST.sha256) fingerprints source/tests/fixtures/docs/lock; ignored/private state and Git internals are excluded. Publication, merge and release are separate owner-directed actions.
+
+Concurrent edits to AGENTS.md, NEXT_STEP.md and AGENT_WORKFLOW.md were discovered during verification and preserved outside this task's commit. The working-tree manifest includes their current hashes; the committed manifest matches the task's staged tree. Remaining concurrent changes are not part of the evidence-adapter implementation.
 
 - [Parser execution](tasks/T004.1.1-synthetic-bundle-parsing.md) and [T004.1 decomposition](tasks/T004.1-checkpoint-validation-plan.md).
 - [T003.3 decomposition and storage acceptance](tasks/T003.3-checkpoint-persistence-plan.md); planning only, no storage experiments.
