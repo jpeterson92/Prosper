@@ -21,6 +21,7 @@ STORAGE_VERSION = "checkpoint-sqlite-v1"
 DATABASE_NAME = "checkpoints-v1.sqlite3"
 APPLICATION_ID = 0x50525350
 SCHEMA_VERSION = 3
+RESTORE_MARKER = "restore-in-progress"
 _COLUMNS = (
     "raw_sha256",
     "canonical_sha256",
@@ -238,6 +239,9 @@ class CheckpointStore:
             raise PersistenceError("database_initialization_failed") from None
 
     def _guard_paths(self) -> None:
+        marker = self.evidence.runtime.path(RESTORE_MARKER)
+        if marker.exists():
+            raise PersistenceError("restore_incomplete")
         for suffix in ("", "-journal", "-wal", "-shm"):
             path = self.evidence.runtime.path(DATABASE_NAME + suffix)
             try:
