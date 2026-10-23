@@ -20,7 +20,7 @@ from prosper.evidence import EvidenceReceipt, EvidenceStore
 STORAGE_VERSION = "checkpoint-sqlite-v1"
 DATABASE_NAME = "checkpoints-v1.sqlite3"
 APPLICATION_ID = 0x50525350
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 _COLUMNS = (
     "raw_sha256",
     "canonical_sha256",
@@ -59,6 +59,18 @@ _SCHEMA = """CREATE TABLE checkpoints (
     evidence_length INTEGER NOT NULL CHECK(evidence_length >= 0),
     evidence_reference TEXT NOT NULL,
     inspection_version TEXT NOT NULL
+) STRICT"""
+_PREVIEW_SCHEMA = """CREATE TABLE import_previews (
+    raw_sha256 TEXT PRIMARY KEY NOT NULL,
+    recorded_at TEXT NOT NULL,
+    state TEXT NOT NULL CHECK(state IN ('staged', 'rejected')),
+    rejected_at TEXT,
+    evidence_version TEXT NOT NULL,
+    evidence_length INTEGER NOT NULL CHECK(evidence_length >= 0),
+    evidence_reference TEXT NOT NULL,
+    preview_version TEXT NOT NULL,
+    CHECK((state = 'staged' AND rejected_at IS NULL) OR
+          (state = 'rejected' AND rejected_at IS NOT NULL))
 ) STRICT"""
 
 
@@ -117,6 +129,23 @@ def _before_commit(connection: sqlite3.Connection) -> None:
     """Fault-injection seam after real INSERTs; no application hook or side effect."""
 
 
+def _before_upgrade_commit(connection: sqlite3.Connection) -> None:
+    """Fault-injection seam for the single known version-one upgrade."""
+
+
+def _check_recorded_time(value: str) -> datetime:
+    try:
+        moment = datetime.fromisoformat(value)
+        if (
+            moment.tzinfo != UTC
+            or moment.isoformat(timespec="microseconds").replace("+00:00", "Z") != value
+        ):
+            raise ValueError()
+    except ValueError:
+        raise PersistenceError("stored_recorded_time_invalid") from None
+    return moment
+
+
 class CheckpointStore:
     """Short-lived connections; repeated identical raw input reuses its first row.
 
@@ -143,8 +172,25 @@ class CheckpointStore:
                     connection.execute("BEGIN IMMEDIATE")
                     try:
                         connection.execute(_SCHEMA)
+                        connection.execute(_PREVIEW_SCHEMA)
                         connection.execute(f"PRAGMA application_id={APPLICATION_ID}")
                         connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
+                        self._guard_paths()
+                        connection.commit()
+                    except BaseException:
+                        connection.rollback()
+                        raise
+                else:
+                    # Inspect and upgrade under the same lock. Never repair an
+                    # altered schema or initialize an existing empty database.
+                    connection.execute("BEGIN IMMEDIATE")
+                    try:
+                        if connection.execute("PRAGMA user_version").fetchone() == (1,):
+                            self._check_schema(connection, version=1)
+                            connection.execute(_PREVIEW_SCHEMA)
+                            connection.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
+                            _before_upgrade_commit(connection)
+                        self._check_schema(connection)
                         self._guard_paths()
                         connection.commit()
                     except BaseException:
@@ -178,14 +224,18 @@ class CheckpointStore:
         return connection
 
     @staticmethod
-    def _check_schema(connection: sqlite3.Connection) -> None:
+    def _check_schema(connection: sqlite3.Connection, *, version: int = SCHEMA_VERSION) -> None:
+        expected = [("table", "checkpoints", _SCHEMA)]
+        if version == SCHEMA_VERSION:
+            expected.append(("table", "import_previews", _PREVIEW_SCHEMA))
         if (
             connection.execute("PRAGMA application_id").fetchone() != (APPLICATION_ID,)
-            or connection.execute("PRAGMA user_version").fetchone() != (SCHEMA_VERSION,)
+            or connection.execute("PRAGMA user_version").fetchone() != (version,)
             or connection.execute(
-                "SELECT type, name, sql FROM sqlite_master WHERE name NOT GLOB 'sqlite_*'"
+                "SELECT type, name, sql FROM sqlite_master "
+                "WHERE name NOT GLOB 'sqlite_*' ORDER BY name"
             ).fetchall()
-            != [("table", "checkpoints", _SCHEMA)]
+            != expected
         ):
             raise PersistenceError("incompatible_database_schema")
 
@@ -197,15 +247,7 @@ class CheckpointStore:
         if type(row[15]) is not int:
             raise PersistenceError("stored_metadata_mismatch")
         recorded = cast(str, row[13])
-        try:
-            moment = datetime.fromisoformat(recorded)
-            if (
-                moment.tzinfo != UTC
-                or moment.isoformat(timespec="microseconds").replace("+00:00", "Z") != recorded
-            ):
-                raise ValueError()
-        except ValueError:
-            raise PersistenceError("stored_recorded_time_invalid") from None
+        _check_recorded_time(recorded)
         receipt = EvidenceReceipt(
             cast(str, row[1]), row[15], cast(str, row[16]), cast(str, row[14])
         )

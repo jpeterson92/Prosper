@@ -85,9 +85,28 @@ Existing symlinks, Windows junctions/reparse points, unsafe relative references 
 
 T003.3.2 adds `prosper.persistence.CheckpointStore(evidence_store)`. Call `append(validated_checkpoint)` with the inspector's result; an optional evidence receipt is verified against the original bytes. `get(raw_sha256)` returns a verified `StoredCheckpoint` containing sequence, actual recorded time, receipt and reconstructed inspection. `list_ids()` returns storage inventory in append sequence; it is not a readiness assessment or active portfolio reference. Every operation closes its SQLite connection.
 
-The explicit runtime contains `checkpoints-v1.sqlite3`, with application/schema markers and one STRICT table. Canonical JSON is TEXT with decimal strings and explicit null/reason pairs. Original evidence reconstructs spelling/quantum; reads reparse/reinspect it and compare persisted canonical content, identities, versions and source metadata. Source cutoff and UTC recorded time stay separate. The adapter exposes no update/delete method; identical raw input returns its first row/time, while changed raw input appends a separate version without accepting a correction. Missing/corrupt committed evidence blocks duplicate appends as well as reads.
+The explicit runtime contains `checkpoints-v1.sqlite3`, with application/schema markers and STRICT tables. Schema version two adds durable previews alongside the unchanged checkpoint table. Opening an exactly matching version-one store transactionally adds that table and preserves every checkpoint row; incompatible/altered schemas fail rather than being repaired. Checkpoint row encoding remains `checkpoint-sqlite-v1`; the filename is retained to find existing stores. Older application versions cannot open schema two and no downgrade is provided. Canonical JSON is TEXT with decimal strings and explicit null/reason pairs. Original evidence reconstructs spelling/quantum; reads reparse/reinspect it and compare persisted canonical content, identities, versions and source metadata. Source cutoff and UTC recorded time stay separate. The checkpoint adapter exposes no update/delete method; identical raw input returns its first row/time, while changed raw input appends a separate version without accepting a correction. Missing/corrupt committed evidence blocks duplicate appends as well as reads.
 
-Files publish and verify before row insertion. Explicit transactions roll back failed inserts/references; a failed transaction may leave a complete unreferenced evidence object. Database and journal/WAL/SHM names reuse the runtime path guards, including regular-file/single-link checks. Existing foreign/empty/unknown-version/changed-schema databases fail without automatic initialization or migration. Newly created files that fail initialization may remain non-ready and require a future qualified recovery procedure. The adapter uses the standard-library SQLite shipped with the qualified Python host; [task evidence](../tasks/T003.3.2-sqlite-checkpoints.md) records its version, SQL type checks and actual commands. Full check/package commands remain unchanged. Import activation, command receipts/concurrency, backups and recovery are later tasks.
+Files publish and verify before row insertion. Explicit transactions roll back failed inserts/references; a failed transaction may leave a complete unreferenced evidence object. Database and journal/WAL/SHM names reuse the runtime path guards, including regular-file/single-link checks. Existing foreign/empty/unknown-version/changed-schema databases fail without automatic initialization or broad migration. Newly created files that fail initialization may remain non-ready and require a future qualified recovery procedure. The adapter uses the standard-library SQLite shipped with the qualified Python host; [task evidence](../tasks/T003.3.2-sqlite-checkpoints.md) records its version, SQL type checks and actual commands. Full check/package commands remain unchanged. Import activation, command receipts/concurrency, backups and complete recovery are later tasks.
+
+## Durable synthetic previews
+
+[T004.2.1 evidence](../tasks/T004.2.1-durable-previews.md) qualifies `prosper.previews.PreviewService` over the same guarded database/evidence runtime. Using the synthetic evidence `store` and `raw` from the earlier example:
+
+```python
+from prosper.persistence import CheckpointStore
+from prosper.previews import PreviewService
+
+previews = PreviewService(CheckpointStore(store))
+preview = previews.stage(raw)
+rejected = previews.reject(preview.receipt.raw_sha256)
+assert previews.get(preview.receipt.raw_sha256) == rejected
+assert previews.stage(raw) == rejected
+```
+
+`stage` accepts safely bounded malformed/contradictory input as evidence with parser/inspection diagnostics; it does not append checkpoint rows. `get` reconstructs diagnostics and exact/source values from verified original evidence. Results retain the receipt, first recorded time, lifecycle/rejection time, parsing result and optional inspection. Invalid byte type/oversized payloads raise `PreviewError` with bounded `.issues` before publication. Parser success and inspection validity remain distinct from lifecycle and financial-use readiness.
+
+Exact raw repeats reuse the preview, including terminal rejection; changed bytes keep separate evidence even when normalized values match. Missing/corrupt evidence and bad metadata fail explicitly; staging cannot silently repair a broken preview/checkpoint reference. Real rollback and abrupt-upgrade interruption were tested, but complete recovery/cleanup remains future work. No active import/commit command, current portfolio selection, generation or mutation receipt exists yet. The existing full check/package commands and isolated installed-module qualification apply; this is a library boundary, not an investor UI or financial-use release.
 
 ## Text, candidate identity and GitHub
 

@@ -16,7 +16,7 @@ Common fit basis: each component has one stated outcome, bounded included/exclud
 
 ## Foundation sequence
 
-The unchanged next task is T004.2.1, then its existing sibling T004.2.2. After those, use T004.3.1 -> T004.3.2 -> T003.4.1 -> T003.4.2 -> T004.4.1 -> T004.4.2 -> T004.5.1 -> T004.5.2. Every component here is **waiting on dependency**; none starts during this planning request. Foundation completion still requires the whole parent acceptance, not just its first component. Later numerical work remains outside this foundation sequence.
+At this planning checkpoint the next task was T004.2.1, then its existing sibling T004.2.2; STATUS owns subsequent progression. After those, use T004.3.1 -> T004.3.2 -> T003.4.1 -> T003.4.2 -> T004.4.1 -> T004.4.2 -> T004.5.1 -> T004.5.2. Every component here is **waiting on dependency**; none starts during this planning request. Foundation completion still requires the whole parent acceptance, not just its first component. Later numerical work remains outside this foundation sequence.
 
 ### T004.3: Foundation backup and restore
 
@@ -152,4 +152,4 @@ Planning acceptance is stable IDs, exactly two components per newly split scope,
 
 Checks actually run: Git status/revision and focused source/diff inspection; incoming authored checker; `.venv/Scripts/python.exe scripts/check_project.py --write-manifest` and the same checker without that option; `git diff --check`; a read-only Python structural assertion for 20 unique scopes/exactly 40 correctly named components and documentation-only tracked changes; `git diff --exit-code HEAD -- docs/tasks/T004.2-import-workflow-plan.md` confirming the existing brief is unchanged. Final authored verification passed **74 files, 49 Markdown files and 393 local links**. Same-agent coverage/dependency/authority review found no unresolved blocker to this documentation outcome. No application tests/package or runtime experiments ran.
 
-Working branch: `codex/remaining-work-pairs`; exact final local revision is reported in the handoff and resolved with `git rev-parse HEAD`, avoiding a self-referential hash. No remote operation occurred. This plan itself does not qualify runtime behavior or guarantee every distant component's fit. Next action remains a later `/next` for **T004.2.1**, with ordinary fresh assessment and no mandatory new planning stage if it fits.
+Working branch: `codex/remaining-work-pairs`; exact final local revision is reported in the handoff and resolved with `git rev-parse HEAD`, avoiding a self-referential hash. No remote operation occurred. This plan itself does not qualify runtime behavior or guarantee every distant component's fit. The next action at this planning checkpoint was T004.2.1; consult STATUS for subsequent progression, with ordinary fresh assessment and no mandatory new planning stage if the selected component fits.
