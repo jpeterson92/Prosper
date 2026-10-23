@@ -43,7 +43,7 @@ The adopted first-product plan is a local application that imports tax lots and 
 
 ## Advance the project
 
-Say **let's work on the next step** or **next**. The agent will inspect current progression and assess whether the next useful task fits one GPT-6.1 Sol/high run, including verification and review. If it needs splitting, that run only writes bounded substages and stops; a later next-step request can execute one ready child. Use **next, planning only** to keep a run documentation-only. `/next` is a prompt alias if the client passes it through, not an installed native slash command.
+Say **let's work on the next step** or **next**. The agent will inspect current progression, make a quick rough judgment about whether one task fits a GPT-6.1 Sol/high run including checks/review, and reuse its short execution sketch as the coding plan. A six-row assessment or separate coding-plan rewrite is not required. If it needs splitting, that run only writes bounded substages and stops; a later next-step request can execute one ready child. Use **next, planning only** to keep a run documentation-only. `/next` is a prompt alias if the client passes it through, not an installed native slash command.
 
 [The protocol](docs/engineering/NEXT_STEP.md) defines the full behavior and stage-specific Codex conversation naming. Select your desired model/effort in the client; repository instructions do not change that setting. Configuring this workflow does not begin application implementation.
 

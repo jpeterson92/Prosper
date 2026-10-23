@@ -51,7 +51,7 @@ Decision: decompose the parent and stop after documentation verification. A read
 | 9a | [T004.5.1](REMAINING_WORK_PLAN.md#t0045-foundation-integration-evidence) | Reproducible integrated foundation candidate | T004.4 locally verified | **waiting on dependency** |
 | 9b | [T004.5.2](REMAINING_WORK_PLAN.md#t0045-foundation-integration-evidence) | Workload measurements and foundation handoff | T004.5.1 locally verified | **waiting on dependency** |
 
-This is one serial engineering sequence, not authorization to chain children. Reassess each child against the six fit criteria when it becomes the next candidate. A failed dependency remains visible; do not mark downstream work ready because a brief exists. Expand or split a child if actual integration evidence exceeds its conditional fit. Do not defer a child's own meaningful tests to T004.5.
+This is one serial engineering sequence, not authorization to chain children. Use the protocol's quick fit decision and reusable execution sketch when a child becomes the next candidate; historical six-row reports are not mandatory templates. A failed dependency remains visible; do not mark downstream work ready because a brief exists. Expand or split a child if actual integration evidence exceeds its conditional fit. Do not defer a child's own meaningful tests to T004.5.
 
 At the owner's later explicit request, the [remaining work plan](REMAINING_WORK_PLAN.md) splits the four later foundation leaves into the pairs above and the later T003 solver remainder into T003.5.1/T003.5.2 outside this sequence. It also covers remaining roadmap work. Existing T004.2 children and verified work are preserved. Refresh a prepared component's assessment on invocation; no extra planning-only run is required when it fits.
 

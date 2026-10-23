@@ -4,9 +4,11 @@ Updated October 23, 2026. This file owns current state and the single next-task 
 
 ## Current task and authority
 
-**Build T003.4.2: typed import and inspection endpoints** is implemented and locally verified, authorized by the owner's direct `/next`. Fresh six-row assessment passed against clean `528da97a5a691f774b3bbc7fdb3cb58c514cd7dd`. [Task evidence](tasks/T003.4.2-import-api.md) owns the contract, assessment, review findings, commands, wheel/schema identities and limits. Actual conversation title: **Prosper | Build T003.4.2: typed import HTTP endpoints**.
+**Instruction configuration: quick sizing and one reused execution plan**, authorized by the owner's explicit October 23 request to make the fit estimate very quick and reuse it as the coding plan, is adopted. This is documentation/configuration only; it does not invoke `/next` or application implementation. Actual conversation title: **Prosper | Plan: quick sizing and one execution plan**. The [protocol](engineering/NEXT_STEP.md#quick-fit-decision-and-reusable-plan) owns the operational change; D036 records acceptance.
 
-The bounded T003.4 parent now exposes original-byte preview/retrieval, current inspection, commit/reject and protected actual OpenAPI over the existing services, using an explicitly selected synthetic runtime. Closed projections retain exact values, source text/quantum, unknowns, actual lifecycle and original command outcomes; planning readiness stays false. No frontend/client generation, new financial rules/calculations, storage schema/dependency changes, broker/account access, real data, subagents, publication, deployment or financial-use acceptance. Accepted policy, G1-G3 and open owner decisions are unchanged. T004.4.1 remains a later invocation.
+Future next-step runs make one rough fits/split/blocked judgment after required intake, write a brief decision plus a short execution sketch only where needed, and start from that same plan. Mandatory six-row reports, duplicate planning and speculative capacity/time/token forecasts are removed. One targeted read-only check is allowed when a specific fact could change fit; ordinary implementation unknowns are resolved in the authorized task. Concrete scope/authority blockers, required verification/review, one-task/decomposition stops, synthetic-only data and release boundaries remain binding. Model/effort settings are unchanged; instruction text does not guarantee internal timing or a speedup. Fresh-run adherence and improved speed remain unverified.
+
+The preceding **Build T003.4.2** remains implemented and locally verified at `28e9c82d7970f58c1ef4606de083553af83ad1b6`; [API task evidence](tasks/T003.4.2-import-api.md) retains its exact acceptance, commands/artifacts and limits. No successor implementation or dependency installation began. **T004.4.1 remains the single next candidate**, using the new quick decision on its next authorized invocation.
 
 ## What exists
 
@@ -27,6 +29,9 @@ The bounded T003.4 parent now exposes original-byte preview/retrieval, current i
 - Local Git and the connected owner-created [GitHub source repository](https://github.com/jpeterson92/Prosper). The [current sync evidence](tasks/SYNC-2026-10-22-recovery-foundation.md) records uploaded work through guarded recovery; the [earlier sync report](tasks/SYNC-2026-10-22-github.md) retains historical checkpoint/CI evidence. Source backup does not cover private investor state or ignored generated artifacts.
 
 ## Current evidence and limits
+
+This configuration passed authored-text/local-link/manifest checks across **98 files, 58 Markdown files and 533 links**, plus whitespace and instruction-consistency review. The written walkthrough covers quick fit with plan reuse, ordinary technical unknowns, a concrete split, an authority blocker and explicit planning-only requests. It establishes document consistency, not observed future-agent behavior or latency. Application Python, tests, dependencies and build configuration are unchanged. README/instruction Markdown changed; the following 598-test/package results belong to the preceding API revision and were not rerun or rebuilt for this documentation-only change.
+
 
 The final full helper passed offline locked sync, Ruff lint/format, strict mypy and **598 tests in 138.56s, no skips** (the preceding 560 plus 38 new real HTTP/SQLite cases). Its authored checks passed 98 files, 58 Markdown files and 523 links before final documentation-only handoff edits. Final authored/link/manifest checks passed 98 files, 58 Markdown files and 531 links, with clean whitespace/scope review for those edits; no application Python, tests, dependency/build configuration or packaged README changed after full qualification.
 
@@ -54,7 +59,7 @@ The [decision register](DECISIONS.md) retains 25 accepted, 5 confirmed and 7 ope
 
 ## Identity and historical evidence
 
-This build began from clean `codex/t003.4.1-loopback-runtime` at `528da97a5a691f774b3bbc7fdb3cb58c514cd7dd`; local task branch is `codex/t003.4.2-import-api`. The task report and final handoff identify the local Git checkpoint. The [authored manifest](PLANNING_MANIFEST.sha256) identifies the authored candidate excluding itself, ignored/private state and Git internals. No merge, upload, deployment or release is part of this invocation.
+This instruction-only change began from clean `codex/t003.4.2-import-api` at `28e9c82d7970f58c1ef4606de083553af83ad1b6`; local task branch is `codex/quick-next-step-sizing`. The local commit containing this configuration and its regenerated authored manifest is identified in the final handoff. The task report and final handoff identify the local Git checkpoint. The [authored manifest](PLANNING_MANIFEST.sha256) identifies the authored candidate excluding itself, ignored/private state and Git internals. No merge, upload, deployment or release is part of this invocation.
 
 The preceding owner-authorized [GitHub synchronization](tasks/SYNC-2026-10-22-recovery-foundation.md) uploaded the import/recovery foundation and documentation follow-up. Its remote/main and prior hosted-run observations are historical; they do not qualify this new local API candidate.
 

@@ -16,7 +16,7 @@ The additional status, plan and template filenames are project conventions. Open
 
 ## Advance with one prompt
 
-Use **let's work on the next step**, **next**, or **/next** as a direct request. The [next-step protocol](NEXT_STEP.md), referenced by AGENTS.md, defines the mandatory current-state inspection, GPT-6.1 Sol/high fit assessment, planning-only decomposition branch, single-task execution branch, persistent handoff and conversation naming. Use **next, planning only** to forbid implementation on that run. The natural-language prompt works as an instruction convention; no command-menu integration or automatic model switch is installed.
+Use **let's work on the next step**, **next**, or **/next** as a direct request. The [next-step protocol](NEXT_STEP.md), referenced by AGENTS.md, defines the mandatory current-state inspection, quick GPT-6.1 Sol/high fit decision with a reusable execution sketch, planning-only decomposition branch, single-task execution branch, persistent handoff and conversation naming. Use **next, planning only** to forbid implementation on that run. The natural-language prompt works as an instruction convention; no command-menu integration or automatic model switch is installed.
 
 A decomposition run must stop after writing and verifying bounded substages. The next invocation rechecks readiness and can implement one fitting child without repeated approval. A fitting existing task can proceed directly. Do not run an entire roadmap phase simply because it is the next row. This workflow does not authorize release, private data or brokerage access.
 
@@ -24,9 +24,9 @@ A decomposition run must stop after writing and verifying bounded substages. The
 
 Apply the authoritative [efficient execution defaults](NEXT_STEP.md#efficient-execution-defaults): focused intake, cohesive implementation/check batches, material evidence in one owning record and lightweight timing. Use the existing brief when it already fits; the loop does not require another planning document or repeated approval.
 
-1. Write a brief describing user outcome, scope, authoritative requirements, constraints, independently justified examples and done conditions.
+1. Reuse or briefly fill the task brief with outcome, scope, authoritative requirements, constraints, independently justified examples and done conditions. For a next-step task, its short sizing sketch is already the execution plan.
 2. Resolve consequential unknowns before their dependent work. Continue independent useful work while a decision is pending.
-3. Use a short execution plan when changes cross modules, data semantics, tax/risk policy or migration boundaries. Small local fixes do not need a new planning document.
+3. For consequential or multi-module work, use the same short execution sketch made for sizing; add detail only when a concrete implementation need arises. Do not create a second coding plan. Small local fixes do not need a new planning document.
 4. Once authorized, implement the complete bounded slice, run appropriate checks, inspect the diff, and remediate introduced problems.
 5. Review financial logic against independent expected cases. Independent human/specialist review is a separate requirement; automated self-review does not substitute for it.
 6. Deliver a review package with exact artifact/revision identity, actual check results and limitations. The owner accepts behavior and approves consequential integration/release steps as applicable.
@@ -61,7 +61,7 @@ Do not add repeated approvals when the owner has already authorized the action. 
 
 ### Advance one bounded step
 
-> Let's work on the next step. Follow the next-step protocol in AGENTS.md: inspect current truth, size conservatively for GPT-6.1 Sol at high effort, and rename this conversation for the actual stage. If the next task needs decomposition, update the substages and handoff, verify the documentation, then stop without implementation. Otherwise complete exactly one fitting authorized task with checks, review, remediation and handoff.
+> Let's work on the next step. Follow the next-step protocol in AGENTS.md: inspect current truth, make a quick rough fit decision for GPT-6.1 Sol at high effort, and rename this conversation for the actual stage. Reuse the short sizing sketch as the coding plan and begin; no six-row report or second planning phase. If the next task needs decomposition, update the substages and handoff, verify the documentation, then stop without implementation. Otherwise complete exactly one fitting authorized task with checks, review, remediation and handoff.
 
 ### Plan the next step only
 

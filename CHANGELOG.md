@@ -4,6 +4,10 @@ This file summarizes authored changes. Entries under Unreleased are development 
 
 ## Unreleased
 
+### October 23, 2026: quick sizing and one reused plan
+
+- Adopted the owner's requested [quick fit decision](docs/engineering/NEXT_STEP.md#quick-fit-decision-and-reusable-plan): one rough fits/split/blocked judgment and one reusable execution sketch. Removed mandatory six-row reports and duplicate coding-plan drafting, while retaining required intake, authority/data gates, verification and one-task/decomposition stops. Synchronized active instructions/prompts/plan references; no application work was invoked and no model settings changed. Future-run behavior and speed remain unverified.
+
 ### October 23, 2026: typed synthetic import HTTP API
 
 - Added [T003.4.2 typed import/inspection endpoints](docs/tasks/T003.4.2-import-api.md): explicit synthetic runtime configuration, original-byte preview upload/retrieval, current inspection, commit/reject controls and protected actual OpenAPI. Closed response projections retain decimal strings, source text/quantum, unknowns and original command outcomes. The existing security boundary now admits only bounded typed-route bodies, with safe errors and no HTTP storage-path authority. No frontend/client generation, financial-rule changes, recovery routes or release are included.
