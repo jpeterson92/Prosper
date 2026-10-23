@@ -4,6 +4,10 @@ This file summarizes authored changes. Entries under Unreleased are development 
 
 ## Unreleased
 
+### October 23, 2026: typed synthetic import HTTP API
+
+- Added [T003.4.2 typed import/inspection endpoints](docs/tasks/T003.4.2-import-api.md): explicit synthetic runtime configuration, original-byte preview upload/retrieval, current inspection, commit/reject controls and protected actual OpenAPI. Closed response projections retain decimal strings, source text/quantum, unknowns and original command outcomes. The existing security boundary now admits only bounded typed-route bodies, with safe errors and no HTTP storage-path authority. No frontend/client generation, financial-rule changes, recovery routes or release are included.
+
 ### October 23, 2026: protected diagnostic loopback runtime
 
 - Added [T003.4.1 protected diagnostic loopback runtime](docs/tasks/T003.4.1-loopback-runtime.md): exact host/origin/development-port policy, in-memory per-launch bearer acquisition, protected diagnostic/shutdown operations, bounded timed request buffering and real HTTP/process security cases. Qualified the locked FastAPI/minimal Uvicorn stack; telemetry and request logs are disabled. No financial HTTP routes or browser UI are included. STATUS owns current verification and next-task authority.

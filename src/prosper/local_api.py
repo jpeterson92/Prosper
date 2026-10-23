@@ -1,4 +1,4 @@
-"""Synthetic diagnostic runtime. Use this launcher; arbitrary ASGI hosting is unqualified."""
+"""Protected synthetic HTTP runtime; arbitrary ASGI hosting is unqualified."""
 
 import argparse
 import asyncio
@@ -8,6 +8,7 @@ import socket
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Literal
 
 import uvicorn
@@ -16,10 +17,28 @@ from pydantic import BaseModel, ConfigDict
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from prosper.evidence import EvidenceStore, RuntimeBoundary
+from prosper.import_api import BODY_MEDIA_TYPES, CONTROL_BODY_BYTES, install_import_routes
+from prosper.imports import ImportService
+from prosper.persistence import CheckpointStore
+
 MAX_BODY_BYTES = 2 * 1024 * 1024
 MAX_HEADER_BYTES = 16 * 1024
 BODY_TIMEOUT_SECONDS = 3.0
 HOST = "127.0.0.1"
+
+
+def _unique_pairs(items: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in items:
+        if key in result:
+            raise ValueError("duplicate_json_key")
+        result[key] = value
+    return result
+
+
+def _invalid_constant(value: str) -> None:
+    raise ValueError("nonfinite_json")
 
 
 @dataclass(frozen=True)
@@ -67,10 +86,17 @@ class Diagnostic(BaseModel):
 class _RequestBoundary:
     """Reject before routing/body parsing; buffer only a bounded, timed byte stream."""
 
-    def __init__(self, app: ASGIApp, policy: LocalPolicy, session: _Session) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        policy: LocalPolicy,
+        session: _Session,
+        body_routes: dict[str, bytes] | None = None,
+    ) -> None:
         self.app = app
         self.policy = policy
         self.session = session
+        self.body_routes = body_routes or {}
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "websocket":
@@ -183,12 +209,19 @@ class _RequestBoundary:
         ):
             await deny(401, "session_denied")
             return
+        media = self.body_routes.get(scope["path"]) if method == "POST" else None
+        if media is not None:
+            supplied = headers.get(b"content-type", b"").partition(b";")[0].strip().lower()
+            if supplied != media:
+                await deny(415, "content_type_denied")
+                return
+        body_limit = CONTROL_BODY_BYTES if media == b"application/json" else MAX_BODY_BYTES
         length = headers.get(b"content-length")
         if length is not None:
             if not length.isdigit() or len(length) > 10:
                 await deny(400, "length_denied")
                 return
-            if int(length) > MAX_BODY_BYTES:
+            if int(length) > body_limit:
                 await deny(413, "body_too_large")
                 return
         buffered = bytearray()
@@ -201,7 +234,7 @@ class _RequestBoundary:
                         return
                     body = message.get("body", b"")
                     total += len(body)
-                    if total > MAX_BODY_BYTES:
+                    if total > body_limit:
                         await deny(413, "body_too_large")
                         return
                     buffered.extend(body)
@@ -210,11 +243,19 @@ class _RequestBoundary:
         except TimeoutError:
             await deny(408, "body_timeout")
             return
-        # This diagnostic slice accepts no request payloads. Later typed routes may consume
-        # this bounded stream, retaining the same size/time checks before parser allocation.
-        if total:
+        if total and media is None:
             await deny(400, "body_not_allowed")
             return
+        if media == b"application/json":
+            # FastAPI applies the closed models afterward. Refuse duplicate keys and
+            # nonfinite JSON before its standard decoder can silently normalize them.
+            try:
+                json.loads(
+                    buffered, object_pairs_hook=_unique_pairs, parse_constant=_invalid_constant
+                )
+            except (ValueError, RecursionError):
+                await deny(400, "invalid_json")
+                return
 
         async def bounded_receive() -> Message:
             return {"type": "http.request", "body": bytes(buffered), "more_body": False}
@@ -222,7 +263,11 @@ class _RequestBoundary:
         await self.app(scope, bounded_receive, protected_send)
 
 
-def _application(policy: LocalPolicy, request_shutdown: Callable[[], None]) -> ASGIApp:
+def _application(
+    policy: LocalPolicy,
+    request_shutdown: Callable[[], None],
+    service: ImportService | None = None,
+) -> ASGIApp:
     session = _Session()
 
     @asynccontextmanager
@@ -236,7 +281,7 @@ def _application(policy: LocalPolicy, request_shutdown: Callable[[], None]) -> A
     app = FastAPI(
         docs_url=None,
         redoc_url=None,
-        openapi_url=None,
+        openapi_url="/openapi.json" if service is not None else None,
         lifespan=lifespan,
         telemetry={
             "auto_configure": False,
@@ -261,13 +306,24 @@ def _application(policy: LocalPolicy, request_shutdown: Callable[[], None]) -> A
         request_shutdown()
         return {"status": "stopping"}
 
-    return _RequestBoundary(app, policy, session)
+    if service is not None:
+        install_import_routes(app, service)
+    return _RequestBoundary(app, policy, session, BODY_MEDIA_TYPES if service is not None else None)
 
 
-def serve(*, port: int = 0, development_port: int | None = None) -> None:
+def serve(
+    *,
+    port: int = 0,
+    development_port: int | None = None,
+    runtime: RuntimeBoundary | None = None,
+) -> None:
     """Own the socket for one process lifetime; publish only a public origin on stdout."""
     if type(port) is not int or not 0 <= port <= 65535:
         raise ValueError("invalid_local_port")
+    if runtime is not None:
+        if runtime.mode != "synthetic":
+            raise ValueError("synthetic_runtime_required")
+        runtime.check()
     # Validate before binding; zero is only the launcher's OS-selected API port.
     if development_port is not None:
         LocalPolicy(1 if development_port != 1 else 2, development_port)
@@ -278,12 +334,15 @@ def serve(*, port: int = 0, development_port: int | None = None) -> None:
         listener.listen(16)
         actual_port = listener.getsockname()[1]
         policy = LocalPolicy(actual_port, development_port)
+        service = (
+            ImportService(CheckpointStore(EvidenceStore(runtime))) if runtime is not None else None
+        )
 
         def request_shutdown() -> None:
             server.should_exit = True
 
         config = uvicorn.Config(
-            _application(policy, request_shutdown),
+            _application(policy, request_shutdown, service),
             host=HOST,
             port=actual_port,
             loop="asyncio",
@@ -314,12 +373,21 @@ def serve(*, port: int = 0, development_port: int | None = None) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Prosper synthetic loopback diagnostic")
+    parser = argparse.ArgumentParser(description="Prosper protected synthetic loopback runtime")
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--development-port", type=int, default=None)
+    parser.add_argument("--synthetic-runtime", type=Path, default=None)
+    parser.add_argument("--source-root", type=Path, default=None)
     args = parser.parse_args()
     try:
-        serve(port=args.port, development_port=args.development_port)
+        if (args.synthetic_runtime is None) != (args.source_root is None):
+            raise ValueError("runtime_source_pair_required")
+        runtime = (
+            RuntimeBoundary(args.synthetic_runtime, args.source_root, "synthetic")
+            if args.synthetic_runtime is not None
+            else None
+        )
+        serve(port=args.port, development_port=args.development_port, runtime=runtime)
     except (ValueError, OSError):
         parser.exit(2, "local_runtime_start_failed\n")
 

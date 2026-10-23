@@ -1,8 +1,8 @@
 # Local development
 
-Updated October 22, 2026. [ADR-0003](../architecture/decisions/0003-adopt-standard-local-development.md) adopts a standard local filesystem checkout and supersedes the original Google Drive/external-temp procedure. The current checkout is `C:\Users\jpete\Documents\Projects\Prosper`; commands do not hardcode that machine path. [T003.1](../tasks/T003.1-development-baseline.md) is historical evidence of the first bootstrap; [setup evidence](../tasks/SETUP-local-filesystem.md) records the migration checks.
+Updated October 23, 2026. [ADR-0003](../architecture/decisions/0003-adopt-standard-local-development.md) adopts a standard local filesystem checkout and supersedes the original Google Drive/external-temp procedure. The current checkout is `C:\Users\jpete\Documents\Projects\Prosper`; commands do not hardcode that machine path. [T003.1](../tasks/T003.1-development-baseline.md) is historical evidence of the first bootstrap; [setup evidence](../tasks/SETUP-local-filesystem.md) records the migration checks.
 
-This guide owns exercised developer commands; [STATUS](../STATUS.md) and task reports own current module coverage and observed results. The synthetic library includes SQLite/evidence storage and atomic import services; no investor application, tax engine, API or UI exists. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
+This guide owns exercised developer commands; [STATUS](../STATUS.md) and task reports own current module coverage and observed results. The synthetic application includes SQLite/evidence storage, atomic import services and protected local HTTP access; no tax engine, investor installation or UI exists. Windows x64 is the first supported target. Investor installation and other operating systems remain unqualified.
 
 ## Prerequisites and first setup
 
@@ -61,7 +61,7 @@ Pinned development versions remain Ruff **0.17.2**, mypy **2.4.0** strict, pytes
 
 ## Protected synthetic loopback runtime
 
-T003.4.1 adds a diagnostic process, separate from investor installation or financial API access. From the checkout root:
+T003.4.1 adds the diagnostic process; T003.4.2 optionally exposes the existing synthetic import services through it. Investor installation and financial-use qualification remain separate. From the checkout root:
 
 ```powershell
 .venv/Scripts/python.exe -m prosper.local_api
@@ -76,13 +76,54 @@ The launcher owns an IPv4 socket bound only to `127.0.0.1`, using an OS-selected
 | `POST /shutdown` with empty body | Allowed Origin and bearer token | Invalidates the session and stops this process |
 | `OPTIONS` | Allowed Origin, requested GET/POST and only listed headers | Narrow CORS preflight; no session or financial state |
 
-Same-origin browser GETs can omit Origin only when they include `Sec-Fetch-Site: same-origin` and the bearer token. Missing Origin on bootstrap/mutation, opaque `null` and other origins are rejected. Host must always be the exact `127.0.0.1:<API-port>` authority; `localhost`, other ports/names, wildcard hosts and forwarded/proxy headers grant no access. All other paths require a bearer before routing, including disabled docs/OpenAPI paths. Tokens belong only in memory and the authorization header; query strings are refused, cookies grant no session, responses are no-store and no token is persisted. Browser execution is still unverified; these are real HTTP/process checks, with browser integration owned by T004.4.
+Same-origin browser GETs can omit Origin only when they include `Sec-Fetch-Site: same-origin` and the bearer token. Missing Origin on bootstrap/mutation, opaque `null` and other origins are rejected. Host must always be the exact `127.0.0.1:<API-port>` authority; `localhost`, other ports/names, wildcard hosts and forwarded/proxy headers grant no access. All other paths require a bearer before routing, including docs paths and the optionally enabled OpenAPI path. Tokens belong only in memory and the authorization header; query strings are refused, cookies grant no session, responses are no-store and no token is persisted. Browser execution is still unverified; these are real HTTP/process checks, with browser integration owned by T004.4.
 
 Development cross-origin access is disabled by default. `--development-port 5173` explicitly allows exactly `http://127.0.0.1:5173` in addition to the API origin, without changing the bind address; the actual frontend port must match. No wildcard, automatic port fallback, credential cookie or remote serving is provided. The trusted local development server can acquire the session; malicious local processes or code at an explicitly trusted origin are outside this browser-origin boundary. It is not OS-user authentication, TLS or a sandbox against local malware.
 
-Requests pass host/origin/session checks before reading bodies. Header totals are capped at 16 KiB in the ASGI guard, with h11's incomplete-event limit also 16 KiB. Declared/streamed bodies are limited to 2 MiB, accumulated in one bounded byte buffer with a three-second receive deadline before any route parser; this diagnostic slice rejects every nonempty body. Uvicorn uses h11/asyncio, transport read backpressure, a 16-request concurrency guard, no WebSockets, two-second keepalive and three-second graceful shutdown. Connections close after responses. These are engineering limits, not a measured throughput/DoS guarantee; idle sockets/incomplete-header attacks and hostile-local-process resistance remain unqualified.
+Requests pass host/origin/session checks before reading bodies. Header totals are capped at 16 KiB in the ASGI guard, with h11's incomplete-event limit also 16 KiB. Declared/streamed bodies are limited to 2 MiB, accumulated in one bounded byte buffer with a three-second receive deadline before any route parser; diagnostic operations reject every nonempty body. Configured import uploads use the same 2 MiB ceiling; commit/reject controls have a tighter 4 KiB ceiling and duplicate-key/nonfinite JSON rejection before closed-model validation. Uvicorn uses h11/asyncio, transport read backpressure, a 16-request concurrency guard, no WebSockets, two-second keepalive and three-second graceful shutdown. Connections close after responses. These are engineering limits, not a measured throughput/DoS guarantee; idle sockets/incomplete-header attacks and hostile-local-process resistance remain unqualified.
 
-Access/error request logging and FastAPI tracing/metrics/logs/automatic telemetry configuration are explicitly disabled. No SDK/exporter, Swagger/CDN assets or remote data service is installed by this feature. [Dependency inventory](DEVELOPMENT_DEPENDENCIES.md#t00341-local-api-runtime-qualification) records the locked stack and license metadata; [task evidence](../tasks/T003.4.1-loopback-runtime.md) owns commands, installed-wheel qualification and limitations. The import services remain library-only until T003.4.2. Do not launch the internal ASGI application through an arbitrary server or treat another host/proxy configuration as qualified.
+Access/error request logging and FastAPI tracing/metrics/logs/automatic telemetry configuration are explicitly disabled. No SDK/exporter, Swagger/CDN assets or remote data service is installed by this feature. [Dependency inventory](DEVELOPMENT_DEPENDENCIES.md#t00341-local-api-runtime-qualification) records the locked stack and license metadata; [task evidence](../tasks/T003.4.1-loopback-runtime.md) owns commands, installed-wheel qualification and limitations. The typed import HTTP configuration below is synthetic-only. Do not launch the internal ASGI application through an arbitrary server or treat another host/proxy configuration as qualified.
+
+## Typed synthetic import HTTP API
+
+To expose the verified services, explicitly select an absolute ignored synthetic runtime below this checkout's `.local` folder and its source root:
+
+```powershell
+$prosperSourceRoot = (Get-Location).Path
+.venv/Scripts/python.exe -m prosper.local_api --source-root $prosperSourceRoot --synthetic-runtime (Join-Path $prosperSourceRoot '.local/api/demo')
+```
+
+Without both options the process stays diagnostic-only. Invalid/relative/outside-source/overlapping paths fail under `RuntimeBoundary`; this HTTP launcher rejects private mode. No default private/investor directory is installed and no HTTP request can select a storage path. Existing synthetic state reopens under the same service/schema guards. Use a new synthetic runtime rather than relabeling incompatible backups.
+
+All routes below and `GET /openapi.json` require the existing host/origin/session checks. `Authorization: Bearer <token>` is a header, never a URL parameter. Application responses are JSON with no-store/nosniff headers; Swagger/Redoc remain disabled. Normal synchronous handlers run in FastAPI's thread pool and use the services' separate per-operation SQLite connections/transactions. HTTP adds no second writer or financial calculation.
+
+| Route | Request | Response and meaning |
+| --- | --- | --- |
+| `POST /api/v1/previews` | Original bytes, `Content-Type: application/octet-stream`, at most 2 MiB | Versioned preview, retained raw-byte hash/length, normalized source/identity, source exact values, parser issues and optional inspection; malformed/empty input is durable non-ready evidence |
+| `GET /api/v1/previews/{sha256}` | Lowercase 64-character original-byte digest | Reconstructed verified preview and its actual lifecycle |
+| `GET /api/v1/current` | No body | Active generation/checkpoint or explicit generation zero and null checkpoint |
+| `POST /api/v1/commit` | Closed JSON control below, at most 4 KiB | Original durable command receipt, including business rejection/stale/duplicate outcomes |
+| `POST /api/v1/reject` | Closed JSON with `schema_version` and `preview_sha256`, at most 4 KiB | Terminal rejected preview; a committed preview cannot be rejected |
+| `GET /openapi.json` | No body | Actual protected schema, including closed models, bearer requirements and the raw upload media contract |
+
+A commit control contains exactly these fields:
+
+```json
+{
+  "schema_version": "synthetic-import-api-v1",
+  "preview_sha256": "<64 lowercase hex characters from the preview receipt>",
+  "command_key": "synthetic-review-1",
+  "expected_generation": 0
+}
+```
+
+The command key uses the existing 1-128 character identifier grammar. Generation must be a nonnegative integer below `2**63 - 1`; floats/bools are refused. Unknown fields, missing/wrong schema versions and invalid identities are rejected, without accepting storage paths or financial overrides. The preview body is the original bundle, not this control envelope; its existing bundle schema/parser remains authoritative.
+
+Successful service operations return HTTP 200, including durable `preview_invalid`, `preview_rejected`, `stale_generation`, `source_conflict` and `identity_review_required` receipts. A receipt describes its original observed generation/outcome; fetch current state separately. Same-key/same-payload retries return the original receipt. Same-key/different-payload and reject-after-commit errors return 409; missing previews return 404. Wrong media is 415, size is 413, malformed/duplicate/nonfinite control JSON is 400, and strict model validation is 422. Missing/corrupt/unavailable required evidence returns a safe 503 code; an unexpected internal failure returns a generic 500. A failure after a committed operation but before its response requires retry with the same key, not a new command. Validation errors omit input values, raw decoder messages and arbitrary supplied field names; request logs/tracebacks are not emitted. Server/protocol-level denials can be plain text. On Windows, a sender that continues an oversized upload after early refusal can receive a TCP reset instead of the already-sent 413; treat transport failure as failure and retry identical preview bytes or the same mutation command key as appropriate.
+
+Responses use `schema_version: synthetic-import-api-v1`. Normalized `source.document` book values are canonical decimal strings or explicit null/reason facts. `source.source_values` locates every known source decimal and retains canonical `value`, `original_text` and decimal-string `source_quantum`. Inspection values use a `state` discriminator: known values carry those strings; unknown values carry `value: null` and a nonempty `reasons` array. Parser issue path components are capped at 128 characters with explicit `path_truncated` when shortened; the complete original evidence remains retained by its hash. Parser status, inspection validity, lifecycle and readiness remain distinct. `planning_ready` stays false, including inspection-valid incomplete-basis/coverage activation. Original byte content and storage paths are not returned.
+
+[T003.4.2 evidence](../tasks/T003.4.2-import-api.md) owns observed HTTP/SQLite and installed-wheel results and limits. This does not qualify a broker adapter, investment return, tax/risk engine, real-data use, browser integration, TypeScript generator or release. T004.4.1 owns the next typed preview/inspection UI and its actual generator/browser qualification.
 
 ## Synthetic evidence adapter
 
