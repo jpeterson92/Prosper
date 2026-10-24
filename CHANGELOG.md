@@ -4,6 +4,10 @@ This file summarizes authored changes. Entries under Unreleased are development 
 
 ## Unreleased
 
+### October 24, 2026: synthetic qualification and GitHub checkpoint
+
+- Synchronized accumulated synthetic input/assembly diagnostics, import measurements, browser lifecycle/recovery coverage, NumPy/SciPy stack qualification, parallel/affected test tooling and owner-adopted planning decisions. The [sync report](docs/tasks/SYNC-2026-10-24.md) records 687 passing full Python tests, a local testmon baseline, 33 passing browser tests on rerun, fresh-wheel qualification and verified source upload. Scoped Git attributes preserve deliberate fictional CSV CRLF bytes. New hosted CI, financial/model acceptance and release remain separate.
+
 ### October 23, 2026: quick sizing and one reused plan
 
 - Adopted the owner's requested [quick fit decision](docs/engineering/NEXT_STEP.md#quick-fit-decision-and-reusable-plan): one rough fits/split/blocked judgment and one reusable execution sketch. Removed mandatory six-row reports and duplicate coding-plan drafting, while retaining required intake, authority/data gates, verification and one-task/decomposition stops. Synchronized active instructions/prompts/plan references; no application work was invoked and no model settings changed. Future-run behavior and speed remain unverified.
