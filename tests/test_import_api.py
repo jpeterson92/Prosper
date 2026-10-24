@@ -449,11 +449,13 @@ def test_control_json_media_depth_limits_and_missing_identity(api: API) -> None:
         == 413
     )
     # A sender continuing a full oversized upload after early rejection can observe a
-    # Windows TCP reset instead of the already-sent 413; either way no evidence is stored.
+    # Windows TCP reset/abort instead of the already-sent 413; no evidence is stored.
     try:
         assert api.request("/api/v1/previews", "POST", b"x" * (2 * 1024 * 1024 + 1))[0] == 413
     except (ConnectionResetError, BrokenPipeError):
         pass
+    except ConnectionAbortedError as error:
+        assert getattr(error, "winerror", None) == 10053
     assert api.request("/api/v1/previews/not-a-digest")[0] == 422
     missing = "0" * 64
     assert api.request("/api/v1/previews/" + missing)[0] == 404
@@ -628,6 +630,8 @@ def test_chunked_preview_preserves_bytes_and_stream_limit_prevents_publication(a
         assert stream(b"x" * 65536 for _ in range(33))[0] == 413
     except (ConnectionResetError, BrokenPipeError):
         pass
+    except ConnectionAbortedError as error:
+        assert getattr(error, "winerror", None) == 10053
     assert api.counts() == (1, 0, 0, 0) and api.current()["generation"] == 0
 
 

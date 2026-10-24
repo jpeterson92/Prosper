@@ -1,6 +1,8 @@
 # Brokerage feasibility
 
-Status: public-documentation reconnaissance checked October 22, 2026. No brokerage account was accessed, export downloaded, developer access requested or API tested. The user has chosen a broker-neutral file/manual starting workflow.
+Status: the owner selected **Fidelity as the initial broker test case on October 23, 2026**. [T002.1's current public evidence matrix](../tasks/T002.1-public-broker-evidence.md) owns the dated field/capability findings, source conflicts and next missing input. Broker selection is settled; the precise export/manual workflow remains unqualified under D010. [T002.2.2 opening-source evidence](../tasks/T002.2.2-opening-source-disposition.md) and [T002.2.3 manual-workflow evidence](../tasks/T002.2.3-manual-workflow-disposition.md) now own the subsequent bounded public dispositions, preserving actual account/source/funding gaps and conflicting correction instructions. No brokerage account was accessed, real export downloaded, developer access requested or API tested. The generic import architecture remains broker neutral with file imports and manual trades.
+
+The comparison table below preserves the October 22 reconnaissance, with limited public alternative checks during T002.1. It is not the current selection queue. The owner subsequently supplied a combined ETF/mutual-fund lot example and collection prompt, authorizing the same overall stock structure as a development assumption. [T002.2 fixture preparation](../tasks/T002.2-fidelity-fixture-preparation.md) now supplies fictional CSVs and [future-user collection instructions](../guides/FIDELITY_IMPORT.md). In the owner's reported retail positions workflow, there is no single bulk lot download across accounts; the prompt collects per-position source CSVs and consolidates them without changing lot values. This is an observed-workflow report, not an assertion about every Fidelity channel. Original downloads/browser coverage and stock-output fidelity were not qualified here. Stable lot IDs, basis/holding adjustments, cutoffs, cash/history and confirmation formats remain unresolved. Do not access the owner's account to fill those gaps.
 
 ## Selection principle
 
@@ -20,10 +22,10 @@ Complete one evidence sheet per candidate using public documentation and redacte
 
 | Requirement | Pass evidence | If absent |
 | --- | --- | --- |
-| Open tax lots | Acquisition dates, exact quantities, total adjusted basis, basis/holding-period status, distinguishable lot references | No actionable specific-lot plans |
-| Position and cash snapshots | Same-cutoff holdings, settled/available/unsettled cash definitions | Reconciliation/funding blocked |
-| Historical/recent activity | Buys, sells, DRIPs, external transfers, corrections and actions, with dates/IDs and coverage | Explicit history/eligibility gaps |
-| Existing wash adjustments | Meaning of adjusted versus original basis and holding-period fields | No inferred basis; review required |
+| Open tax lots | Exact quantities, reported total basis, resolvable security and distinguishable sale lots; preserve date/term and basis assumptions | Missing basis/ambiguous sale mapping blocks affected sales; unknown term remains unknown under D038 |
+| Position and cash snapshots | Optional independent positions and cash buckets with as-of definitions; derive holdings from lots when needed | Missing redundant export alone is not a blocker under D038-D039; actual discrepancies and insufficient funding still require resolution |
+| Historical/recent activity | Optional buys/sells/DRIPs/actions with coverage, or attributable manual restrictions | Persistent unverified-wash-sale warning and conditional results under D038; known conflicts still excluded |
+| Existing wash adjustments | Preserve source-reported total basis and supplied adjustment/holding fields | Absence of a wash-validation flag does not invalidate ordinary source basis; known disputes/events need resolution, missing basis cannot be inferred |
 | Fractional holdings | Quantity precision and broker's whole/fractional sell behavior | Preserve holdings; block unsupported order sizes |
 | Specific-lot manual selection | Documented procedure and evidence of broker acknowledgement/confirmation | Initial execution workflow fails qualification |
 | Fills and lot allocations | Actual prices/fees, partial fills/cancellations, confirmed sale lots | Trade cycle cannot be marked reconciled |
@@ -41,11 +43,11 @@ Read-only connectivity is a later feature with scoped tokens, revocation, stale-
 
 ## T017 / G1 paper feasibility charter
 
-The first pilot persona is adopted under D031: an investor with an existing eligible stock sleeve and sufficient source/household evidence. This charter is prepared; no participant or broker session has run. Use fictional data and public/source-qualified schemas first. Real exports, credentials, outreach and account operations require their relevant authorization.
+The first pilot persona is adopted under D031: an investor with an existing eligible stock sleeve and sufficient source/household evidence. [T017.2](../tasks/T017.2-manual-execution-rehearsal.md) now completes a fictional paper exception walk with independent arithmetic and an explicit G1 gap disposition. No participant or broker session has run. Use fictional data and public/source-qualified schemas first. Real exports, credentials, outreach and account operations require their relevant authorization.
 
 | Paper case | Exercise | Record before declaring G1 passed |
 | --- | --- | --- |
-| Clean cycle | Assemble lots, same-cutoff positions/cash, included activity, permitted quotes/benchmark/history; select exact lots on a paper worksheet and map confirmations | Field/source/version coverage, cutoff and settlement meanings, rights/refresh plan, acknowledgement deadline/timezone, quantities/fees and confirmed lot identifiers |
+| Holdings-first conditional cycle | Assemble lot snapshot plus account/as-of/security supplements, optional history/manual restrictions and selected cash, permitted quotes/benchmark/market history; select exact lots on a paper worksheet and map manual/file confirmations | Evidence/assumptions separate, unverified-history warning retained, selected-cash sleeve scope, cutoff/settlement/rights/refresh, quantities/fees and confirmed lot mapping |
 | Household/DRIP conflict | Add a recent household purchase and an earlier household loss sale affecting the proposed replacement | Both legs screened; blocked reason and missing evidence understandable; no manual bypass masquerading as a clean plan |
 | Partial execution | Sell only part of a worksheet and stipulate failed replacement; then a separate wrong-lot confirmation | Actual quantities/cash and exposure recovery, uncertain commitments retained, lot mismatch unresolved until evidence arrives |
 | Ineligible or drifted sleeve | Use unsupported tax facts or an initial breach for which strict zero-gain/whole-share constraints yield no qualified candidate | Diagnostic holdings preserved, honest search outcome, burden/candidate-yield recorded; no silent risk/gain relaxation |

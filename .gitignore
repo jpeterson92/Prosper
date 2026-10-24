@@ -33,6 +33,7 @@ venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.testmondata*
 .mypy_cache/
 .ruff_cache/
 .hypothesis/

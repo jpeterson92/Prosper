@@ -9,6 +9,7 @@ The project also serves as a current FinTech learning/interview showcase. The ow
 ## Start here
 
 1. Read the [project plan](docs/PROJECT_PLAN.md) for the adopted scope, milestones, and immediate next work.
+   The [remaining project roadmap](docs/REMAINING_ROADMAP.md) explains each unfinished stage in plain language and how successive `/next` tasks advance the broader goals.
 2. Read the [product specification](docs/product/SPEC.md) for the investor workflow and initial acceptance criteria.
 3. Review [decisions](docs/DECISIONS.md). Accepted architecture, conditional evaluations and genuinely open details are distinguished.
 4. See [current status](docs/STATUS.md) before starting another session.
@@ -16,6 +17,8 @@ The project also serves as a current FinTech learning/interview showcase. The ow
 5. Read the [critical pre-implementation review](docs/reviews/2026-10-22-pre-implementation-review.md) for product/engineering findings and their adopted disposition in [ADR-0002](docs/architecture/decisions/0002-adopt-critical-review-actions.md).
 
 The adopted first-product plan is a local application that imports tax lots and activity, reconciles them, compares a stock portfolio with a supplied benchmark, proposes an explainable harvest within explicit risk limits, and reconciles trades afterward. The investor controls account activity and execution.
+
+The owner's [holdings-first input update](docs/architecture/decisions/0004-adopt-holdings-first-inputs.md) makes broker transaction history and cash optional. Planned conditional optimization retains an unverified-wash-sale warning and optional manual restrictions. Each future run reviews an editable additional-cash budget, including zero; risk covers the stock sleeve plus selected cash. These requirements are assigned to downstream tasks, not implemented optimizer controls.
 
 ## Project map
 
@@ -32,7 +35,8 @@ The adopted first-product plan is a local application that imports tax lots and 
 | [Data contracts](docs/architecture/DATA_CONTRACTS.md) | Adopted conceptual semantics; schemas still to implement and qualify |
 | [Foundation specification](docs/engineering/FOUNDATION_SPEC.md) | Complete fictional import bundle, exact numeric contract and bounded first implementation brief |
 | [Foundation child plan](docs/tasks/T003-T004-foundation-plan.md) | T003/T004 fit assessment, bounded serial tasks and expanded first ready development-baseline brief |
-| [Brokerage feasibility](docs/research/BROKERAGES.md) | Evidence and qualification procedure; no broker selected |
+| [Brokerage feasibility](docs/research/BROKERAGES.md) | Fidelity selected as the initial test broker; field/workflow evidence and remaining qualification |
+| [Fidelity lot collection](docs/guides/FIDELITY_IMPORT.md) | Retail per-position download/consolidation procedure, reusable assistant prompt and fictional stock test files |
 | [Validation](docs/engineering/VALIDATION.md) | Acceptance scenarios, independent expectations, release evidence |
 | [Agent workflow](docs/engineering/AGENT_WORKFLOW.md) | Task intake, authority, review, handoff, starter prompts |
 | [Sources](docs/research/SOURCES.md) | Primary sources checked and their limits |

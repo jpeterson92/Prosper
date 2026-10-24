@@ -8,3 +8,7 @@
 *.pdf binary
 *.zip binary
 *.whl binary
+# Fidelity-shaped CSV fixtures deliberately preserve UTF-8 BOM and CRLF bytes.
+examples/synthetic/fidelity/*.csv -text whitespace=cr-at-eol
+examples/synthetic/fidelity/sources/*.csv -text whitespace=cr-at-eol
+examples/synthetic/paper/*.csv -text whitespace=cr-at-eol

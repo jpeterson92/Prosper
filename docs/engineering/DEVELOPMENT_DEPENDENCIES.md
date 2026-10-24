@@ -1,5 +1,11 @@
 # Dependency inventory: development baseline and synthetic parser
 
+## Parallel and affected test tooling
+
+Owner-directed October 24 implementation adds development-only pytest-xdist **3.8.0** (MIT), pytest-testmon **2.2.0** (MIT installed License field/text), execnet **2.1.2** (MIT), and coverage **7.17.0** (Apache-2.0 installed field/text/notices). Pytest remains **9.1.1**; testmon declares pytest >=5,<10 and coverage >=6,<8, while xdist declares pytest >=7 and execnet >=2.1. The locked development environment has 39 distributions including Prosper. The isolated wheel runtime remains 17 and excludes these four development tools. No existing dependency version changed and no cloud test service/extras were added. Metadata/license observations are inventory rather than a security/legal audit or Prosper distribution-license decision. [Workflow evidence](../tasks/TEST_WORKFLOW.md) records actual compatibility and targeted qualification; initial full Prosper testmon/parallel qualification is deferred to the next authorized checkpoint.
+
+## Original development baseline
+
 Observed October 22, 2026 from installed wheel metadata in both locked environments. All external packages came from public PyPI; [uv.lock](../../uv.lock) records exact versions and distribution SHA-256 hashes. Direct versions are pinned in [pyproject.toml](../../pyproject.toml). The original T003.1 table below is retained; the later T004.1.1 runtime qualification is recorded separately after it. This is inventory/qualification evidence for local development, not a license grant for Prosper, a legal audit, a vulnerability audit or release-distribution approval. D014 remains open. No third-party dependency source was modified or vendored.
 
 | Distribution | Version | Role | Installed metadata license label |
@@ -59,6 +65,12 @@ Observed October 22, 2026 on the same CPython 3.12.4 Windows x64 development hos
 | typing_extensions | 4.16.0 | Existing baseline package, now also a runtime dependency | PSF-2.0 |
 
 The full development environment now has 24 locked distributions including Prosper; a fresh wheel environment contains Prosper plus these five runtime distributions. uv.lock retains exact distribution hashes. The helper syncs locked runtime packages offline into its fresh environment before installing the wheel and checking metadata compatibility. The initial require-hashes requirements-export approach could not reuse the existing offline compiled-wheel cache and was replaced by uv's actual locked sync path; the passing command is the one recorded here. No new package source was vendored or modified. Version/license observations came from [public PyPI metadata](https://pypi.org/pypi/pydantic/2.14.1/json) and installed wheel metadata. Qualification covers this observed developer configuration; no investor installer or broader OS claim is made.
+
+## T006.2.1.2 numerical stack qualification
+
+Observed October 24, 2026 on Windows 11 build 22635/AMD64, CPython 3.12.4. The [owning report](../tasks/T006.2.1.2-python-stack-reference.md) records executable primitive/reference results and package qualification. Direct runtime pins are NumPy **2.5.4** and SciPy **1.18.1**, with distribution hashes in `uv.lock`. Official [NumPy metadata](https://pypi.org/pypi/numpy/2.5.4/json) declares Python >=3.12; [SciPy metadata](https://pypi.org/pypi/scipy/1.18.1/json) declares Python >=3.12 and NumPy >=2.0.0,<2.8. Only these two distributions were added; no extras, `arch`, stubs, accelerator or MATLAB deployment. Existing dependency versions are unchanged.
+
+Installed NumPy metadata declares `BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0`; SciPy supplies BSD redistribution text rather than a precise License-Expression. Both Windows wheels retain bundled notices for OpenBLAS (BSD-3-Clause), LAPACK (BSD-3-Clause-Open-MPI) and GCC runtime (`GPL-3.0-or-later WITH GCC-exception-3.1`). Preserve the complete wheel notices for future distribution review. These observations are an inventory, not a license/legal/security audit or Prosper distribution-license selection; D014/D016 remain open. NumPy records OpenBLAS 0.3.34.106.0 ILP64/Haswell, SciPy OpenBLAS 0.3.31.dev LP64/SkylakeX; their upstream build paths are build metadata, not local build tools or newly installed compilers. Full structured configurations and installed METADATA/WHEEL/RECORD hashes are retained in generated evidence.
 
 ## T004.4.1.1 frontend and browser qualification
 

@@ -35,6 +35,32 @@ Installed dependencies belong in `.venv`; the uv download/build cache works well
 
 ## Daily checks and package qualification
 
+The owner's October 24 [verification-cadence amendment](NEXT_STEP.md#verification-cadence-and-parallel-execution) reserves full-suite execution for explicitly authorized code-commit/GitHub-sync checkpoints or an explicit full-verification request. The [implemented workflow](../tasks/TEST_WORKFLOW.md) provides affected/focused/last-failed commands, local timing reports and default pytest-xdist `-n auto`, as requested by the owner. `dev` is the ordinary development command; `check` remains an explicit full checkpoint command. Existing full CI triggers are unchanged. Full Prosper parallel/testmon qualification and the initial application selection baseline remain deferred to the next checkpoint; targeted execution and miniature selection contracts are qualified separately.
+
+```powershell
+# Explicit affected paths, usable immediately without a full baseline.
+.\scripts\dev.ps1 -Command dev -TestPath tests/test_numerical_stack.py
+
+# Automatic affected selection after the first authorized full checkpoint.
+.\scripts\dev.ps1 -Command dev
+
+# Tests only, optional serial debugging or failed-test reruns.
+.\scripts\dev.ps1 -Command test -TestPath tests/test_numerical_stack.py -Workers 0
+.\scripts\dev.ps1 -Command test -TestPath tests/test_numerical_stack.py -LastFailed
+
+# Documentation checks or an explicitly authorized full commit/sync checkpoint.
+.\scripts\dev.ps1 -Command docs
+.\scripts\dev.ps1 -Command checkpoint
+```
+
+`dev` runs Ruff/format/strict mypy, scoped pytest and project checks; `test` runs scoped pytest only. Without `-TestPath`, both use testmon to select changed-code dependencies. Paths/node IDs must be under `tests/`. All test modes default to `-Workers auto`; `0` provides serial debugging. Last-failed mode requires explicit paths and does not expand to all tests when no failures remain. `check` runs full lint/type/pytest/project checks; `checkpoint` adds the existing isolated-wheel package procedure. Neither full command permits narrowed paths/last-failed mode. `-ForceFull` requests a fresh full test result instead of reusing an unchanged matching receipt.
+
+Cold/missing/corrupt or stale testmon/baseline state produces an actionable error, never an automatic full run. Fixture/data/configuration/environment changes invalidate automatic selection until a later authorized full checkpoint; explicit paths remain usable. Python changes also conservatively run test files declaring child-process operations, excluding already-executed node IDs. This covers the inspected subprocess cases, not arbitrary indirect wrappers/native dependencies; new mechanisms require explicit scoped tests or an extension to the supplement. Markdown-only edits do not invalidate the Python baseline.
+
+Ignored `.local/test-workflow/runs/<id>/` holds command/wall-time records, stdout, JUnit XML, per-test phase timing, actual worker count and an input-identified summary. Console output lists the twenty slowest phases. `.local/test-workflow/state/` stores the local-only testmon database, baseline, failed-test IDs and active-run lock; no cloud service is used. Every phase/nested pytest gets new scratch/cache directories, with previous failed-test IDs seeded separately. Shared selection state is locked. Child environments use one BLAS/OpenMP thread per worker and replace inherited `PYTEST_ADDOPTS` so it cannot silently narrow a checkpoint; caller/global settings are unchanged.
+
+A full pytest receipt is reused only when source/config/data/interpreter/distribution/execution inputs match, its full passing summary exists, the selection database remains present, and no later test failure is recorded. This covers a commit and immediate sync without duplicate local tests; lint/type/project checks still run and package verification is separate. Failed/interrupted or mid-run-mutated candidates do not advance verification state. Inspect interrupted `active.lock` ownership before removing a stale lock. Old serial results do not automatically seed a parallel/testmon baseline.
+
 ```powershell
 .\scripts\dev.ps1 -Command sync
 .venv\Scripts\python.exe scripts/check_project.py --write-manifest
@@ -42,7 +68,7 @@ Installed dependencies belong in `.venv`; the uv download/build cache works well
 .\scripts\dev.ps1 -Command package
 ```
 
-`sync` uses `uv sync --locked` with editable source installation. `check` first syncs offline against the lock using the environment's pinned uv, then runs Ruff lint/format checks, strict mypy, pytest with a fresh ignored `.local/pytest/<unique-id>` scratch directory, and authored-project checks. This keeps test scratch isolated per checkout/run without changing process TEMP/TMP or relying on a shared pytest temp root. If offline build/dependency artifacts are unavailable, run `sync` with permitted network access first. Routine commands never rewrite the lock. The helper sets only `UV_PROJECT_ENVIRONMENT` (the checkout's `.venv`) and `UV_PYTHON_DOWNLOADS=never` for subprocesses and restores both on success/failure. Existing tool-cache/temp settings otherwise retain ordinary behavior. It also restores the working directory.
+`sync` uses `uv sync --locked` with editable source installation. Test/package commands first sync offline against the lock using the pinned uv. The runner now places fresh pytest scratch/cache beneath `.local/test-workflow/runs/<id>/<phase>/`; earlier `.local/pytest/<unique-id>` examples below remain manual/historical equivalents. Process TEMP/TMP is unchanged. If offline artifacts are unavailable, run `sync` with permitted network access first. Routine commands never rewrite the lock. The PowerShell helper restores `UV_PROJECT_ENVIRONMENT`, `UV_PYTHON_DOWNLOADS` and its working directory; test/thread overrides are passed only to child environments. Normal uv/lint/type caches remain in use.
 
 Equivalent lint/type/test commands, after syncing:
 
@@ -57,7 +83,13 @@ New-Item -ItemType Directory -Force '.local/pytest' | Out-Null
 
 The four bootstrap tests qualify editable installed imports from an unrelated working directory, deliberate Ruff/type errors, and positive/negative pytest/Hypothesis execution. Expected failing subprocesses are asserted by passing outer tests. They validate no financial behavior. T003.2's separate 56 primitive cases include four deterministic property tests against rational references; [task evidence](../tasks/T003.2-exact-values.md) records their scope and actual results. T004.1.1 adds 82 parser cases including two deterministic property tests. `package` builds a wheel offline, creates a fresh isolated environment, installs only the exact locked runtime dependencies via `uv sync --locked --offline --no-dev --no-install-project`, then installs Prosper's wheel with no editable source. It checks installed dependency compatibility and imports with Python isolation enabled, verifying package/typing-marker origin. The environment target and VIRTUAL_ENV overrides are process-scoped and restored. The isolated parser smoke in task evidence exercises the actual installed module with F000/F001. It leaves synthetic output in ignored `.local/package-check`; it is no release installer or reproducible-build claim.
 
+On the managed qualification host, switching execution accounts left an existing default pytest cache inaccessible. A fresh outer `-o cache_dir=...` alone did not reach the bootstrap test's nested pytest process. The [integrated-candidate report](../tasks/T004.5.1-integrated-candidate.md#checks-review-and-residual-findings) records the failing run and the exercised process-only `PYTEST_ADDOPTS='-o cache_dir=.local/pytest-cache/final-normal-3'` workaround, restored after execution, with a separate fresh `--basetemp`. This changes only ignored test artifacts; normal developer caches remain the default. It does not repair cache ownership or grant cache/Git permissions, and the interrupted helper run is not reported as passing.
+
 Pinned development versions remain Ruff **0.17.2**, mypy **2.4.0** strict, pytest **9.1.1**, Hypothesis **6.170.5**, Hatchling **1.32.4**, uv **0.13.5**. [The dependency inventory](DEVELOPMENT_DEPENDENCIES.md) retains baseline and subsequent runtime metadata/license limits. Runtime now includes Pydantic 2.14.1 and T003.4.1's pinned FastAPI/minimal Uvicorn stack described below. No public Prosper software license is selected. Add frontend/numerical tools only in their owning child tasks. A filesystem move is not a reason to install the entire future stack.
+
+## Synthetic numerical stack probes
+
+T006.2.1.2 adds pinned NumPy 2.5.4 and SciPy 1.18.1 to the runtime lock after Windows CPython 3.12.4 synthetic stack qualification. Run `.venv/Scripts/python.exe scripts/qualify_numerics.py --output .local/numerical-probe-<new-id>` from the checkout to retain a fresh reference/environment report. Output directories must be new and inside `.local`. The [owning report](../tasks/T006.2.1.2-python-stack-reference.md) distinguishes primitive stack checks from future risk estimators, independent model review and financial acceptance. No `arch`, MATLAB runtime, accelerator or extra numerical-package test/docs dependencies are selected.
 
 ## Protected synthetic loopback runtime
 
@@ -85,6 +117,10 @@ Development cross-origin access is disabled by default. `--development-port 5173
 Requests pass host/origin/session checks before reading bodies. Header totals are capped at 16 KiB in the ASGI guard, with h11's incomplete-event limit also 16 KiB. Declared/streamed bodies are limited to 2 MiB, accumulated in one bounded byte buffer with a three-second receive deadline before any route parser; diagnostic operations reject every nonempty body. Configured import uploads use the same 2 MiB ceiling; commit/reject controls have a tighter 4 KiB ceiling and duplicate-key/nonfinite JSON rejection before closed-model validation. Uvicorn uses h11/asyncio, transport read backpressure, a 16-request concurrency guard, no WebSockets, two-second keepalive and three-second graceful shutdown. Connections close after responses. These are engineering limits, not a measured throughput/DoS guarantee; idle sockets/incomplete-header attacks and hostile-local-process resistance remain unqualified.
 
 Access/error request logging and FastAPI tracing/metrics/logs/automatic telemetry configuration are explicitly disabled. No SDK/exporter, Swagger/CDN assets or remote data service is installed by this feature. [Dependency inventory](DEVELOPMENT_DEPENDENCIES.md#t00341-local-api-runtime-qualification) records the locked stack and license metadata; [task evidence](../tasks/T003.4.1-loopback-runtime.md) owns commands, installed-wheel qualification and limitations. The typed import HTTP configuration below is synthetic-only. Do not launch the internal ASGI application through an arbitrary server or treat another host/proxy configuration as qualified.
+
+## Synthetic import measurements
+
+The [T004.5.2 report](../tasks/T004.5.2-import-measurements.md) records the exercised `scripts/measure_imports.py` command, independent workload totals, timing method, host, dependency footprint and actual observations. Use a new ignored output directory for each run. The harness measures local parsing/inspection and durable previews after runtime initialization; it does not activate checkpoints or measure HTTP/browser/manual workflow latency. The existing import budget remains provisional, and financial-use/optimizer capacity is outside its evidence.
 
 ## Typed synthetic import HTTP API
 
@@ -227,3 +263,7 @@ For this connected GitHub repository, use `git push` to upload reviewed committe
 For authorized source synchronization, follow the [hosted CI handoff protocol](NEXT_STEP.md#github-synchronization-and-hosted-ci-handoff): review the previous relevant run at the next sync and finish each push without waiting for its new Actions run. Required local checks still apply. Actions runs remain enabled; no workflow, branch protection or release gate is changed by this timing preference.
 
 Independent software/tax/risk review, other-machine/OS checks, financial/application tests, investor acceptance and release remain separate evidence gates. Hosted CI evidence is recorded per exact commit in STATUS. [STATUS](../STATUS.md) owns the current next task and exact handoff identity.
+
+## Synthetic combined Fidelity lot inspection
+
+`prosper.fidelity_lots.inspect_combined_lots(raw, fictional=True)` is a bytes-only library inspector for the owner's combined 15-column format and fictional stock fixtures. Its frozen result retains source text, exact numeric/date projections and located issues. It performs no file access, activation or API/UI integration; `canonical_checkpoint_ready` and `planning_ready` remain false even on structurally observed rows. Source currency/identity/cutoff/basis adjustments, cash/history and executions remain unqualified. The [mapping report](../tasks/T002.2-combined-lot-mapping.md) owns the exercised focused/full check/package/installed-wheel evidence and all limits. Use only the [fictional CSV fixtures](../../examples/synthetic/fidelity/README.md) in development. Do not process a real export or invoke the stored browser prompt merely because this module exists.

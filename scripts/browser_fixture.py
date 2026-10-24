@@ -10,17 +10,35 @@ from prosper.api_contracts import CurrentResponse, checkpoint_response
 from prosper.evidence import EvidenceStore, RuntimeBoundary
 from prosper.imports import ImportService
 from prosper.persistence import DATABASE_NAME, CheckpointStore
+from prosper.recovery import backup, restore
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("seed", "inspect"))
+    parser.add_argument("operation", choices=("seed", "inspect", "backup", "restore"))
     parser.add_argument("root", type=Path)
+    parser.add_argument("--destination", type=Path)
+    parser.add_argument("--candidate")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[1]
-    service = ImportService(
-        CheckpointStore(EvidenceStore(RuntimeBoundary(args.root, source, "synthetic")))
-    )
+    boundary = RuntimeBoundary(args.root, source, "synthetic")
+    if args.operation in ("backup", "restore"):
+        if args.destination is None:
+            parser.error("recovery requires --destination")
+        destination = RuntimeBoundary(args.destination, source, "synthetic")
+        if args.operation == "backup":
+            if args.candidate is None:
+                parser.error("backup requires --candidate")
+            manifest = backup(
+                CheckpointStore(EvidenceStore(boundary)),
+                destination,
+                candidate_id=args.candidate,
+            )
+        else:
+            manifest = restore(boundary, destination)
+        print(manifest.model_dump_json())
+        return
+    service = ImportService(CheckpointStore(EvidenceStore(boundary)))
     if args.operation == "seed":
         preview = service.previews.stage((source / "examples/synthetic/F001.json").read_bytes())
         result = service.commit(preview.receipt.raw_sha256, "browser-fixture-seed", 0)

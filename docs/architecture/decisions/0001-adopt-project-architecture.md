@@ -16,6 +16,8 @@ The [technology review](../TECHNOLOGY_TRADEOFFS.md) compares thirteen choices. T
 
 ## Adopted baseline
 
+Subsequent refinement: [ADR-0007](0007-adopt-enhanced-dcc-nl-industry-risk.md) selects enhanced DCC-NL with sector/industry risk for v1, superseding the initial generic shrinkage reference direction below. Detailed algorithm/settings qualification and G1-G3 remain required; the original adoption record is historical context.
+
 - Local single-user modular application with a deterministic typed Python core; one authoritative state store.
 - SQLite for financial/application state with exact-value encoding, transactional import/reconciliation and tested recovery. Real data resides outside the source repository. The original synced-folder development restrictions are superseded by [ADR-0003](0003-adopt-standard-local-development.md); standard local development artifacts are permitted inside ignored checkout folders.
 - React/TypeScript/Vite investor UI; FastAPI/Pydantic boundary; OpenAPI-generated TypeScript client; exact book values cross JSON as validated decimal strings.

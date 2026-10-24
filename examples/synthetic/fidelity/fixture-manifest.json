@@ -1,0 +1,163 @@
+{
+  "schema": "prosper-synthetic-fidelity-fixtures-v1",
+  "classification": "entirely_fictional_development_data",
+  "transport": {
+    "encoding": "utf-8-sig",
+    "record_ending": "CRLF",
+    "columns": [
+      "Account number",
+      "Account name",
+      "Symbol",
+      "Security description",
+      "Source file",
+      "Source CSV row",
+      "Source download date",
+      "Acquired",
+      "Term",
+      "$ Total gain/loss",
+      "% Total gain/loss",
+      "Current value",
+      "Quantity",
+      "Average cost basis",
+      "Cost basis total"
+    ]
+  },
+  "provenance": {
+    "combined_columns": "owner-supplied combined ETF/mutual-fund example and consolidation prompt, inspected October 23, 2026",
+    "stock_shape": "owner-authorized assumption; no actual Fidelity stock export qualified",
+    "raw_preamble": "invented fixture layout, not verified Fidelity serialization",
+    "financial_values": "independently invented; no source account or holding values reused",
+    "source_row_identity": "file-local parsed record reference, not a durable broker lot ID"
+  },
+  "baseline": {
+    "file": "combined-stocks.csv",
+    "records": 8,
+    "accounts": 3,
+    "securities": 4,
+    "source_exports": 5,
+    "quantity": "49.125",
+    "basis_total": "3604.00",
+    "current_value": "3653.75",
+    "display_gain_loss": "49.75",
+    "accounts_expected": {
+      "000SYNTH001": {
+        "records": 5,
+        "quantity": "18.125",
+        "basis_total": "1954.00",
+        "current_value": "1593.75",
+        "display_gain_loss": "-360.25"
+      },
+      "000SYNTH002": {
+        "records": 2,
+        "quantity": "24.000",
+        "basis_total": "1160.00",
+        "current_value": "1500.00",
+        "display_gain_loss": "340.00"
+      },
+      "000SYNTH003": {
+        "records": 1,
+        "quantity": "7.000",
+        "basis_total": "490.00",
+        "current_value": "560.00",
+        "display_gain_loss": "70.00"
+      }
+    }
+  },
+  "sources": [
+    {
+      "file": "sources/SYNTHETIC_A_FAAA.csv",
+      "header_record": 5,
+      "lot_records": [
+        6,
+        7,
+        8
+      ],
+      "account": "000SYNTH001",
+      "symbol": "FAAA"
+    },
+    {
+      "file": "sources/SYNTHETIC_A_FBBB.csv",
+      "header_record": 5,
+      "lot_records": [
+        6,
+        7
+      ],
+      "account": "000SYNTH001",
+      "symbol": "FBBB"
+    },
+    {
+      "file": "sources/SYNTHETIC_B_FCCC.csv",
+      "header_record": 5,
+      "lot_records": [
+        6
+      ],
+      "account": "000SYNTH002",
+      "symbol": "FCCC"
+    },
+    {
+      "file": "sources/SYNTHETIC_B_FAAA.csv",
+      "header_record": 5,
+      "lot_records": [
+        6
+      ],
+      "account": "000SYNTH002",
+      "symbol": "FAAA"
+    },
+    {
+      "file": "sources/SYNTHETIC_IRA_FDDD.csv",
+      "header_record": 5,
+      "lot_records": [
+        6
+      ],
+      "account": "000SYNTH003",
+      "symbol": "FDDD"
+    },
+    {
+      "file": "sources/SYNTHETIC_A_FBBB_missing_basis.csv",
+      "header_record": 5,
+      "lot_records": [
+        6,
+        7
+      ],
+      "account": "000SYNTH001",
+      "symbol": "FBBB"
+    }
+  ],
+  "cases": {
+    "combined-stocks.csv": {
+      "records": 8,
+      "expected_future_adapter_behavior": "Preserve all eight lots and metadata; inspection only, never planning-ready from this file."
+    },
+    "missing-basis.csv": {
+      "records": 8,
+      "expected_future_adapter_behavior": "Retain missing acquisition/term/basis and -- display markers as explicit unknowns; block affected financial use; never zero-fill."
+    },
+    "repeated-reference.csv": {
+      "records": 9,
+      "expected_future_adapter_behavior": "Refuse repeated source locator or report duplicate evidence explicitly; never silently merge separate lots."
+    },
+    "conflicting-reference.csv": {
+      "records": 9,
+      "expected_future_adapter_behavior": "Refuse conflicting content for the same source locator; preserve original evidence and conflict."
+    },
+    "schema-drift.csv": {
+      "records": 8,
+      "expected_future_adapter_behavior": "Reject unsupported header/version explicitly; never guess a renamed column."
+    },
+    "malformed-row.csv": {
+      "records": 8,
+      "expected_future_adapter_behavior": "Reject the fourteen-field final row; never drop it or silently fill missing basis."
+    }
+  },
+  "required_unknowns": [
+    "security identifiers and supported tax classification",
+    "durable lot identity",
+    "holding-period adjustments and wash-sale adjustment evidence",
+    "cash and same-cutoff positions",
+    "activity/history/household coverage",
+    "confirmed executions and sale-lot allocations",
+    "snapshot event inclusion and effective cutoff",
+    "actual source completeness and interface fidelity"
+  ],
+  "planning_ready": false
+}

@@ -1,10 +1,15 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('bootstrap', 'sync', 'check', 'package')]
+    [ValidateSet('bootstrap', 'sync', 'dev', 'test', 'docs', 'check', 'checkpoint', 'package')]
     [string]$Command,
     [string]$Python = 'python',
-    [string]$Uv = 'uv'
+    [string]$Uv = 'uv',
+    [ValidatePattern('^(auto|[0-9]+)$')]
+    [string]$Workers = 'auto',
+    [string[]]$TestPath = @(),
+    [switch]$LastFailed,
+    [switch]$ForceFull
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,6 +25,12 @@ $prosperOverrides = @{
     UV_PYTHON_DOWNLOADS = 'never'
 }
 $prosperPrevious = @{}
+if (($TestPath.Count -gt 0 -or $LastFailed) -and $Command -notin @('dev', 'test')) {
+    throw 'TestPath/LastFailed are restricted to dev/test; full checkpoint checks cannot be narrowed.'
+}
+if ($ForceFull -and $Command -notin @('check', 'checkpoint')) {
+    throw 'ForceFull is restricted to check/checkpoint.'
+}
 foreach ($prosperKey in $prosperOverrides.Keys) {
     $prosperPrevious[$prosperKey] = [Environment]::GetEnvironmentVariable($prosperKey, 'Process')
 }
@@ -46,24 +57,42 @@ try {
         if ($Command -in @('bootstrap', 'sync')) {
             & $Uv sync --locked --python $Python
             if ($LASTEXITCODE -ne 0) { throw "uv sync failed with exit $LASTEXITCODE." }
+        } elseif ($Command -eq 'docs') {
+            & $prosperExecutable scripts/check_project.py --write-manifest
+            if ($LASTEXITCODE -ne 0) { throw 'Document/manifest checks failed.' }
+            & git diff --check
+            if ($LASTEXITCODE -ne 0) { throw 'Diff checks failed.' }
         } else {
             if (-not (Test-Path -LiteralPath $prosperExecutable)) { throw 'Run bootstrap or sync first.' }
             & $prosperExecutable -m uv sync --locked --offline --python $prosperExecutable
             if ($LASTEXITCODE -ne 0) { throw 'Offline locked sync failed; run sync first.' }
-            if ($Command -eq 'check') {
+            if ($Command -in @('dev', 'check', 'checkpoint')) {
                 & $prosperExecutable -m ruff check src tests scripts
                 if ($LASTEXITCODE -ne 0) { throw 'Ruff lint failed.' }
                 & $prosperExecutable -m ruff format --check src tests scripts
                 if ($LASTEXITCODE -ne 0) { throw 'Ruff formatting failed.' }
                 & $prosperExecutable -m mypy --config-file pyproject.toml
                 if ($LASTEXITCODE -ne 0) { throw 'Strict mypy failed.' }
-                $prosperTestTemp = Join-Path $prosperSource ('.local\pytest\' + [Guid]::NewGuid().ToString('N'))
-                New-Item -ItemType Directory -Force -Path (Split-Path -Parent $prosperTestTemp) | Out-Null
-                & $prosperExecutable -m pytest --basetemp $prosperTestTemp
-                if ($LASTEXITCODE -ne 0) { throw 'pytest qualification failed.' }
+            }
+            if ($Command -in @('dev', 'test', 'check', 'checkpoint')) {
+                $prosperTestMode = 'affected'
+                if ($TestPath.Count -gt 0 -or $LastFailed) { $prosperTestMode = 'selected' }
+                if ($Command -in @('check', 'checkpoint')) { $prosperTestMode = 'full' }
+                if ($LastFailed -and $TestPath.Count -eq 0) {
+                    throw 'LastFailed requires explicit TestPath so its scope is reviewable.' }
+                $prosperTestArgs = @('scripts/run_tests.py', '--mode', $prosperTestMode,
+                    '--workers', [string]$Workers)
+                if ($LastFailed) { $prosperTestArgs += '--last-failed' }
+                if ($ForceFull) { $prosperTestArgs += '--force' }
+                $prosperTestArgs += $TestPath
+                & $prosperExecutable @prosperTestArgs
+                if ($LASTEXITCODE -ne 0) { throw 'Scoped/full pytest verification failed; inspect the runner message and reports.' }
+            }
+            if ($Command -in @('dev', 'check', 'checkpoint')) {
                 & $prosperExecutable scripts/check_project.py
                 if ($LASTEXITCODE -ne 0) { throw 'Project structure checks failed.' }
-            } else {
+            }
+            if ($Command -in @('package', 'checkpoint')) {
                 # A fresh wheel-only environment catches src-layout/package omissions.
                 $prosperProbe = Join-Path $prosperSource ('.local\package-check\' + [Guid]::NewGuid().ToString('N'))
                 & $prosperExecutable -m uv build --wheel --offline --out-dir (Join-Path $prosperProbe 'dist')

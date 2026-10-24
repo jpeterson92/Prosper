@@ -1,0 +1,501 @@
+﻿security_id,symbol,description,sector,currency,assumed_asset_class,weight,reference_price,reference_as_of,provenance
+PAPER-001,FP001,"Fictional Paper Corporation 001, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.08000000,26.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-002,FP002,"Fictional Paper Corporation 002, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.07500000,29.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-003,FP003,"Fictional Paper Corporation 003, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.05500000,32.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-004,FP004,"Fictional Paper Corporation 004, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.04000000,35.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-005,FP005,"Fictional Paper Corporation 005, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.03000000,38.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-006,FP006,"Fictional Paper Corporation 006, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.02000000,41.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-007,FP007,"Fictional Paper Corporation 007, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.02000000,44.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-008,FP008,"Fictional Paper Corporation 008, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.03000000,47.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-009,FP009,"Fictional Paper Corporation 009, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.01000000,50.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-010,FP010,"Fictional Paper Corporation 010, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.01000000,53.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-011,FP011,"Fictional Paper Corporation 011, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00058824,56.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-012,FP012,"Fictional Paper Corporation 012, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00382353,59.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-013,FP013,"Fictional Paper Corporation 013, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00264706,62.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-014,FP014,"Fictional Paper Corporation 014, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00294118,65.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-015,FP015,"Fictional Paper Corporation 015, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00147059,68.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-016,FP016,"Fictional Paper Corporation 016, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00117647,71.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-017,FP017,"Fictional Paper Corporation 017, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00240602,74.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-018,FP018,"Fictional Paper Corporation 018, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00150376,77.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-019,FP019,"Fictional Paper Corporation 019, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00120301,80.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-020,FP020,"Fictional Paper Corporation 020, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00060150,83.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-021,FP021,"Fictional Paper Corporation 021, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00030075,86.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-022,FP022,"Fictional Paper Corporation 022, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00058170,25.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-023,FP023,"Fictional Paper Corporation 023, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00378105,28.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-024,FP024,"Fictional Paper Corporation 024, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00261765,31.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-025,FP025,"Fictional Paper Corporation 025, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00290850,34.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-026,FP026,"Fictional Paper Corporation 026, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00145425,36.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-027,FP027,"Fictional Paper Corporation 027, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00116340,39.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-028,FP028,"Fictional Paper Corporation 028, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00237867,42.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-029,FP029,"Fictional Paper Corporation 029, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00148667,45.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-030,FP030,"Fictional Paper Corporation 030, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00118934,48.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-031,FP031,"Fictional Paper Corporation 031, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00059467,51.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-032,FP032,"Fictional Paper Corporation 032, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00029733,54.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-033,FP033,"Fictional Paper Corporation 033, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00057516,57.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-034,FP034,"Fictional Paper Corporation 034, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00373856,60.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-035,FP035,"Fictional Paper Corporation 035, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00258824,63.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-036,FP036,"Fictional Paper Corporation 036, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00287582,66.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-037,FP037,"Fictional Paper Corporation 037, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00143791,69.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-038,FP038,"Fictional Paper Corporation 038, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00115033,72.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-039,FP039,"Fictional Paper Corporation 039, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00235133,75.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-040,FP040,"Fictional Paper Corporation 040, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00146958,78.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-041,FP041,"Fictional Paper Corporation 041, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00117567,81.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-042,FP042,"Fictional Paper Corporation 042, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00058783,84.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-043,FP043,"Fictional Paper Corporation 043, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00029392,87.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-044,FP044,"Fictional Paper Corporation 044, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00056863,26.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-045,FP045,"Fictional Paper Corporation 045, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00369608,29.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-046,FP046,"Fictional Paper Corporation 046, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00255882,32.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-047,FP047,"Fictional Paper Corporation 047, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00284314,35.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-048,FP048,"Fictional Paper Corporation 048, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00142157,38.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-049,FP049,"Fictional Paper Corporation 049, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00113725,41.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-050,FP050,"Fictional Paper Corporation 050, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00232399,44.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-051,FP051,"Fictional Paper Corporation 051, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00145249,46.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-052,FP052,"Fictional Paper Corporation 052, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00116200,49.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-053,FP053,"Fictional Paper Corporation 053, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00058100,52.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-054,FP054,"Fictional Paper Corporation 054, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00029050,55.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-055,FP055,"Fictional Paper Corporation 055, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00056209,58.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-056,FP056,"Fictional Paper Corporation 056, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00365359,61.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-057,FP057,"Fictional Paper Corporation 057, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00252941,64.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-058,FP058,"Fictional Paper Corporation 058, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00281046,67.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-059,FP059,"Fictional Paper Corporation 059, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00140523,70.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-060,FP060,"Fictional Paper Corporation 060, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00112418,73.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-061,FP061,"Fictional Paper Corporation 061, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00229665,76.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-062,FP062,"Fictional Paper Corporation 062, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00143541,79.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-063,FP063,"Fictional Paper Corporation 063, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00114833,82.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-064,FP064,"Fictional Paper Corporation 064, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00057416,85.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-065,FP065,"Fictional Paper Corporation 065, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00028708,24.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-066,FP066,"Fictional Paper Corporation 066, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00055556,27.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-067,FP067,"Fictional Paper Corporation 067, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00361111,30.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-068,FP068,"Fictional Paper Corporation 068, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00250000,33.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-069,FP069,"Fictional Paper Corporation 069, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00277778,36.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-070,FP070,"Fictional Paper Corporation 070, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00138889,39.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-071,FP071,"Fictional Paper Corporation 071, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00111111,42.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-072,FP072,"Fictional Paper Corporation 072, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00226931,45.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-073,FP073,"Fictional Paper Corporation 073, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00141832,48.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-074,FP074,"Fictional Paper Corporation 074, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00113465,51.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-075,FP075,"Fictional Paper Corporation 075, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00056733,54.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-076,FP076,"Fictional Paper Corporation 076, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00028366,56.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-077,FP077,"Fictional Paper Corporation 077, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00054902,59.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-078,FP078,"Fictional Paper Corporation 078, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00356863,62.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-079,FP079,"Fictional Paper Corporation 079, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00247059,65.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-080,FP080,"Fictional Paper Corporation 080, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00274510,68.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-081,FP081,"Fictional Paper Corporation 081, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00137255,71.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-082,FP082,"Fictional Paper Corporation 082, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00109804,74.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-083,FP083,"Fictional Paper Corporation 083, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00224197,77.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-084,FP084,"Fictional Paper Corporation 084, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00140123,80.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-085,FP085,"Fictional Paper Corporation 085, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00112098,83.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-086,FP086,"Fictional Paper Corporation 086, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00056049,86.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-087,FP087,"Fictional Paper Corporation 087, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00028025,25.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-088,FP088,"Fictional Paper Corporation 088, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00054248,28.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-089,FP089,"Fictional Paper Corporation 089, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00352614,31.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-090,FP090,"Fictional Paper Corporation 090, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00244118,34.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-091,FP091,"Fictional Paper Corporation 091, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00271242,37.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-092,FP092,"Fictional Paper Corporation 092, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00135621,40.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-093,FP093,"Fictional Paper Corporation 093, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00108497,43.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-094,FP094,"Fictional Paper Corporation 094, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00221463,46.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-095,FP095,"Fictional Paper Corporation 095, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00138414,49.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-096,FP096,"Fictional Paper Corporation 096, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00110731,52.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-097,FP097,"Fictional Paper Corporation 097, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00055366,55.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-098,FP098,"Fictional Paper Corporation 098, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00027683,58.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-099,FP099,"Fictional Paper Corporation 099, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00053595,61.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-100,FP100,"Fictional Paper Corporation 100, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00348366,64.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-101,FP101,"Fictional Paper Corporation 101, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00241176,66.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-102,FP102,"Fictional Paper Corporation 102, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00267974,69.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-103,FP103,"Fictional Paper Corporation 103, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00133987,72.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-104,FP104,"Fictional Paper Corporation 104, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00107190,75.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-105,FP105,"Fictional Paper Corporation 105, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00218729,78.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-106,FP106,"Fictional Paper Corporation 106, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00136705,81.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-107,FP107,"Fictional Paper Corporation 107, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00109364,84.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-108,FP108,"Fictional Paper Corporation 108, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00054682,87.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-109,FP109,"Fictional Paper Corporation 109, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00027341,26.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-110,FP110,"Fictional Paper Corporation 110, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00052941,29.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-111,FP111,"Fictional Paper Corporation 111, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00344118,32.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-112,FP112,"Fictional Paper Corporation 112, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00238235,35.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-113,FP113,"Fictional Paper Corporation 113, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00264706,38.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-114,FP114,"Fictional Paper Corporation 114, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00132353,41.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-115,FP115,"Fictional Paper Corporation 115, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00105882,44.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-116,FP116,"Fictional Paper Corporation 116, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00215995,47.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-117,FP117,"Fictional Paper Corporation 117, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00134997,50.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-118,FP118,"Fictional Paper Corporation 118, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00107997,53.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-119,FP119,"Fictional Paper Corporation 119, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00053999,56.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-120,FP120,"Fictional Paper Corporation 120, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00026999,59.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-121,FP121,"Fictional Paper Corporation 121, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00052288,62.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-122,FP122,"Fictional Paper Corporation 122, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00339869,65.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-123,FP123,"Fictional Paper Corporation 123, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00235294,68.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-124,FP124,"Fictional Paper Corporation 124, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00261438,71.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-125,FP125,"Fictional Paper Corporation 125, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00130719,74.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-126,FP126,"Fictional Paper Corporation 126, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00104575,76.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-127,FP127,"Fictional Paper Corporation 127, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00213260,79.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-128,FP128,"Fictional Paper Corporation 128, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00133288,82.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-129,FP129,"Fictional Paper Corporation 129, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00106630,85.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-130,FP130,"Fictional Paper Corporation 130, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00053315,24.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-131,FP131,"Fictional Paper Corporation 131, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00026658,27.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-132,FP132,"Fictional Paper Corporation 132, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00051634,30.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-133,FP133,"Fictional Paper Corporation 133, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00335621,33.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-134,FP134,"Fictional Paper Corporation 134, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00232353,36.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-135,FP135,"Fictional Paper Corporation 135, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00258170,39.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-136,FP136,"Fictional Paper Corporation 136, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00129085,42.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-137,FP137,"Fictional Paper Corporation 137, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00103268,45.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-138,FP138,"Fictional Paper Corporation 138, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00210526,48.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-139,FP139,"Fictional Paper Corporation 139, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00131579,51.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-140,FP140,"Fictional Paper Corporation 140, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00105263,54.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-141,FP141,"Fictional Paper Corporation 141, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00052632,57.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-142,FP142,"Fictional Paper Corporation 142, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00026316,60.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-143,FP143,"Fictional Paper Corporation 143, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00050980,63.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-144,FP144,"Fictional Paper Corporation 144, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00331373,66.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-145,FP145,"Fictional Paper Corporation 145, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00229412,69.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-146,FP146,"Fictional Paper Corporation 146, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00254902,72.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-147,FP147,"Fictional Paper Corporation 147, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00127451,75.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-148,FP148,"Fictional Paper Corporation 148, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00101961,78.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-149,FP149,"Fictional Paper Corporation 149, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00207792,81.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-150,FP150,"Fictional Paper Corporation 150, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00129870,84.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-151,FP151,"Fictional Paper Corporation 151, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00103896,86.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-152,FP152,"Fictional Paper Corporation 152, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00051948,25.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-153,FP153,"Fictional Paper Corporation 153, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00025974,28.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-154,FP154,"Fictional Paper Corporation 154, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00050327,31.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-155,FP155,"Fictional Paper Corporation 155, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00327124,34.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-156,FP156,"Fictional Paper Corporation 156, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00226471,37.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-157,FP157,"Fictional Paper Corporation 157, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00251634,40.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-158,FP158,"Fictional Paper Corporation 158, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00125817,43.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-159,FP159,"Fictional Paper Corporation 159, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00100654,46.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-160,FP160,"Fictional Paper Corporation 160, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00205058,49.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-161,FP161,"Fictional Paper Corporation 161, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00128161,52.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-162,FP162,"Fictional Paper Corporation 162, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00102529,55.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-163,FP163,"Fictional Paper Corporation 163, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00051265,58.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-164,FP164,"Fictional Paper Corporation 164, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00025632,61.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-165,FP165,"Fictional Paper Corporation 165, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00049673,64.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-166,FP166,"Fictional Paper Corporation 166, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00322876,67.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-167,FP167,"Fictional Paper Corporation 167, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00223529,70.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-168,FP168,"Fictional Paper Corporation 168, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00248366,73.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-169,FP169,"Fictional Paper Corporation 169, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00124183,76.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-170,FP170,"Fictional Paper Corporation 170, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00099346,79.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-171,FP171,"Fictional Paper Corporation 171, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00202324,82.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-172,FP172,"Fictional Paper Corporation 172, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00126452,85.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-173,FP173,"Fictional Paper Corporation 173, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00101162,24.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-174,FP174,"Fictional Paper Corporation 174, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00050581,27.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-175,FP175,"Fictional Paper Corporation 175, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00025291,30.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-176,FP176,"Fictional Paper Corporation 176, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00049020,32.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-177,FP177,"Fictional Paper Corporation 177, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00318627,35.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-178,FP178,"Fictional Paper Corporation 178, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00220588,38.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-179,FP179,"Fictional Paper Corporation 179, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00245098,41.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-180,FP180,"Fictional Paper Corporation 180, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00122549,44.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-181,FP181,"Fictional Paper Corporation 181, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00098039,47.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-182,FP182,"Fictional Paper Corporation 182, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00199590,50.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-183,FP183,"Fictional Paper Corporation 183, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00124744,53.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-184,FP184,"Fictional Paper Corporation 184, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00099795,56.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-185,FP185,"Fictional Paper Corporation 185, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00049897,59.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-186,FP186,"Fictional Paper Corporation 186, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00024949,62.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-187,FP187,"Fictional Paper Corporation 187, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00048366,65.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-188,FP188,"Fictional Paper Corporation 188, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00314379,68.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-189,FP189,"Fictional Paper Corporation 189, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00217647,71.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-190,FP190,"Fictional Paper Corporation 190, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00241830,74.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-191,FP191,"Fictional Paper Corporation 191, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00120915,77.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-192,FP192,"Fictional Paper Corporation 192, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00096732,80.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-193,FP193,"Fictional Paper Corporation 193, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00196856,83.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-194,FP194,"Fictional Paper Corporation 194, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00123035,86.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-195,FP195,"Fictional Paper Corporation 195, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00098428,25.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-196,FP196,"Fictional Paper Corporation 196, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00049214,28.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-197,FP197,"Fictional Paper Corporation 197, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00024607,31.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-198,FP198,"Fictional Paper Corporation 198, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00047712,34.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-199,FP199,"Fictional Paper Corporation 199, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00310131,37.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-200,FP200,"Fictional Paper Corporation 200, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00214706,40.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-201,FP201,"Fictional Paper Corporation 201, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00238562,42.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-202,FP202,"Fictional Paper Corporation 202, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00119281,45.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-203,FP203,"Fictional Paper Corporation 203, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00095425,48.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-204,FP204,"Fictional Paper Corporation 204, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00194122,51.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-205,FP205,"Fictional Paper Corporation 205, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00121326,54.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-206,FP206,"Fictional Paper Corporation 206, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00097061,57.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-207,FP207,"Fictional Paper Corporation 207, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00048530,60.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-208,FP208,"Fictional Paper Corporation 208, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00024265,63.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-209,FP209,"Fictional Paper Corporation 209, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00047059,66.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-210,FP210,"Fictional Paper Corporation 210, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00305882,69.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-211,FP211,"Fictional Paper Corporation 211, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00211765,72.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-212,FP212,"Fictional Paper Corporation 212, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00235294,75.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-213,FP213,"Fictional Paper Corporation 213, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00117647,78.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-214,FP214,"Fictional Paper Corporation 214, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00094118,81.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-215,FP215,"Fictional Paper Corporation 215, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00191388,84.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-216,FP216,"Fictional Paper Corporation 216, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00119617,87.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-217,FP217,"Fictional Paper Corporation 217, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00095694,26.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-218,FP218,"Fictional Paper Corporation 218, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00047847,29.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-219,FP219,"Fictional Paper Corporation 219, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00023923,32.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-220,FP220,"Fictional Paper Corporation 220, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00046405,35.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-221,FP221,"Fictional Paper Corporation 221, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00301634,38.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-222,FP222,"Fictional Paper Corporation 222, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00208824,41.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-223,FP223,"Fictional Paper Corporation 223, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00232026,44.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-224,FP224,"Fictional Paper Corporation 224, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00116013,47.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-225,FP225,"Fictional Paper Corporation 225, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00092810,50.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-226,FP226,"Fictional Paper Corporation 226, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00188653,52.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-227,FP227,"Fictional Paper Corporation 227, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00117908,55.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-228,FP228,"Fictional Paper Corporation 228, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00094327,58.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-229,FP229,"Fictional Paper Corporation 229, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00047163,61.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-230,FP230,"Fictional Paper Corporation 230, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00023582,64.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-231,FP231,"Fictional Paper Corporation 231, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00045752,67.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-232,FP232,"Fictional Paper Corporation 232, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00297386,70.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-233,FP233,"Fictional Paper Corporation 233, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00205882,73.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-234,FP234,"Fictional Paper Corporation 234, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00228758,76.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-235,FP235,"Fictional Paper Corporation 235, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00114379,79.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-236,FP236,"Fictional Paper Corporation 236, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00091503,82.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-237,FP237,"Fictional Paper Corporation 237, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00185919,85.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-238,FP238,"Fictional Paper Corporation 238, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00116200,24.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-239,FP239,"Fictional Paper Corporation 239, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00092960,27.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-240,FP240,"Fictional Paper Corporation 240, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00046480,30.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-241,FP241,"Fictional Paper Corporation 241, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00023240,33.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-242,FP242,"Fictional Paper Corporation 242, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00045098,36.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-243,FP243,"Fictional Paper Corporation 243, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00293137,39.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-244,FP244,"Fictional Paper Corporation 244, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00202941,42.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-245,FP245,"Fictional Paper Corporation 245, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00225490,45.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-246,FP246,"Fictional Paper Corporation 246, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00112745,48.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-247,FP247,"Fictional Paper Corporation 247, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00090196,51.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-248,FP248,"Fictional Paper Corporation 248, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00183185,54.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-249,FP249,"Fictional Paper Corporation 249, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00114491,57.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-250,FP250,"Fictional Paper Corporation 250, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00091593,60.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-251,FP251,"Fictional Paper Corporation 251, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00045796,62.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-252,FP252,"Fictional Paper Corporation 252, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00022898,65.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-253,FP253,"Fictional Paper Corporation 253, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00044444,68.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-254,FP254,"Fictional Paper Corporation 254, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00288889,71.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-255,FP255,"Fictional Paper Corporation 255, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00200000,74.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-256,FP256,"Fictional Paper Corporation 256, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00222222,77.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-257,FP257,"Fictional Paper Corporation 257, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00111111,80.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-258,FP258,"Fictional Paper Corporation 258, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00088889,83.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-259,FP259,"Fictional Paper Corporation 259, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00180451,86.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-260,FP260,"Fictional Paper Corporation 260, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00112782,25.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-261,FP261,"Fictional Paper Corporation 261, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00090226,28.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-262,FP262,"Fictional Paper Corporation 262, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00045113,31.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-263,FP263,"Fictional Paper Corporation 263, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00022556,34.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-264,FP264,"Fictional Paper Corporation 264, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00043791,37.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-265,FP265,"Fictional Paper Corporation 265, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00284641,40.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-266,FP266,"Fictional Paper Corporation 266, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00197059,43.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-267,FP267,"Fictional Paper Corporation 267, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00218954,46.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-268,FP268,"Fictional Paper Corporation 268, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00109477,49.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-269,FP269,"Fictional Paper Corporation 269, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00087582,52.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-270,FP270,"Fictional Paper Corporation 270, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00177717,55.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-271,FP271,"Fictional Paper Corporation 271, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00111073,58.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-272,FP272,"Fictional Paper Corporation 272, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00088858,61.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-273,FP273,"Fictional Paper Corporation 273, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00044429,64.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-274,FP274,"Fictional Paper Corporation 274, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00022215,67.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-275,FP275,"Fictional Paper Corporation 275, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00043137,70.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-276,FP276,"Fictional Paper Corporation 276, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00280392,72.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-277,FP277,"Fictional Paper Corporation 277, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00194118,75.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-278,FP278,"Fictional Paper Corporation 278, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00215686,78.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-279,FP279,"Fictional Paper Corporation 279, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00107843,81.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-280,FP280,"Fictional Paper Corporation 280, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00086275,84.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-281,FP281,"Fictional Paper Corporation 281, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00174983,87.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-282,FP282,"Fictional Paper Corporation 282, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00109364,26.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-283,FP283,"Fictional Paper Corporation 283, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00087491,29.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-284,FP284,"Fictional Paper Corporation 284, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00043746,32.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-285,FP285,"Fictional Paper Corporation 285, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00021873,35.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-286,FP286,"Fictional Paper Corporation 286, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00042484,38.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-287,FP287,"Fictional Paper Corporation 287, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00276144,41.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-288,FP288,"Fictional Paper Corporation 288, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00191176,44.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-289,FP289,"Fictional Paper Corporation 289, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00212418,47.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-290,FP290,"Fictional Paper Corporation 290, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00106209,50.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-291,FP291,"Fictional Paper Corporation 291, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00084967,53.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-292,FP292,"Fictional Paper Corporation 292, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00172249,56.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-293,FP293,"Fictional Paper Corporation 293, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00107656,59.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-294,FP294,"Fictional Paper Corporation 294, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00086124,62.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-295,FP295,"Fictional Paper Corporation 295, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00043062,65.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-296,FP296,"Fictional Paper Corporation 296, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00021531,68.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-297,FP297,"Fictional Paper Corporation 297, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00041830,71.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-298,FP298,"Fictional Paper Corporation 298, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00271895,74.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-299,FP299,"Fictional Paper Corporation 299, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00188235,77.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-300,FP300,"Fictional Paper Corporation 300, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00209150,80.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-301,FP301,"Fictional Paper Corporation 301, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00104575,82.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-302,FP302,"Fictional Paper Corporation 302, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00083660,85.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-303,FP303,"Fictional Paper Corporation 303, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00169515,24.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-304,FP304,"Fictional Paper Corporation 304, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00105947,27.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-305,FP305,"Fictional Paper Corporation 305, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00084757,30.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-306,FP306,"Fictional Paper Corporation 306, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00042379,33.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-307,FP307,"Fictional Paper Corporation 307, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00021189,36.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-308,FP308,"Fictional Paper Corporation 308, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00041176,39.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-309,FP309,"Fictional Paper Corporation 309, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00267647,42.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-310,FP310,"Fictional Paper Corporation 310, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00185294,45.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-311,FP311,"Fictional Paper Corporation 311, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00205882,48.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-312,FP312,"Fictional Paper Corporation 312, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00102941,51.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-313,FP313,"Fictional Paper Corporation 313, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00082353,54.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-314,FP314,"Fictional Paper Corporation 314, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00166781,57.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-315,FP315,"Fictional Paper Corporation 315, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00104238,60.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-316,FP316,"Fictional Paper Corporation 316, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00083390,63.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-317,FP317,"Fictional Paper Corporation 317, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00041695,66.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-318,FP318,"Fictional Paper Corporation 318, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00020848,69.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-319,FP319,"Fictional Paper Corporation 319, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00040523,72.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-320,FP320,"Fictional Paper Corporation 320, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00263399,75.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-321,FP321,"Fictional Paper Corporation 321, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00182353,78.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-322,FP322,"Fictional Paper Corporation 322, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00202614,81.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-323,FP323,"Fictional Paper Corporation 323, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00101307,84.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-324,FP324,"Fictional Paper Corporation 324, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00081046,87.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-325,FP325,"Fictional Paper Corporation 325, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00164046,26.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-326,FP326,"Fictional Paper Corporation 326, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00102529,28.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-327,FP327,"Fictional Paper Corporation 327, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00082023,31.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-328,FP328,"Fictional Paper Corporation 328, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00041012,34.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-329,FP329,"Fictional Paper Corporation 329, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00020506,37.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-330,FP330,"Fictional Paper Corporation 330, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00039869,40.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-331,FP331,"Fictional Paper Corporation 331, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00259150,43.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-332,FP332,"Fictional Paper Corporation 332, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00179412,46.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-333,FP333,"Fictional Paper Corporation 333, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00199346,49.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-334,FP334,"Fictional Paper Corporation 334, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00099673,52.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-335,FP335,"Fictional Paper Corporation 335, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00079739,55.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-336,FP336,"Fictional Paper Corporation 336, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00161312,58.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-337,FP337,"Fictional Paper Corporation 337, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00100820,61.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-338,FP338,"Fictional Paper Corporation 338, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00080656,64.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-339,FP339,"Fictional Paper Corporation 339, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00040328,67.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-340,FP340,"Fictional Paper Corporation 340, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00020164,70.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-341,FP341,"Fictional Paper Corporation 341, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00039216,73.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-342,FP342,"Fictional Paper Corporation 342, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00254902,76.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-343,FP343,"Fictional Paper Corporation 343, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00176471,79.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-344,FP344,"Fictional Paper Corporation 344, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00196078,82.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-345,FP345,"Fictional Paper Corporation 345, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00098039,85.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-346,FP346,"Fictional Paper Corporation 346, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00078431,24.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-347,FP347,"Fictional Paper Corporation 347, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00158578,27.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-348,FP348,"Fictional Paper Corporation 348, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00099111,30.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-349,FP349,"Fictional Paper Corporation 349, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00079289,33.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-350,FP350,"Fictional Paper Corporation 350, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00039645,36.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-351,FP351,"Fictional Paper Corporation 351, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00019822,38.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-352,FP352,"Fictional Paper Corporation 352, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00038562,41.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-353,FP353,"Fictional Paper Corporation 353, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00250654,44.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-354,FP354,"Fictional Paper Corporation 354, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00173529,47.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-355,FP355,"Fictional Paper Corporation 355, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00192810,50.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-356,FP356,"Fictional Paper Corporation 356, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00096405,53.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-357,FP357,"Fictional Paper Corporation 357, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00077124,56.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-358,FP358,"Fictional Paper Corporation 358, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00155844,59.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-359,FP359,"Fictional Paper Corporation 359, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00097403,62.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-360,FP360,"Fictional Paper Corporation 360, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00077922,65.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-361,FP361,"Fictional Paper Corporation 361, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00038961,68.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-362,FP362,"Fictional Paper Corporation 362, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00019481,71.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-363,FP363,"Fictional Paper Corporation 363, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00037908,74.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-364,FP364,"Fictional Paper Corporation 364, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00246405,77.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-365,FP365,"Fictional Paper Corporation 365, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00170588,80.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-366,FP366,"Fictional Paper Corporation 366, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00189542,83.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-367,FP367,"Fictional Paper Corporation 367, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00094771,86.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-368,FP368,"Fictional Paper Corporation 368, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00075817,25.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-369,FP369,"Fictional Paper Corporation 369, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00153110,28.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-370,FP370,"Fictional Paper Corporation 370, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00095694,31.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-371,FP371,"Fictional Paper Corporation 371, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00076555,34.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-372,FP372,"Fictional Paper Corporation 372, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00038278,37.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-373,FP373,"Fictional Paper Corporation 373, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00019139,40.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-374,FP374,"Fictional Paper Corporation 374, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00037255,43.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-375,FP375,"Fictional Paper Corporation 375, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00242157,46.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-376,FP376,"Fictional Paper Corporation 376, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00167647,48.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-377,FP377,"Fictional Paper Corporation 377, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00186274,51.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-378,FP378,"Fictional Paper Corporation 378, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00093137,54.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-379,FP379,"Fictional Paper Corporation 379, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00074510,57.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-380,FP380,"Fictional Paper Corporation 380, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00150376,60.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-381,FP381,"Fictional Paper Corporation 381, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00093985,63.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-382,FP382,"Fictional Paper Corporation 382, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00075188,66.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-383,FP383,"Fictional Paper Corporation 383, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00037594,69.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-384,FP384,"Fictional Paper Corporation 384, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00018797,72.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-385,FP385,"Fictional Paper Corporation 385, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00036601,75.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-386,FP386,"Fictional Paper Corporation 386, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00237908,78.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-387,FP387,"Fictional Paper Corporation 387, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00164706,81.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-388,FP388,"Fictional Paper Corporation 388, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00183006,84.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-389,FP389,"Fictional Paper Corporation 389, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00091503,87.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-390,FP390,"Fictional Paper Corporation 390, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00073203,26.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-391,FP391,"Fictional Paper Corporation 391, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00147642,29.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-392,FP392,"Fictional Paper Corporation 392, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00092276,32.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-393,FP393,"Fictional Paper Corporation 393, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00073821,35.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-394,FP394,"Fictional Paper Corporation 394, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00036910,38.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-395,FP395,"Fictional Paper Corporation 395, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00018455,41.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-396,FP396,"Fictional Paper Corporation 396, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00035948,44.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-397,FP397,"Fictional Paper Corporation 397, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00233660,47.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-398,FP398,"Fictional Paper Corporation 398, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00161765,50.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-399,FP399,"Fictional Paper Corporation 399, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00179739,53.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-400,FP400,"Fictional Paper Corporation 400, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00089869,56.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-401,FP401,"Fictional Paper Corporation 401, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00071895,58.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-402,FP402,"Fictional Paper Corporation 402, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00144908,61.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-403,FP403,"Fictional Paper Corporation 403, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00090567,64.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-404,FP404,"Fictional Paper Corporation 404, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00072454,67.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-405,FP405,"Fictional Paper Corporation 405, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00036227,70.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-406,FP406,"Fictional Paper Corporation 406, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00018113,73.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-407,FP407,"Fictional Paper Corporation 407, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00035294,76.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-408,FP408,"Fictional Paper Corporation 408, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00229412,79.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-409,FP409,"Fictional Paper Corporation 409, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00158824,82.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-410,FP410,"Fictional Paper Corporation 410, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00176471,85.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-411,FP411,"Fictional Paper Corporation 411, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00088235,24.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-412,FP412,"Fictional Paper Corporation 412, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00070588,27.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-413,FP413,"Fictional Paper Corporation 413, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00142174,30.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-414,FP414,"Fictional Paper Corporation 414, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00088859,33.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-415,FP415,"Fictional Paper Corporation 415, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00071087,36.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-416,FP416,"Fictional Paper Corporation 416, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00035543,39.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-417,FP417,"Fictional Paper Corporation 417, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00017772,42.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-418,FP418,"Fictional Paper Corporation 418, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00034641,45.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-419,FP419,"Fictional Paper Corporation 419, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00225163,48.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-420,FP420,"Fictional Paper Corporation 420, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00155882,51.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-421,FP421,"Fictional Paper Corporation 421, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00173203,54.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-422,FP422,"Fictional Paper Corporation 422, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00086601,57.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-423,FP423,"Fictional Paper Corporation 423, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00069281,60.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-424,FP424,"Fictional Paper Corporation 424, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00139440,63.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-425,FP425,"Fictional Paper Corporation 425, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00087150,66.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-426,FP426,"Fictional Paper Corporation 426, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00069720,68.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-427,FP427,"Fictional Paper Corporation 427, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00034860,71.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-428,FP428,"Fictional Paper Corporation 428, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00017430,74.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-429,FP429,"Fictional Paper Corporation 429, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00033987,77.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-430,FP430,"Fictional Paper Corporation 430, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00220915,80.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-431,FP431,"Fictional Paper Corporation 431, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00152941,83.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-432,FP432,"Fictional Paper Corporation 432, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00169935,86.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-433,FP433,"Fictional Paper Corporation 433, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00084967,25.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-434,FP434,"Fictional Paper Corporation 434, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00067974,28.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-435,FP435,"Fictional Paper Corporation 435, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00136705,31.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-436,FP436,"Fictional Paper Corporation 436, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00085441,34.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-437,FP437,"Fictional Paper Corporation 437, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00068353,37.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-438,FP438,"Fictional Paper Corporation 438, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00034176,40.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-439,FP439,"Fictional Paper Corporation 439, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00017088,43.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-440,FP440,"Fictional Paper Corporation 440, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00033333,46.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-441,FP441,"Fictional Paper Corporation 441, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00216667,49.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-442,FP442,"Fictional Paper Corporation 442, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00150000,52.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-443,FP443,"Fictional Paper Corporation 443, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00166667,55.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-444,FP444,"Fictional Paper Corporation 444, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00083333,58.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-445,FP445,"Fictional Paper Corporation 445, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00066667,61.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-446,FP446,"Fictional Paper Corporation 446, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00133971,64.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-447,FP447,"Fictional Paper Corporation 447, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00083732,67.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-448,FP448,"Fictional Paper Corporation 448, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00066986,70.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-449,FP449,"Fictional Paper Corporation 449, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00033493,73.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-450,FP450,"Fictional Paper Corporation 450, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00016746,76.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-451,FP451,"Fictional Paper Corporation 451, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00032680,78.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-452,FP452,"Fictional Paper Corporation 452, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00212418,81.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-453,FP453,"Fictional Paper Corporation 453, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00147059,84.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-454,FP454,"Fictional Paper Corporation 454, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00163399,87.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-455,FP455,"Fictional Paper Corporation 455, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00081700,26.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-456,FP456,"Fictional Paper Corporation 456, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00065359,29.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-457,FP457,"Fictional Paper Corporation 457, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00131237,32.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-458,FP458,"Fictional Paper Corporation 458, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00082023,35.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-459,FP459,"Fictional Paper Corporation 459, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00065619,38.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-460,FP460,"Fictional Paper Corporation 460, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00032809,41.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-461,FP461,"Fictional Paper Corporation 461, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00016405,44.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-462,FP462,"Fictional Paper Corporation 462, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00032026,47.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-463,FP463,"Fictional Paper Corporation 463, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00208170,50.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-464,FP464,"Fictional Paper Corporation 464, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00144118,53.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-465,FP465,"Fictional Paper Corporation 465, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00160131,56.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-466,FP466,"Fictional Paper Corporation 466, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00080066,59.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-467,FP467,"Fictional Paper Corporation 467, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00064052,62.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-468,FP468,"Fictional Paper Corporation 468, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00128503,65.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-469,FP469,"Fictional Paper Corporation 469, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00080314,68.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-470,FP470,"Fictional Paper Corporation 470, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00064252,71.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-471,FP471,"Fictional Paper Corporation 471, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00032126,74.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-472,FP472,"Fictional Paper Corporation 472, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00016063,77.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-473,FP473,"Fictional Paper Corporation 473, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00031373,80.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-474,FP474,"Fictional Paper Corporation 474, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00203922,83.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-475,FP475,"Fictional Paper Corporation 475, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00141176,86.00,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-476,FP476,"Fictional Paper Corporation 476, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00156863,24.96,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-477,FP477,"Fictional Paper Corporation 477, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00078432,27.92,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-478,FP478,"Fictional Paper Corporation 478, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00062745,30.88,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-479,FP479,"Fictional Paper Corporation 479, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00125769,33.84,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-480,FP480,"Fictional Paper Corporation 480, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00078606,36.80,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-481,FP481,"Fictional Paper Corporation 481, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00062884,39.76,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-482,FP482,"Fictional Paper Corporation 482, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00031442,42.72,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-483,FP483,"Fictional Paper Corporation 483, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00015721,45.68,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-484,FP484,"Fictional Paper Corporation 484, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00030719,48.64,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-485,FP485,"Fictional Paper Corporation 485, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00199673,51.60,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-486,FP486,"Fictional Paper Corporation 486, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00138235,54.56,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-487,FP487,"Fictional Paper Corporation 487, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00153595,57.52,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-488,FP488,"Fictional Paper Corporation 488, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00076798,60.48,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-489,FP489,"Fictional Paper Corporation 489, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00061438,63.44,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-490,FP490,"Fictional Paper Corporation 490, Common Stock",Industrials,USD,ordinary_domestic_common_equity,0.00123035,66.40,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-491,FP491,"Fictional Paper Corporation 491, Common Stock",Consumer Staples,USD,ordinary_domestic_common_equity,0.00076897,69.36,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-492,FP492,"Fictional Paper Corporation 492, Common Stock",Energy,USD,ordinary_domestic_common_equity,0.00061517,72.32,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-493,FP493,"Fictional Paper Corporation 493, Common Stock",Utilities,USD,ordinary_domestic_common_equity,0.00030759,75.28,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-494,FP494,"Fictional Paper Corporation 494, Common Stock",Real Estate,USD,ordinary_domestic_common_equity,0.00015379,78.24,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-495,FP495,"Fictional Paper Corporation 495, Common Stock",Materials,USD,ordinary_domestic_common_equity,0.00030065,81.20,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-496,FP496,"Fictional Paper Corporation 496, Common Stock",Technology,USD,ordinary_domestic_common_equity,0.00195425,84.16,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-497,FP497,"Fictional Paper Corporation 497, Common Stock",Financials,USD,ordinary_domestic_common_equity,0.00135294,87.12,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-498,FP498,"Fictional Paper Corporation 498, Common Stock",Health Care,USD,ordinary_domestic_common_equity,0.00150327,26.08,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-499,FP499,"Fictional Paper Corporation 499, Common Stock",Consumer Discretionary,USD,ordinary_domestic_common_equity,0.00075164,29.04,2026-10-22T16:00:00-04:00,entirely_fictional
+PAPER-500,FP500,"Fictional Paper Corporation 500, Common Stock",Communication Services,USD,ordinary_domestic_common_equity,0.00060131,32.00,2026-10-22T16:00:00-04:00,entirely_fictional
