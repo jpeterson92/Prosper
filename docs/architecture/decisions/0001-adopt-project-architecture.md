@@ -1,5 +1,7 @@
 # ADR-0001: Adopt the local FinTech architecture and staged showcase plan
 
+**D047 amendment:** [No backward compatibility](0013-adopt-unreleased-clean-break-development.md) is required for unreleased Prosper implementations. Historical old-reader/migration/backup/API preservation clauses below are superseded; current financial/security/transaction/recovery requirements remain.
+
 Date: October 22, 2026. Status: **Accepted**. Approver: project owner, in this chat.
 
 ## Decision and authorization evidence

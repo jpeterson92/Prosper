@@ -2,6 +2,8 @@
 
 Date: October 22, 2026. Status: **adopted written G0 contract; parent decomposed into bounded child briefs**. [ADR-0002](../architecture/decisions/0002-adopt-critical-review-actions.md) records approval of the review actions. This document completes the foundation planning package; it is not a database schema, installed environment or tested application. The first direct `/next` assessment produced the [T003/T004 child plan](../tasks/T003-T004-foundation-plan.md) under the [sizing/decomposition protocol](NEXT_STEP.md) and stopped without implementation. This combined parent is not a one-run execution unit; a later invocation can execute one reassessed ready child. STATUS owns the next-candidate pointer.
 
+Current numerical policy for advisory paths is [ADVISORY_NUMERICS](ADVISORY_NUMERICS.md), adopted through D046. The original specification below is the **historical synthetic-checkpoint-v1 implementation contract**, not the precision/accounting or compatibility requirement for future work. [D047](../architecture/decisions/0013-adopt-unreleased-clean-break-development.md) removes any duty to preserve its format, readers, API behavior, fixtures or backups. T019 replaces obsolete paths and updates current callers; retain material financial/security tests, with no old-reader bridge required.
+
 ## First-slice outcome and exclusions
 
 After a later implementation instruction, the first slice will let a developer/test investor load one synthetic canonical checkpoint bundle, preview records, inspect lots/positions/cash and reconciliation/coverage reasons in a minimal React UI, and commit or reject the import through typed FastAPI services backed by SQLite. Reimporting the same evidence must not add holdings or duplicate events. Establish Windows x64 development/setup evidence and reproducible checks.
@@ -16,7 +18,13 @@ Qualify the Python/uv environment, compatible exact dependency versions, strict 
 
 This prerequisite is planning guidance for the later bounded task, not authorization to initialize Git, install dependencies or implement it during a review or decomposition run.
 
+## Advisory numerical contract
+
+Use Float64 for derived estimates/weights, a small decimal boundary for supplied quantities/basis and final discrete checks, and calculation-specific tolerances. The [current numerical contract](ADVISORY_NUMERICS.md) owns the representations, initial weight reconciliation tolerance, rounding and normal/near-boundary/missing-data cases. There is no universal significant-digit/fractional-place rejection rule or exact rational requirement for new advisory paths.
+
 ## Exact-value contract
+
+**Legacy synthetic-checkpoint-v1 only.** The bounds, source quantum and synthetic sequential-allocation cases below describe existing readers. They are not carried into advisory-import-v1 or new analytical results. Keeping them protects compatibility while the implementation is migrated.
 
 The following bounds define the first canonical schema's engineering capability. A later broker qualification may require an explicit schema revision; never round an unsupported source value to make it fit.
 

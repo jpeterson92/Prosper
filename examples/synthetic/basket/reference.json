@@ -1,0 +1,18 @@
+{
+  "scope": "stipulated fictional basket and reference marks, no real account or fund",
+  "as_of": "2000-01-03",
+  "security_ids": ["FICTIONAL-A", "FICTIONAL-B", "FICTIONAL-C", "FICTIONAL-CANDIDATE"],
+  "quantity": "1.000",
+  "mark_usd": "1.00",
+  "benchmark_weights_percent": ["50.00", "25.0", "25"],
+  "portfolio_cash_usd": "0.000",
+  "benchmark_cash_percent": "0.00",
+  "derivation": "Three stock values of USD 1 imply NAV 3, weights 1/3 each and zero candidate/cash weights. Benchmark is 1/2,1/4,1/4. Active weights are -1/6,1/12,1/12,0. With explicitly stipulated identity covariance the variance is 1/24. Selecting USD 1 cash changes NAV to 4 and all three stock/cash weights to 1/4. A declared sum of 0.9854 has residual 0.0146, not assumed cash.",
+  "expected": {
+    "nav_usd": "3",
+    "portfolio": ["1/3", "1/3", "1/3", "0"],
+    "benchmark": ["1/2", "1/4", "1/4", "0"],
+    "active": ["-1/6", "1/12", "1/12", "0"],
+    "identity_covariance_variance": "1/24"
+  }
+}

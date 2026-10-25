@@ -22,7 +22,7 @@
 - Independent review scope/findings and resolution:
 - Tax/risk/data assumptions, source versions and unsupported cases:
 - Privacy, dependency, data-rights and operational issues:
-- Regression, migration and recovery evidence:
+- Material regression and current-format recovery evidence; any scoped development reset (no unreleased-version compatibility/migration obligation under D047):
 
 ## Manual acceptance
 

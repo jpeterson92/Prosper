@@ -1,6 +1,6 @@
 # Security and privacy framework
 
-Status: planning requirements. No application security controls, encryption, authentication, secret store or vulnerability intake service have been implemented.
+Status: implemented controls for the local synthetic runtime plus requirements for future investor use. The [loopback-runtime report](docs/tasks/T003.4.1-loopback-runtime.md) records host/origin/session checks and resource limits; [import API evidence](docs/tasks/T003.4.2-import-api.md) records the protected import surface. Those scoped results do not establish a current comprehensive security audit, investor installation, encrypted storage, broker credential handling or a public vulnerability intake service. Requirements below remain binding where not yet qualified.
 
 ## Data boundary
 

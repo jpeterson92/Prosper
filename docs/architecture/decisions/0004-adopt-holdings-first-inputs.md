@@ -2,6 +2,8 @@
 
 Date: October 23, 2026. Status: **Accepted**. Approver: project owner in this chat. D038-D039 record this update. This supersedes blanket requirements that every broker file supply transaction history, independent position/cash snapshots or a durable broker lot ID before any useful optimization. It does not remove checks on actual contradictory facts or authorize financial use, account access, trades or release.
 
+**October 25 scope amendment:** [D045/ADR-0011](0011-adopt-equity-only-scope-and-final-cash-target.md) now selects an equity-only modeled sleeve/benchmark, explicit unsupported/unmapped exclusions, exact retained-equity-value weights summing to one and a separate optional final cash target. It supersedes conflicting all-primary inclusion/denominator requirements below while preserving complete original source evidence and applicable tax/conflict/funding rules. The earlier decision text remains historical evidence; runtime implementation is separate.
+
 ## Owner direction and current scope
 
 The owner directed Prosper to work with typical lot-level holdings information comparable to the supplied Fidelity combined file, display an unverified wash-sale warning when history is unavailable, offer manual identification of recently traded names, and make cash import optional. Before optimization, the user must see and be able to change how much existing cash the run may invest, including none or a portion. In response to a specific scope question, the owner selected **stock sleeve plus selected cash** for risk/benchmark comparisons, excluding untouched account cash from that calculation.

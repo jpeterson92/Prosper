@@ -2,6 +2,8 @@
 
 Date: October 23, 2026. Status: **Accepted by the project owner** through explicit follow-up direction. Refines D011; no new dependency, provider subscription or application implementation is selected.
 
+**October 24 superseding amendment:** [ADR-0009](0009-adopt-vanguard-benchmark-selection.md) now makes Vanguard full-portfolio fund/date selection the standard route and removes the supplied-workbook default assumption. The file route below remains an explicit secondary/custom option. Original decisions below retain their historical context; proxy labels, exact source retention and no silent exclusions/normalization remain binding.
+
 ## Question and context
 
 How will testing obtain benchmark weights, and what eventual upload route should Prosper support? The owner directed that a user-provided file similar to the previously supplied workbook be assumed available, that the supplied file serve as the default for the duration of testing, and that future uploads support Vanguard or iShares ETF holdings downloaded by the user. The [feasibility report](../../tasks/T017.1-pilot-data-feasibility.md#delivered-development-inputs) records the retained workbook/normalized companion and their provenance. The [market-data comparison](../../tasks/T017.1-market-data-comparison.md) distinguishes basket weights from quotes and adjusted history.

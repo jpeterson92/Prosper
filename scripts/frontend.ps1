@@ -1,10 +1,30 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('bootstrap', 'sync', 'check', 'build', 'contracts', 'dev')]
-    [string]$Command
+    [ValidateSet('bootstrap', 'sync', 'test', 'check', 'build', 'contracts', 'dev')]
+    [string]$Command,
+    [ValidateRange(1, 256)]
+    [int]$Workers = 4,
+    [string[]]$TestPath = @(),
+    [string]$Grep
 )
 $ErrorActionPreference = 'Stop'
+if (($PSBoundParameters.ContainsKey('TestPath') -or $PSBoundParameters.ContainsKey('Grep')) -and $Command -ne 'test') {
+    throw 'TestPath/Grep are restricted to test; full frontend check cannot be narrowed.'
+}
+if ($PSBoundParameters.ContainsKey('Workers') -and $Command -notin @('test', 'check')) {
+    throw 'Workers is restricted to test/check.'
+}
+if ($PSBoundParameters.ContainsKey('TestPath') -and
+    ($TestPath.Count -eq 0 -or @($TestPath | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0)) {
+    throw 'TestPath must contain nonempty Playwright file filters.'
+}
+if (@($TestPath | Where-Object { $_.StartsWith('-') }).Count -gt 0) {
+    throw 'TestPath accepts file filters, not command-line options.'
+}
+if ($PSBoundParameters.ContainsKey('Grep') -and [string]::IsNullOrWhiteSpace($Grep)) {
+    throw 'Grep must contain a nonempty title pattern.'
+}
 $prosperRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $prosperTools = Join-Path $prosperRoot '.tools'
 $prosperNodeFolder = Join-Path $prosperTools 'node-v24.22.1-win-x64'
@@ -34,11 +54,18 @@ try {
                 & $prosperNode 'node_modules/@playwright/test/cli.js' install chromium
                 if ($LASTEXITCODE -ne 0) { throw 'Chromium installation failed.' }
             }
-        } elseif ($Command -eq 'check') {
-            foreach ($prosperStep in @('contracts:check', 'contracts:negative', 'build', 'test')) {
-                & $prosperNode $prosperNpm run $prosperStep
-                if ($LASTEXITCODE -ne 0) { throw "Frontend $prosperStep failed." }
+        } elseif ($Command -in @('test', 'check')) {
+            if ($Command -eq 'check') {
+                foreach ($prosperStep in @('contracts:check', 'contracts:negative', 'build')) {
+                    & $prosperNode $prosperNpm run $prosperStep
+                    if ($LASTEXITCODE -ne 0) { throw "Frontend $prosperStep failed." }
+                }
             }
+            $prosperTestArgs = @('node_modules/@playwright/test/cli.js', 'test', "--workers=$Workers")
+            if ($PSBoundParameters.ContainsKey('Grep')) { $prosperTestArgs += @("--grep=$Grep") }
+            $prosperTestArgs += $TestPath
+            & $prosperNode @prosperTestArgs
+            if ($LASTEXITCODE -ne 0) { throw 'Frontend tests failed; inspect the selected scope and browser output.' }
         } elseif ($Command -eq 'contracts') {
             & $prosperNode $prosperNpm run contracts:write
             if ($LASTEXITCODE -ne 0) { throw 'Contract generation failed.' }

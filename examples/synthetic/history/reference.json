@@ -1,0 +1,21 @@
+{
+  "description": "Entirely fictional two-security history grid; no actual provider or prices.",
+  "sessions": ["2026-01-05", "2026-01-06", "2026-01-07"],
+  "security_ids": ["FICTION-A", "FICTION-B"],
+  "known_at": "2026-01-08T12:00:00Z",
+  "prior_session": "2026-01-02",
+  "price": "0010.000000000000",
+  "zero": "0.0000",
+  "split_ratio": "1.00",
+  "expected_requested": [
+    ["FICTION-A", "2026-01-05"], ["FICTION-A", "2026-01-06"], ["FICTION-A", "2026-01-07"],
+    ["FICTION-B", "2026-01-05"], ["FICTION-B", "2026-01-06"], ["FICTION-B", "2026-01-07"]
+  ],
+  "expected_received_incomplete": [
+    ["FICTION-A", "2026-01-05"], ["FICTION-A", "2026-01-07"],
+    ["FICTION-B", "2026-01-05"], ["FICTION-B", "2026-01-06"], ["FICTION-B", "2026-01-07"]
+  ],
+  "expected_usable_incomplete": [
+    ["FICTION-A", "2026-01-05"], ["FICTION-A", "2026-01-07"], ["FICTION-B", "2026-01-07"]
+  ]
+}

@@ -8,15 +8,13 @@ The project also serves as a current FinTech learning/interview showcase. The ow
 
 ## Start here
 
-1. Read the [project plan](docs/PROJECT_PLAN.md) for the adopted scope, milestones, and immediate next work.
-   The [remaining project roadmap](docs/REMAINING_ROADMAP.md) explains each unfinished stage in plain language and how successive `/next` tasks advance the broader goals.
-2. Read the [product specification](docs/product/SPEC.md) for the investor workflow and initial acceptance criteria.
-3. Review [decisions](docs/DECISIONS.md). Accepted architecture, conditional evaluations and genuinely open details are distinguished.
-4. See [current status](docs/STATUS.md) before starting another session.
-   The [change log](CHANGELOG.md) summarizes development changes and links to their evidence.
-5. Read the [critical pre-implementation review](docs/reviews/2026-10-22-pre-implementation-review.md) for product/engineering findings and their adopted disposition in [ADR-0002](docs/architecture/decisions/0002-adopt-critical-review-actions.md).
+1. Start agent work with [AGENTS.md](AGENTS.md) and the compact [current status](docs/STATUS.md): current authority, active blockers and exactly one next task.
+2. Follow the selected brief and [subsystem map](docs/engineering/AGENT_WORKFLOW.md#task-navigation) to the relevant code, tests, contracts and [decisions](docs/DECISIONS.md). Read broader plans and historical evidence only when the task depends on them.
+3. Use the [development guide](docs/engineering/DEVELOPMENT.md) for locked setup and affected-check commands. The [agent workflow](docs/engineering/AGENT_WORKFLOW.md) describes planning, review and handoff.
 
-The adopted first-product plan is a local application that imports tax lots and activity, reconciles them, compares a stock portfolio with a supplied benchmark, proposes an explainable harvest within explicit risk limits, and reconciles trades afterward. The investor controls account activity and execution.
+For product orientation, the [project plan](docs/PROJECT_PLAN.md), [remaining roadmap](docs/REMAINING_ROADMAP.md) and [product specification](docs/product/SPEC.md) explain scope and sequencing. The [change log](CHANGELOG.md), [critical review](docs/reviews/2026-10-22-pre-implementation-review.md) and [ADR-0002](docs/architecture/decisions/0002-adopt-critical-review-actions.md) preserve adopted findings. These are navigation rather than a full reading list for every task.
+
+The adopted first-product plan is a local application that imports tax lots and activity, reconciles them, compares a stock portfolio with a benchmark normally selected from a Vanguard ETF's full reported holdings, proposes an explainable harvest within explicit risk limits, and reconciles trades afterward. The investor controls account activity and execution. [ADR-0009](docs/architecture/decisions/0009-adopt-vanguard-benchmark-selection.md) adopts fund/date selection with explicit secondary file uploads; creation/redemption baskets are excluded. The current acquisition component is separate from future benchmark reconciliation, activation and browser controls.
 
 The owner's [holdings-first input update](docs/architecture/decisions/0004-adopt-holdings-first-inputs.md) makes broker transaction history and cash optional. Planned conditional optimization retains an unverified-wash-sale warning and optional manual restrictions. Each future run reviews an editable additional-cash budget, including zero; risk covers the stock sleeve plus selected cash. These requirements are assigned to downstream tasks, not implemented optimizer controls.
 
@@ -42,8 +40,8 @@ The owner's [holdings-first input update](docs/architecture/decisions/0004-adopt
 | [Sources](docs/research/SOURCES.md) | Primary sources checked and their limits |
 | [Development](docs/engineering/DEVELOPMENT.md) | Project-local Python setup/check/package commands, GitHub preparation and evidence limits |
 | [Development dependencies](docs/engineering/DEVELOPMENT_DEPENDENCIES.md) | Exact tool/build versions, sources and installed license metadata |
-| [src/prosper](src/prosper/README.md), [apps](apps/README.md) | Minimal importable package and reserved application interface boundary |
-| [tests](tests/README.md), [examples](examples/README.md), [scripts](scripts/README.md) | Future verification, synthetic examples, development tooling |
+| [src/prosper](src/prosper/README.md), [frontend](frontend/README.md), [apps](apps/README.md) | Shared Python core, synthetic browser review and reserved later application boundary |
+| [tests](tests/README.md), [examples](examples/README.md), [scripts](scripts/README.md) | Implemented verification, synthetic examples and reproducible development tooling |
 
 ## Advance the project
 
@@ -53,9 +51,9 @@ Say **let's work on the next step** or **next**. The agent will inspect current 
 
 ## Development status
 
-Follow the [development guide](docs/engineering/DEVELOPMENT.md): run `scripts/dev.ps1 -Command bootstrap` once, then `scripts/dev.ps1 -Command check` and `scripts/dev.ps1 -Command package`. Dependencies live in the ignored project-local `.venv`; future dependency refreshes use `scripts/dev.ps1 -Command sync`. These commands are locally verified developer operations. Tests cover the toolchain, exact-value/synthetic allocation, strict parsing, checkpoint inspection, evidence/SQLite persistence, atomic imports, consistent backup/isolated restore, guarded interrupted-state recovery and protected diagnostic HTTP access. They do not establish tax correctness, qualified broker accounting or investor acceptance.
+Follow the [development guide](docs/engineering/DEVELOPMENT.md): run `scripts/dev.ps1 -Command bootstrap` for first Python setup, then use `-Command dev` for ordinary affected checks, adding an explicit `-TestPath` while selection state is cold/stale. Use `-Command docs` for documentation changes. Full Python/package/browser verification uses `scripts/checkpoint.ps1` at an explicitly authorized commit/sync checkpoint; an ordinary task does not trigger it. Dependencies live in ignored `.venv`; locked refreshes use `scripts/dev.ps1 -Command sync`. Tests cover the toolchain and synthetic import/recovery/API/browser components at the scopes recorded in STATUS and owning reports. They do not establish tax correctness, qualified broker accounting or investor acceptance.
 
-Run `.venv/Scripts/python.exe -m prosper.local_api` for the synthetic loopback diagnostic process. It prints only its public `http://127.0.0.1:<port>` origin. The [runtime instructions](docs/engineering/DEVELOPMENT.md#protected-synthetic-loopback-runtime) describe session acquisition, shutdown and explicit synthetic-runtime configuration. With that configuration, protected typed HTTP routes expose preview/current/commit/reject and actual OpenAPI over the verified import services. There is no browser UI or investor installation flow yet. See the [change log](CHANGELOG.md) and [current status](docs/STATUS.md) for observed qualification and limits.
+Run `.venv/Scripts/python.exe -m prosper.local_api` for the synthetic loopback diagnostic process. It prints only its public `http://127.0.0.1:<port>` origin. The [runtime instructions](docs/engineering/DEVELOPMENT.md#protected-synthetic-loopback-runtime) describe session acquisition, shutdown and explicit synthetic-runtime configuration. Protected typed routes expose preview/current/commit/reject and OpenAPI over the import services. The [synthetic browser review](frontend/README.md) provides implemented preview/current and reviewed commit/reject controls; its guide owns build/launch commands. Investor installation, actionable harvesting and release remain unqualified. See [current status](docs/STATUS.md) for exact evidence.
 
 This project assumes a standard local filesystem folder. Git/GitHub version authored source and lockfiles; environments, caches and generated synthetic artifacts are ignored and rebuildable. Keep real brokerage files, private portfolio databases/reports and credentials outside the repository. Git ignore rules do not remove already tracked files. See [SECURITY.md](SECURITY.md).
 

@@ -11,5 +11,14 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{yml,yaml,json}]
+[*.{yml,yaml,json,ts,tsx,mjs,css,html}]
 indent_size = 2
+
+# Imported/source-format fixture bytes must not be normalized by editor saves.
+[*.{csv,tsv}]
+charset = unset
+end_of_line = unset
+insert_final_newline = unset
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = false

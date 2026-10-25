@@ -4,13 +4,23 @@
 
 Status: evidence framework adopted with the October 22, 2026 project baseline. T003.1 now has executable toolchain qualification tests; no application/financial verification has been performed. Written expectations below still need implementation and the specified independent/specialist review. Evidence is distinguished in [STATUS.md](../STATUS.md).
 
+Current D046 acceptance is advisory: current snapshot -> estimates -> checked suggestion -> save/export -> refreshed inputs. Requirements below are aligned by T019.1; no changed implementation has been verified here. The [numeric acceptance cases](ADVISORY_NUMERICS.md#written-acceptance-cases) and [current backlog disposition](../tasks/REMAINING_WORK_PLAN.md#current-task-disposition) govern future work. Historical proof/ratio/approval/fill/monitoring tests below are legacy scope where explicitly retired, not v1 prerequisites.
+
 ## Evidence model
 
 Verification must address data semantics, tax assumptions, numerical behavior and actual investor workflow. Code and tests written from the same mistaken interpretation can agree. Create expected outputs independently: source-linked arithmetic cases, tiny enumerated portfolio problems and broker workflow evidence. Independently review tax/risk cases before using them as financial acceptance standards.
 
 Future suites should include domain unit tests, golden reference cases, property/invariant tests, adapter contract tests, end-to-end workflow tests and observed manual acceptance. Use each where it can catch a distinct failure. Do not add tests that merely restate implementation internals or a line-count target.
 
+## Current advisory acceptance
+
+Verify input facts/units/duplicates/unknowns, economic results under declared tolerances, final lot/quantity/cash/gain/risk checks and helpful scoped diagnostics. Test source-data preservation, retry-safe snapshot replacement, stale-result protection, current-format historical viewing and one coherent current-format backup/restore path. [D047](../architecture/decisions/0013-adopt-unreleased-clean-break-development.md) removes old-reader, old-output parity, schema-migration and old-backup acceptance requirements. Retain material financial/security/model cases against the current implementation; remove compatibility-only tests with their code. Missing basis blocks that sale estimate; missing required history blocks risk, while holdings remain visible.
+
+Use independently reasoned numerical cases and a tiny enumerated candidate oracle; same-code agreement is insufficient. Source-code fingerprints or bit-identical floating output are not new product acceptance criteria. Tests for a retired representation/proof guarantee can be removed only when retained behavior has replacement coverage. Tax/model independent review remains attached to applicable real-use claims, not unrelated synthetic development.
+
 ## Reference scenario pack
+
+**Historical case catalog:** retain material tax/model/quantity/unknown/privacy cases; adapt numeric/exposure/restore cases to D046. Exact-quantum bookkeeping, intermediate proof closure, reservations, submission/fill reconstruction, monitoring and scheduler cases describe legacy or deferred features. They do not override the active numerical/data contracts. The disposition table assigns every remaining task; no case is silently claimed passed or financially accepted.
 
 Every fixture must record provenance, assumptions, supported/diagnostic-only status and expected outcomes. Synthetic symbols below are invented. D is an actual sale's tax trade date; calendar boundaries require reviewed date semantics.
 
@@ -72,7 +82,9 @@ Every fixture must record provenance, assumptions, supported/diagnostic-only sta
 | V54 | User-entered actual fills/fees and broker-confirmed lot allocations without a bulk confirmation export | Source/known-time evidence distinguishes actual fills from intent; partial fill/lot mismatch handled as for supported files; no fabricated confirmation or completed reconciliation from worksheet alone |
 | V55 | Persistent history reuse, gap refresh, revisions, failed/concurrent refresh, offline/recovery and optional broader validation scheduling | [ADR-0006 C01-C10](../architecture/decisions/0006-adopt-persistent-market-history-cache.md#ownership-dependencies-and-acceptance) require zero redundant eligible repeat/restart calls, coherent missing-range/overlap inputs and preserved frozen evidence; no false watermark or mixed-vintage splice. C08-C10 require Off / Never by default across restart/clock advance, explicit opt-in/out, no disabled-state scheduled/startup catch-up calls, independent requested-refresh checks, manual/targeted validation and distinct last-success evidence. Written requirements only; T017.1 supplies bounded research, T006.1/T006.2/T008/T018/recovery implement/test |
 | V56 | Enhanced DCC-NL/IDR published parity, coherent OHLC/action inputs, fitting/normalization, singular/large universes and forward TE calibration | [ADR-0007 A01-A04/A07](../architecture/decisions/0007-adopt-enhanced-dcc-nl-industry-risk.md#work-ownership-and-acceptance) and T006.2 leaves own independent numerical expectations, fit/convergence/failure handling, explicit variants, frozen horizons and fixed/optimizer-selected forward calibration; [D042/ADR-0008](../architecture/decisions/0008-adopt-python-dcc-implementation.md) adds Python stack/reference, effective-history/branch, streamed-state scale and convention-aligned oracle qualification; no zero fill, hidden model fallback or financial qualification from PSD alone. Written requirements, not executed tests |
-| V57 | Sector/industry exposures, limits and signed TE attribution across classification changes, selected cash and zero/negative contributions | ADR-0007 A05-A07 require independent nested totals, final-state cap checks and Euler/variance reconciliation from the same covariance; standalone/nested risks are not added and unknown classifications remain scoped gaps. T006.2.3/T007/T018 own implementation/integration; written requirements only |
+| V57 | Sector/industry exposures, limits and signed TE attribution across classification changes, selected cash and zero/negative contributions | ADR-0007 A05-A07 require independent nested totals, final-state cap checks and Euler/variance reconciliation from the same covariance; standalone/nested risks are not added and unknown classifications remain scoped gaps. [T006.2.3](../tasks/T006.2-dcc-industry-plan.md#t00623-execution) locally verifies the synthetic service with rational/Decimal cases and covariance consumers; T007 final-state validation, T018 lifecycle persistence, qualified real mappings and independent model acceptance remain pending |
+| V58 | Equity-only source selection with values 60/30 and excluded 10; duplicates, unmapped rows, blank source weights, corrupt included facts and empty subset | [ADR-0011 cases](../architecture/decisions/0011-adopt-equity-only-scope-and-final-cash-target.md#hand-derived-acceptance-requirements): exact 2/3 and 1/3, complete source/disposition coverage, original unknowns retained, no duplicate/excluded cash or guessed mappings; required included failures block. T006.1.8.2/.8.3/.9 own implementation/review/versioning; written requirement only |
+| V59 | Optional final cash target raising cash or reinvesting selected cash; insufficient funding/prohibited gains/whole-share mismatch; changed target | ADR-0011 independently states 100 stock/0 cash -> 80/20 and 80 stock/20 cash -> 95/5 cases. T007 independently checks final cash/costs/NAV/risk/target with unchanged constraints; T008 reviews exact target separately from funding and imported cash; T018 freezes/invalidate-on-change. No implicit tolerance, cap relaxation or executed-test claim |
 
 
 V48-V54 are October 23 requirements under [ADR-0004](../architecture/decisions/0004-adopt-holdings-first-inputs.md), not newly executed tests. T005 owns conditional/manual screening, T006 sleeve risk, T007 independent budget/funding validation, T008 run review, T009 manual evidence and T018 frozen provenance. Source-inspector missing fields are observations, not a permanent requirement that every broker file include history/cash. Application implementation and independent case review remain future work.
@@ -83,18 +95,14 @@ V25-V27 support the adopted showcase architecture. V28-V29 apply when optional A
 
 ## Invariants and integration checks
 
-The [T018.1 state/lifecycle traceability](../tasks/T018.1-frozen-state-lifecycle-contracts.md#independent-expected-cases-and-ownership) assigns V19/V27/V30/V32-V38 and related holdings-first cases to existing foundation subsets or future component/integration owners. It qualifies contract alignment only; future analysis, approval, commitments, risk evidence and broker-aware recovery checks remain unimplemented.
+- Supplied quantities/basis, source units and unknowns survive import; duplicate retries do not add holdings. A failed replacement preserves prior selected inputs.
+- Final orders identify the intended lots, cannot oversell, and satisfy explicit modeled cash/cost/gain/risk limits after discrete choices. Decimal sign/quantity checks and justified numerical bounds are separate from economic tolerance.
+- Inputs/asset order/currency/calendar/adjustment/return conventions agree for each metric. Required missing/nonfinite data makes that result unavailable, not zero.
+- A saved analysis records inputs/settings/as-of/version and output; historical viewing does not require current-code replay. New runs do not mutate old results.
+- Late results cannot replace a newer input/settings revision. UI retries remain safe without execution reservations.
+- Sensitive inputs do not appear in fixtures, default logs, URLs, telemetry or public support examples. Local request/path/export protections and transactional recovery remain.
 
-- Lot quantities and allocated basis reconcile after supported partial sales; no overselling/reservation duplication.
-- Source adjusted basis is preserved unless a recorded authoritative correction supersedes it.
-- Committed cash agrees with explicit cash flows and costs, not an unexplained residual plug.
-- A repeated or reordered identical input batch yields equivalent committed state within documented event ordering.
-- Every proposed order passes independent lot/funding/risk validation and applies supported restrictions. Conditional history results retain their unknowns, user assumptions and warning; they are never certified eligible through solver feasibility.
-- A plan is reproducible from its recorded versions and settings, with deterministic tie-breaking.
-- Unsupported data cannot disappear during import or be mislabeled as verified.
-- Sensitive inputs do not appear in repository fixtures, default logs, URLs, telemetry or public support examples.
-
-Adapter tests must use source-qualified synthetic versions of actual formats, including missing/renamed columns, locale variations and revised downloads. A generic CSV test does not qualify a broker. Performance targets require measured datasets at the proposed 100-stock/2,000-lot/500-universe scale; the provisional qualification targets below are unmeasured and require a recorded reference machine.
+Use supported source-shaped fictional adapter fixtures. Test intended source formats rather than assuming a generic CSV proves broker support. Measure supported scale on identified workloads; no 100-stock/2,000-lot/500-name capacity claim follows from written targets. T019.2-.6 own their checks, with integration/removal review in .7.
 
 ## Acceptance ladder
 
@@ -108,13 +116,13 @@ Adapter tests must use source-qualified synthetic versions of actual formats, in
 | Financial-use pilot authorized | Owner names artifact, supported use, limitations and acceptance evidence | Public release or order-API authority |
 | Public beta released | Licensed artifact, data/dependency rights, install/security/support scope and explicit release authorization | Production-grade reliability across unsupported cases |
 
-Proposed paper workflows: a clean harvest cycle; a household/DRIP conflict cycle; and partial fills or lot mismatch with recovery. Use representative portfolios, record assistance needed, and do not infer user satisfaction from test completion.
+Proposed paper workflows: a clean dated suggestion/export; a known-conflict or unknown-input case with scoped diagnostics; and refreshed holdings after external activity plus recovery of saved results. Execution/fill reconciliation and monitoring are deferred. Use representative portfolios, record assistance needed, and do not infer user satisfaction from test completion.
 
 ## Review and release package
 
-The [critical review](../reviews/2026-10-22-pre-implementation-review.md) maps findings to these scenarios and G0-G3 readiness checkpoints. V30-V47 are written expectations, not implemented tests. Add representative paper/manual execution and recovery evidence before substantial workflow build-out; record setup/review/lot-selection burden, blocked-candidate rates and measured results against the provisional budgets before claiming usability or capacity.
+The [critical review](../reviews/2026-10-22-pre-implementation-review.md) maps findings to these scenarios and G0-G3 readiness checkpoints. Case IDs record written expectations; actual implemented/check scope is in STATUS and owning reports, not inferred from this catalog. Add representative paper/manual execution and recovery evidence before substantial workflow build-out; record setup/review/lot-selection burden, blocked-candidate rates and measured results against the provisional budgets before claiming usability or capacity.
 
-Use the [review template](../templates/REVIEW_PACKAGE.md). Tax-policy, optimizer and import semantics changes require criterion-level evidence and independently reasoned cases. A source revision, test output, manual script and unresolved limitations must be attributable to the same candidate. Until Git exists, list exact changed file paths and hashes; do not invent a commit ID.
+Use the [review template](../templates/REVIEW_PACKAGE.md). Tax-policy, optimizer and import semantics changes require criterion-level evidence and independently reasoned cases. A source revision, test output, manual script and unresolved limitations must be attributable to the same candidate. Identify the applicable Git revision and uncommitted scope; use extra file hashes only where a specific artifact/reference requires them, not as routine whole-tree ceremony.
 
 Public release needs license/rights resolution, documented supported tax years and broker workflow, review findings, tested installation/update/restore, privacy-safe diagnostics and rollback instructions. No CI or command is represented as passing until actually configured and run.
 
@@ -125,7 +133,7 @@ These are adopted planning targets for an early feasibility exercise, not measur
 | Measure | Initial target and experiment | Evidence boundary |
 | --- | --- | --- |
 | First setup | At most 60 minutes with required supported exports already available | Also record time obtaining exports and unresolved fields separately; do not hide acquisition burden |
-| Recurring review/reconciliation | At most 30 minutes for a representative small paper worksheet, with order and lot-selection counts recorded | Measure manual broker steps separately; do not promise brokerage execution latency |
+| Recurring review/refresh | At most 30 minutes for a representative small paper worksheet, with order and lot-selection counts recorded | Measure manual broker steps separately; do not promise brokerage execution latency |
 | Exception recovery | At most 30 minutes to understand and reconcile a stipulated partial-fill/wrong-lot paper case | A failure is a workflow finding, never permission to bypass a block |
 | Import preview | At most 2 seconds for the 100-stock/2,000-lot target on a recorded reference Windows x64 machine | Measure parsing/validation separately from disk/network export collection; larger inputs require profiling |
 | Candidate analysis | At most 30 seconds for the qualified 500-name target problem; progress remains visible | Model and discrete search not yet qualified; timeout may return an honest no-qualified-candidate result |

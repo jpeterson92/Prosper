@@ -38,7 +38,7 @@ Describe who is doing what and the observable result. Include one concrete befor
 - Money, quantity, date, identity and reconciliation semantics:
 - Tax/risk assumptions and authoritative sources:
 - Known unsupported cases and required failure behavior:
-- Privacy, external access, cost/license and migration constraints:
+- Privacy, external access and cost/license constraints; any scoped development reset (D047 requires no backward compatibility or migration support):
 
 ## Acceptance table
 

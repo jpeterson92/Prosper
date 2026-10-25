@@ -38,9 +38,10 @@ def authored_files() -> list[Path]:
     )
 
 
-def manifest_text(files: list[Path]) -> str:
+def manifest_text(files: list[Path], digests: dict[Path, str] | None = None) -> str:
     return "".join(
-        f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(ROOT).as_posix()}\n"
+        f"{digests[path] if digests is not None else hashlib.sha256(path.read_bytes()).hexdigest()}"
+        f"  {path.relative_to(ROOT).as_posix()}\n"
         for path in files
     )
 
@@ -64,13 +65,18 @@ def main() -> int:
     errors: list[str] = []
     links = 0
     markdown = 0
+    digests: dict[Path, str] = {}
+    anchors: dict[Path, set[str]] = {}
+    unreadable_targets: set[Path] = set()
+    local_links: list[tuple[Path, str]] = []
     for path in files:
         if not path.is_file():
             errors.append(f"Missing authored file: {path.relative_to(ROOT)}")
             continue
+        data = path.read_bytes()
+        digests[path] = hashlib.sha256(data).hexdigest()
         if path.suffix not in TEXT_SUFFIXES and not path.name.startswith("."):
             continue
-        data = path.read_bytes()
         try:
             text = data.decode("utf-8")
         except UnicodeDecodeError:
@@ -83,23 +89,35 @@ def main() -> int:
         if path.suffix != ".md":
             continue
         markdown += 1
+        anchors[path] = heading_ids(text)
         if len(re.findall(r"^```", text, re.MULTILINE)) % 2:
             errors.append(f"Unbalanced Markdown fences: {path.name}")
         for target in re.findall(r"\[[^\]]*\]\(([^)]+)\)", text):
-            parsed = urlsplit(target.strip("<>"))
-            if parsed.scheme or parsed.netloc:
+            local_links.append((path, target))
+    # Resolve links after the text pass, reusing parsed headings and byte digests.
+    # Everything is local to this invocation; subsequent checks see fresh files.
+    for path, target in local_links:
+        parsed = urlsplit(target.strip("<>"))
+        if parsed.scheme or parsed.netloc:
+            continue
+        links += 1
+        destination = (path.parent / unquote(parsed.path)).resolve() if parsed.path else path
+        if not destination.is_relative_to(ROOT) or not destination.exists():
+            errors.append(f"Broken local link: {path.name}: {target}")
+        elif parsed.fragment and destination.suffix == ".md":
+            if destination in unreadable_targets:
                 continue
-            links += 1
-            destination = (path.parent / unquote(parsed.path)).resolve() if parsed.path else path
-            if not destination.is_relative_to(ROOT) or not destination.exists():
-                errors.append(f"Broken local link: {path.name}: {target}")
-            elif parsed.fragment and destination.suffix == ".md":
-                if unquote(parsed.fragment) not in heading_ids(
-                    destination.read_text(encoding="utf-8")
-                ):
-                    errors.append(f"Missing heading: {path.name}: {target}")
+            if destination not in anchors:
+                try:
+                    anchors[destination] = heading_ids(destination.read_text(encoding="utf-8"))
+                except (OSError, UnicodeError):
+                    unreadable_targets.add(destination)
+                    errors.append(f"Unreadable Markdown target: {path.name}: {target}")
+                    continue
+            if unquote(parsed.fragment) not in anchors[destination]:
+                errors.append(f"Missing heading: {path.name}: {target}")
     if not errors:
-        expected = manifest_text(files)
+        expected = manifest_text(files, digests)
         if args.write_manifest:
             MANIFEST.write_text(expected, encoding="utf-8", newline="\n")
         elif MANIFEST.read_text(encoding="utf-8") != expected:

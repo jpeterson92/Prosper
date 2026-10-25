@@ -13,6 +13,22 @@ From the repository root on the qualified Windows x64 host:
 .\scripts\frontend.ps1 -Command check
 ```
 
+Browser tests default to **four workers with full parallelism**, including tests in the same file. Use the tests-only helper against the current existing build during development; it does not rebuild or regenerate contracts. File filters are relative to `frontend/` and use Playwright's regular-expression matching; `-Grep` is a title regular expression. Multiple files and a title pattern are combined. No matching tests is a failure, never a fallback full run. `-Workers 1` provides serial debugging.
+
+```powershell
+# Tests only against the current build.
+.\scripts\frontend.ps1 -Command test -TestPath tests/browser.spec.mjs -Grep 'old token after restart' -Workers 1
+.\scripts\frontend.ps1 -Command test -TestPath tests/browser.spec.mjs,tests/review.spec.mjs -Grep 'diagnostic error status|display-only decimal' -Workers 2
+
+# Full frontend verification; defaults to four browser workers.
+.\scripts\frontend.ps1 -Command check
+
+# Full local commit/sync checkpoint, only when explicitly authorized.
+.\scripts\checkpoint.ps1
+```
+
+`check` always runs contracts, typing, build and the complete browser suite; it rejects `-TestPath`/`-Grep`. The [combined checkpoint helper](../scripts/checkpoint.ps1) completes full Python checks and package qualification before starting full frontend verification, stopping on either stage's failure. Its Python `-Workers` defaults to `auto`, `-BrowserWorkers` defaults to `4`, and `-ForceFull` forwards the existing Python full-result-reuse override. The individual `dev.ps1 -Command checkpoint` remains the Python/package stage. Do not overlap full Python and browser suites in separate invocations; each suite can use its own internal parallelism. The helper does not lock unrelated sessions or schedule tests. [Browser workflow evidence](../docs/tasks/BROWSER_TEST_WORKFLOW.md) records actual timings, focused/guard checks and qualification limits.
+
 Bootstrap needs the existing project Python `.venv`, downloads the pinned portable official Node 24.22.1 archive into ignored `.tools` if missing, checks its recorded SHA-256, installs `package-lock.json` with `npm ci --ignore-scripts`, and installs Playwright Chromium in its ordinary user cache. It does not change global Node, npm or PATH. Network access to nodejs.org, registry.npmjs.org and the Playwright download service is required for a cold setup. The helper restores its process PATH/working directory. Later `sync` repeats the locked package installation; `build` builds without installing; `contracts` deliberately refreshes the authored schema/types after an intended backend contract change. Normal `check` captures fresh protected OpenAPI and rejects drift rather than rewriting the contract.
 
 Run the built review interface using an absolute synthetic runtime and build path:
