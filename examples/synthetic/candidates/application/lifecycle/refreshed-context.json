@@ -1,0 +1,116 @@
+{
+  "version": "fidelity-lot-context-v1",
+  "source_sha256": "553d7a96a597fc37dced4f8b38c5bca0d0c43f89a114fd52055cc5d263caf5f8",
+  "source_as_of": "2026-10-26",
+  "currency": "USD",
+  "accounts": [
+    {
+      "source_account": "000SYNTH001",
+      "account_id": "account-1",
+      "alias": "Fictional account 1",
+      "role": "traded-taxable",
+      "evidence": {
+        "actor": "Fictional fixture owner",
+        "reference": "Fictional source review - not broker qualification",
+        "effective_at": "2026-10-23",
+        "recorded_at": "2026-10-23T20:00:00Z"
+      }
+    },
+    {
+      "source_account": "000SYNTH002",
+      "account_id": "account-2",
+      "alias": "Fictional account 2",
+      "role": "ira-roth",
+      "evidence": {
+        "actor": "Fictional fixture owner",
+        "reference": "Fictional source review - not broker qualification",
+        "effective_at": "2026-10-23",
+        "recorded_at": "2026-10-23T20:00:00Z"
+      }
+    }
+  ],
+  "mappings": [
+    {
+      "source_account": "000SYNTH001",
+      "symbol": "FAAA",
+      "security": {
+        "id": "security-faaa",
+        "source_ref": "fictional-symbol-review:FAAA",
+        "ticker": "FAAA",
+        "identity": {
+          "value": "fictional-identity:FAAA",
+          "reason": null
+        },
+        "classification": {
+          "value": "us-domestic-common-equity",
+          "reason": null
+        },
+        "currency": "USD"
+      },
+      "evidence": {
+        "actor": "Fictional fixture owner",
+        "reference": "Fictional source review - not broker qualification",
+        "effective_at": "2026-10-23",
+        "recorded_at": "2026-10-23T20:00:00Z"
+      }
+    },
+    {
+      "source_account": "000SYNTH002",
+      "symbol": "FBBB",
+      "security": {
+        "id": "security-fbbb",
+        "source_ref": "fictional-symbol-review:FBBB",
+        "ticker": "FBBB",
+        "identity": {
+          "value": "fictional-identity:FBBB",
+          "reason": null
+        },
+        "classification": {
+          "value": "us-domestic-common-equity",
+          "reason": null
+        },
+        "currency": "USD"
+      },
+      "evidence": {
+        "actor": "Fictional fixture owner",
+        "reference": "Fictional source review - not broker qualification",
+        "effective_at": "2026-10-23",
+        "recorded_at": "2026-10-23T20:00:00Z"
+      }
+    }
+  ],
+  "source_coverage": {
+    "value": null,
+    "reason": "Combined export completeness is not independently established"
+  },
+  "reported_basis_assumption": {
+    "value": true,
+    "reason": null
+  },
+  "evidence": {
+    "actor": "Fictional fixture owner",
+    "reference": "Fictional source review - not broker qualification",
+    "effective_at": "2026-10-23",
+    "recorded_at": "2026-10-23T20:00:00Z"
+  },
+  "screening": {
+    "activities": [],
+    "relationships": [],
+    "restrictions": [],
+    "basis_disputes": [],
+    "unbounded_event": {
+      "value": false,
+      "reason": null
+    }
+  },
+  "independent_positions": [
+    {
+      "security_id": "security-faaa",
+      "quantity": {
+        "value": "3.2500",
+        "reason": null
+      },
+      "source_ref": "Fictional separately supplied refreshed position"
+    }
+  ]
+}

@@ -1,15 +1,13 @@
-"""Frozen synthetic hierarchy diagnostics using one identified stock covariance.
+"""Frozen hierarchy diagnostics using one identified stock covariance.
 
-Exact exposure arithmetic is separate from floating point covariance diagnostics.
+Float64 exposure estimates share the current numerical/covariance boundary.
 Cash is a preserved zero-price-shock bucket. No financial readiness is asserted.
 """
 
 import hashlib
 import math
-import re
 from dataclasses import asdict, dataclass
 from datetime import date
-from fractions import Fraction
 from pathlib import Path
 from typing import Literal
 
@@ -19,10 +17,9 @@ import polars as pl
 from prosper import advisory
 from prosper import covariance as covariance_model
 from prosper.covariance import CovarianceResult, Matrix
-from prosper.exact import ExactValue, Sign
 from prosper.innovations import fingerprint
 
-VERSION = "synthetic-industry-v1"
+VERSION = "industry-v1"
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 CASH = ("cash", "selected-residual-USD")
 UNKNOWN = ("unknown",)
@@ -33,33 +30,6 @@ Group = tuple[str, ...]
 
 class IndustryUnavailable(ValueError):
     """Invalid evidence is refused without renormalization or numerical repair."""
-
-
-@dataclass(frozen=True)
-class ExactWeight:
-    """Explicit canonical derived ratio; source decimals remain separate evidence."""
-
-    numerator: str
-    denominator: str
-
-    def __post_init__(self) -> None:
-        for part in (self.numerator, self.denominator):
-            if (
-                not isinstance(part, str)
-                or len(part) > 128
-                or re.fullmatch(r"0|[1-9][0-9]*", part, re.ASCII) is None
-            ):
-                raise IndustryUnavailable("bounded canonical weight integers required")
-        n, d = int(self.numerator), int(self.denominator)
-        if d <= 0 or n > d or math.gcd(n, d) != 1:
-            raise IndustryUnavailable("reduced weight ratio in [0,1] required")
-
-    @classmethod
-    def from_fraction(cls, value: Fraction) -> "ExactWeight":
-        return cls(str(value.numerator), str(value.denominator))
-
-
-Weight = str | ExactWeight
 
 
 @dataclass(frozen=True)
@@ -82,25 +52,6 @@ class Taxonomy:
     source_sha256: str
     records: tuple[Classification, ...]
     hierarchy: tuple[tuple[str, str], ...]
-    scope: str = "explicitly-stipulated-synthetic"
-
-
-@dataclass(frozen=True)
-class Weights:
-    """Decimal source lexemes or explicit exact ratios use the same sleeve NAV.
-
-    The NAV identities identify each basket's own denominator/evidence. No whole
-    account or untouched cash is included. Complete baskets must sum exactly to 1.
-    """
-
-    security_ids: tuple[str, ...]
-    portfolio: tuple[Weight, ...]
-    benchmark: tuple[Weight, ...]
-    portfolio_cash: Weight
-    benchmark_cash: Weight
-    portfolio_nav_identity: str
-    benchmark_nav_identity: str
-    as_of: str
 
 
 @dataclass(frozen=True)
@@ -115,23 +66,6 @@ class ExposureLimit:
 
 
 @dataclass(frozen=True)
-class Exposure:
-    level: Level
-    group: Group
-    portfolio: str
-    benchmark: str
-    active: str
-
-
-@dataclass(frozen=True)
-class LimitResult:
-    index: int
-    status: str
-    value: str | None
-    reasons: tuple[str, ...]
-
-
-@dataclass(frozen=True)
 class FrozenCovariance:
     security_ids: tuple[str, ...]
     matrix: Matrix
@@ -141,7 +75,6 @@ class FrozenCovariance:
     source_identity: str
     approximation: str
     units: str = "decimal-return-squared"
-    scope: str = "explicitly-stipulated-synthetic"
     projection_identity: str | None = None
     annualization: int = 252
 
@@ -165,21 +98,6 @@ class Attribution:
     sector_cross_variance: float
     industry_cross_variance: float
     covariance_identity: str
-
-
-@dataclass(frozen=True)
-class IndustryResult:
-    status: str
-    issues: tuple[str, ...]
-    weights: Weights
-    taxonomy: Taxonomy
-    limits: tuple[ExposureLimit, ...]
-    covariance: FrozenCovariance | None
-    exposures: tuple[Exposure, ...]
-    limit_results: tuple[LimitResult, ...]
-    attribution: Attribution | None
-    input_sha256: str
-    identity_sha256: str
 
 
 @dataclass(frozen=True)
@@ -221,7 +139,7 @@ class IndustryEstimate:
 def from_composition(result: CovarianceResult, measure: Measure) -> FrozenCovariance:
     """Bind the exact forecast matrix/order/horizon/units to its parent identity."""
     if (
-        result.status != "qualified-synthetic-forecast"
+        result.status != "forecast-complete"
         or result.issues
         or result.projection is None
         or result.cutoff is None
@@ -244,7 +162,6 @@ def from_composition(result: CovarianceResult, measure: Measure) -> FrozenCovari
         result.identity_sha256,
         p.approximation,
         p.units,
-        "qualified-synthetic-composition",
         p.identity_sha256,
         p.annualization,
     )
@@ -255,16 +172,6 @@ def _date(value: str) -> date:
     if parsed.isoformat() != value:
         raise IndustryUnavailable("canonical ISO date required")
     return parsed
-
-
-def _weight(value: Weight) -> Fraction:
-    if isinstance(value, ExactWeight):
-        return Fraction(int(value.numerator), int(value.denominator))
-    return Fraction(ExactValue(value, Sign.NONNEGATIVE, "weight").value)
-
-
-def _bound(value: str) -> Fraction:
-    return Fraction(ExactValue(value, Sign.SIGNED, "limit").value)
 
 
 def _groups(record: Classification | None) -> tuple[Group, Group]:
@@ -279,55 +186,22 @@ def _groups(record: Classification | None) -> tuple[Group, Group]:
     return sector, industry
 
 
-def _validate(
-    w: Weights, taxonomy: Taxonomy, limits: tuple[ExposureLimit, ...]
-) -> tuple[tuple[Fraction, ...], tuple[Fraction, ...]]:
-    n = len(w.security_ids)
-    if (
-        not n
-        or len(set(w.security_ids)) != n
-        or any(not s.strip() for s in w.security_ids)
-        or len(w.portfolio) != n
-        or len(w.benchmark) != n
-        or not w.portfolio_nav_identity.strip()
-        or not w.benchmark_nav_identity.strip()
-    ):
-        raise IndustryUnavailable("ordered complete weights and NAV evidence required")
-    _date(w.as_of)
-    p = tuple(_weight(s) for s in (*w.portfolio, w.portfolio_cash))
-    b = tuple(_weight(s) for s in (*w.benchmark, w.benchmark_cash))
-    if sum(p) != 1 or sum(b) != 1:
-        raise IndustryUnavailable("complete basket weights must sum exactly to one")
-    _validate_metadata(w, taxonomy, limits)
-    for limit in limits:
-        lo = _bound(limit.lower) if limit.lower is not None else None
-        hi = _bound(limit.upper) if limit.upper is not None else None
-        if (limit.enabled and lo is None and hi is None) or (
-            lo is not None and hi is not None and lo > hi
-        ):
-            raise IndustryUnavailable("enabled limit bounds required and ordered")
-    return p, b
-
-
 def _validate_metadata(
-    w: Weights | EstimatedWeights, taxonomy: Taxonomy, limits: tuple[ExposureLimit, ...]
+    w: EstimatedWeights, taxonomy: Taxonomy, limits: tuple[ExposureLimit, ...]
 ) -> None:
     if (
-        taxonomy.scope != "explicitly-stipulated-synthetic"
-        or not taxonomy.name.strip()
+        not taxonomy.name.strip()
         or not taxonomy.version.strip()
         or len(taxonomy.source_sha256) != 64
         or any(c not in "0123456789abcdef" for c in taxonomy.source_sha256)
         or _date(taxonomy.as_of) > _date(w.as_of)
     ):
-        raise IndustryUnavailable("dated stipulated synthetic taxonomy evidence required")
+        raise IndustryUnavailable("dated taxonomy evidence required")
     ids: set[str] = set()
-    if (
-        (not taxonomy.hierarchy and isinstance(w, Weights))
-        or len(set(taxonomy.hierarchy)) != len(taxonomy.hierarchy)
-        or any(not s.strip() or not i.strip() for s, i in taxonomy.hierarchy)
+    if len(set(taxonomy.hierarchy)) != len(taxonomy.hierarchy) or any(
+        not s.strip() or not i.strip() for s, i in taxonomy.hierarchy
     ):
-        raise IndustryUnavailable("explicit unique synthetic hierarchy required")
+        raise IndustryUnavailable("explicit unique hierarchy required")
     known_sectors = {s for s, _ in taxonomy.hierarchy}
     for r in taxonomy.records:
         if (
@@ -367,9 +241,9 @@ def _validate_metadata(
 
 
 def _attribution(
-    w: Weights | EstimatedWeights,
+    w: EstimatedWeights,
     c: FrozenCovariance,
-    a: tuple[Fraction, ...] | tuple[float, ...],
+    a: tuple[float, ...],
     sectors: tuple[Group, ...],
     industries: tuple[Group, ...],
 ) -> Attribution:
@@ -385,10 +259,8 @@ def _attribution(
         or c.units != "decimal-return-squared"
         or not c.source_identity.strip()
         or not c.approximation.strip()
-        or c.scope not in ("explicitly-stipulated-synthetic", "qualified-synthetic-composition")
-        or (c.scope == "qualified-synthetic-composition" and not c.projection_identity)
     ):
-        raise IndustryUnavailable("covariance scope/order/cutoff/units do not match")
+        raise IndustryUnavailable("covariance order/cutoff/units do not match")
     n = len(w.security_ids)
     matrix = np.asarray(c.matrix, dtype=float)
     if (
@@ -448,108 +320,6 @@ def _attribution(
     )
 
 
-def diagnose(
-    weights: Weights,
-    taxonomy: Taxonomy,
-    limits: tuple[ExposureLimit, ...],
-    covariance: FrozenCovariance | None,
-) -> IndustryResult:
-    """Diagnose frozen synthetic weights; never certify an actionable portfolio.
-
-    Invalid structural input raises. Missing classification stays in explicit
-    unknown buckets; applicable limits are blocked. Invalid covariance retains
-    exposures and the original covariance with an unavailable attribution.
-    """
-    p, b = _validate(weights, taxonomy, limits)
-    records = {r.security_id: r for r in taxonomy.records}
-    groups = tuple(_groups(records.get(s)) for s in weights.security_ids)
-    sectors = tuple(g[0] for g in groups) + (CASH,)
-    industries = tuple(g[1] for g in groups) + (CASH,)
-    issues = []
-    for security in weights.security_ids:
-        r = records.get(security)
-        if r is None:
-            issues.append(f"classification:{security}:missing")
-        elif r.sector is None or r.industry is None:
-            issues.append(f"classification:{security}:" + ";".join(r.unknown_reasons))
-    a = tuple(x - y for x, y in zip(p, b, strict=True))
-    exposures = []
-    values: dict[tuple[Level, Group, str], Fraction] = {}
-    incomplete: dict[Level, bool] = {}
-    levels: tuple[tuple[Level, tuple[Group, ...]], ...] = (
-        ("sector", sectors),
-        ("industry", industries),
-    )
-    for level, level_groups in levels:
-        incomplete[level] = any(
-            g[0].startswith("unknown") and (p[i] != 0 or b[i] != 0)
-            for i, g in enumerate(level_groups)
-        )
-        for group in sorted(set(level_groups)):
-            pw = sum((p[i] for i, g in enumerate(level_groups) if g == group), Fraction())
-            bw = sum((b[i] for i, g in enumerate(level_groups) if g == group), Fraction())
-            exposures.append(Exposure(level, group, str(pw), str(bw), str(pw - bw)))
-            values[level, group, "absolute"] = pw
-            values[level, group, "active"] = pw - bw
-    limit_results = []
-    for index, limit in enumerate(limits):
-        value = values.get((limit.level, limit.group, limit.kind), Fraction())
-        reasons: tuple[str, ...]
-        if not limit.enabled:
-            state, reasons = "disabled", ()
-        elif incomplete[limit.level] and limit.group != CASH:
-            state, reasons = "blocked", ("incomplete classification at constrained level",)
-        else:
-            breach = (limit.lower is not None and value < _bound(limit.lower)) or (
-                limit.upper is not None and value > _bound(limit.upper)
-            )
-            state, reasons = ("breach" if breach else "pass"), ()
-        limit_results.append(
-            LimitResult(index, state, None if state == "blocked" else str(value), reasons)
-        )
-    attribution = None
-    if covariance is None:
-        issues.append("covariance:missing")
-    else:
-        try:
-            with np.errstate(over="raise", invalid="raise", divide="raise"):
-                attribution = _attribution(weights, covariance, a, sectors, industries)
-        except (ValueError, FloatingPointError, OverflowError, np.linalg.LinAlgError) as exc:
-            issues.append(f"covariance:{exc}")
-    status = "diagnostic-incomplete" if issues else "qualified-synthetic-diagnostic"
-    if any(r.status == "breach" for r in limit_results):
-        status = "diagnostic-breach" if not issues else "diagnostic-incomplete"
-    inputs = fingerprint(
-        [
-            asdict(weights),
-            asdict(taxonomy),
-            [asdict(v) for v in limits],
-            _covariance_payload(covariance) if covariance else None,
-        ]
-    )
-    outputs = [
-        status,
-        issues,
-        [asdict(e) for e in exposures],
-        [asdict(r) for r in limit_results],
-        asdict(attribution) if attribution else None,
-    ]
-    identity = fingerprint([VERSION, IMPLEMENTATION_SHA256, np.__version__, inputs, outputs])
-    return IndustryResult(
-        status,
-        tuple(issues),
-        weights,
-        taxonomy,
-        limits,
-        covariance,
-        tuple(exposures),
-        tuple(limit_results),
-        attribution,
-        inputs,
-        identity,
-    )
-
-
 def _covariance_payload(covariance: FrozenCovariance) -> dict[str, object]:
     """Nonfinite evidence has explicit stable text identity, never JSON NaN."""
     payload = asdict(covariance)
@@ -563,7 +333,7 @@ def estimate(
     limits: tuple[ExposureLimit, ...] = (),
     covariance: FrozenCovariance | None = None,
 ) -> IndustryEstimate:
-    """Polars exposure estimates; diagnose remains the legacy exact-format path."""
+    """Polars exposure estimates with explicit unknowns and independent limits."""
     n = len(weights.security_ids)
     if (
         not n

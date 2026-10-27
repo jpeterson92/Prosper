@@ -1,6 +1,6 @@
-"""Synthetic R1 original-DCC composite fitting; no covariance forecast or model acceptance.
+"""R1 original-DCC composite fitting; no covariance forecast or model acceptance.
 
-Only adjacent bivariate states/sensitivities are streamed. Fixed Z/target and
+Adjacent bivariate states/sensitivities stream in bounded 64-session blocks. Fixed Z/target and
 all start outcomes survive in immutable results for subsequent full-Q replay.
 """
 
@@ -15,7 +15,7 @@ from typing import Any
 import numpy as np
 import scipy  # type: ignore[import-untyped]
 from numpy.typing import NDArray
-from scipy import linalg, optimize
+from scipy import linalg, optimize, signal
 
 from prosper.innovations import SPECIFICATION_SHA256, fingerprint
 from prosper.shrinkage import IMPLEMENTATION_SHA256 as TARGET_IMPLEMENTATION_SHA256
@@ -57,7 +57,6 @@ class DCCContext:
     upstream_sha256: tuple[str, ...]
     purpose: str
     expected_observations: int
-    fictional: bool = True
 
 
 @dataclass(frozen=True)
@@ -139,7 +138,7 @@ def target_context(context: DCCContext) -> TargetContext:
 
 
 def input_from_target(z: Matrix, context: DCCContext, target: TargetResult) -> DCCInput:
-    """Snapshot a qualified analytical target; callers still attest synthetic provenance.
+    """Snapshot a qualified analytical target; callers still supply input provenance.
 
     This consumes an existing result, without fitting scalars or constructing a
     target. The sibling owns that orchestration and matching component lifecycle.
@@ -237,8 +236,8 @@ def _sha(value: str) -> bool:
 def _validate_input(data: DCCInput) -> tuple[Matrix, float]:
     c, correction = _arrays(data.z, data.target)
     context = data.context
-    if context.fictional is not True or context.timezone != "UTC":
-        raise DCCUnavailable("synthetic_only", "fictional UTC qualification inputs only")
+    if context.timezone != "UTC":
+        raise DCCUnavailable("timezone", "UTC session dates required")
     if (
         type(context.security_ids) is not tuple
         or len(context.security_ids) != len(data.z[0])
@@ -312,70 +311,105 @@ def _theta(values: tuple[float, ...]) -> Theta:
 def _evaluate(z: Matrix, c: Matrix, theta: Theta, correction: float) -> PairEvaluation:
     a, b = _theta(theta)
     pairs = tuple((j, j + 1) for j in range(len(c) - 1))
-    targets = tuple((c[i][i], c[j][j], c[i][j]) for i, j in pairs)
-    states = list(targets)
-    da: list[Triple] = [(0.0, 0.0, 0.0)] * len(pairs)
-    db = da.copy()
-    scores, ga, gb = [], [], []
-    for t, row in enumerate(z):
-        scored, alpha_scores, beta_scores = [], [], []
-        for k, (i, j) in enumerate(pairs):
-            if t:
-                prior = (z[t - 1][i] ** 2, z[t - 1][j] ** 2, z[t - 1][i] * z[t - 1][j])
-                old = states[k]
-                da[k] = tuple(
-                    -targets[k][component] + prior[component] + b * da[k][component]
-                    for component in range(3)
-                )  # type: ignore[assignment]
-                db[k] = tuple(
-                    -targets[k][component] + old[component] + b * db[k][component]
-                    for component in range(3)
-                )  # type: ignore[assignment]
-                states[k] = tuple(
-                    (1 - a - b) * targets[k][component] + a * prior[component] + b * old[component]
-                    for component in range(3)
-                )  # type: ignore[assignment]
-            qi, qj, qij = states[k]
-            if not all(math.isfinite(v) for v in states[k]) or min(qi, qj) <= 0:
-                raise DCCUnavailable("pair_state", f"session {t}, pair {k}: invalid diagonal/state")
-            denominator = math.sqrt(qi) * math.sqrt(qj)
-            rho = qij / denominator
-            d = 1 - rho * rho
-            if not math.isfinite(d) or d <= 0:
-                raise DCCUnavailable(
-                    "pair_determinant", f"session {t}, pair {k}: nonpositive determinant"
-                )
-            u, w = row[i], row[j]
-            quadratic = u * u + w * w - 2 * rho * u * w
-            score = math.log(2 * math.pi) + math.log(d) / 2 + quadratic / (2 * d)
-            derivative = -(rho + u * w) / d + rho * quadratic / (d * d)
-            dr = tuple(
-                v[2] / denominator - rho * (v[0] / qi + v[1] / qj) / 2 for v in (da[k], db[k])
+    target = np.asarray([(c[i][i], c[j][j], c[i][j]) for i, j in pairs], dtype=np.float64)
+    observations = np.asarray(z, dtype=np.float64)
+    last_q = target.copy()
+    last_da = np.zeros_like(target)
+    last_db = np.zeros_like(target)
+    scores: list[float] = []
+    ga: list[float] = []
+    gb: list[float] = []
+
+    def filtered(forcing: FloatArray, previous: FloatArray) -> FloatArray:
+        # y[t] = forcing[t] + beta*y[t-1]. zi is the carried delay,
+        # not a steady-state seed. This preserves the declared Q[1]/zero dQ.
+        result, _ = signal.lfilter([1.0], [1.0, -b], forcing, axis=0, zi=b * previous[None])
+        return np.asarray(result, dtype=np.float64)
+
+    def refuse(mask: NDArray[np.bool_], start: int, code: str, reason: str) -> None:
+        if mask.any():
+            row, pair = np.argwhere(mask)[0]
+            raise DCCUnavailable(code, f"session {start + int(row)}, pair {int(pair)}: {reason}")
+
+    # Bound temporary path arrays independently of the full history length.
+    # There is no full covariance history, time-window truncation or pair subset.
+    for start in range(0, len(z), 64):
+        stop = min(start + 64, len(z))
+        block = observations[start:stop]
+        prior = np.empty_like(block)
+        prior[0] = observations[start - 1] if start else 0.0
+        prior[1:] = block[:-1]
+        with np.errstate(over="ignore", invalid="ignore", divide="ignore", under="ignore"):
+            products = np.stack(
+                (prior[:, :-1] ** 2, prior[:, 1:] ** 2, prior[:, :-1] * prior[:, 1:]), axis=-1
             )
-            derivatives = (derivative * dr[0], derivative * dr[1])
-            if not all(math.isfinite(v) for v in (score, *derivatives, *da[k], *db[k])):
-                raise DCCUnavailable(
-                    "pair_score", f"session {t}, pair {k}: nonfinite score/sensitivity"
-                )
-            scored.append(score)
-            alpha_scores.append(derivatives[0])
-            beta_scores.append(derivatives[1])
-        scores.append(math.fsum(scored) / len(pairs))
-        ga.append(math.fsum(alpha_scores) / len(pairs))
-        gb.append(math.fsum(beta_scores) / len(pairs))
+            forcing = (1 - a - b) * target + a * products
+            forcing_da = -target + products
+            if start == 0:
+                forcing[0] = target
+                forcing_da[0] = 0.0
+            q = filtered(forcing, last_q if start else np.zeros_like(target))
+            da = filtered(forcing_da, last_da)
+            previous_q = np.concatenate((last_q[None], q[:-1]), axis=0)
+            db = filtered(-target + previous_q, last_db)
+            qi, qj, qij = q[..., 0], q[..., 1], q[..., 2]
+            refuse(
+                ~np.isfinite(q).all(axis=-1) | (qi <= 0) | (qj <= 0),
+                start,
+                "pair_state",
+                "invalid diagonal/state",
+            )
+            denominator = np.sqrt(qi) * np.sqrt(qj)
+            rho = qij / denominator
+            determinant = 1 - rho * rho
+            refuse(
+                ~np.isfinite(determinant) | (determinant <= 0),
+                start,
+                "pair_determinant",
+                "nonpositive determinant",
+            )
+            u, w = block[:, :-1], block[:, 1:]
+            quadratic = u * u + w * w - 2 * rho * u * w
+            nll = math.log(2 * math.pi) + np.log(determinant) / 2 + quadratic / (2 * determinant)
+            derivative = -(rho + u * w) / determinant + rho * quadratic / (
+                determinant * determinant
+            )
+            dr_a = da[..., 2] / denominator - rho * (da[..., 0] / qi + da[..., 1] / qj) / 2
+            dr_b = db[..., 2] / denominator - rho * (db[..., 0] / qi + db[..., 1] / qj) / 2
+            alpha_scores, beta_scores = derivative * dr_a, derivative * dr_b
+            refuse(
+                ~np.isfinite(nll)
+                | ~np.isfinite(alpha_scores)
+                | ~np.isfinite(beta_scores)
+                | ~np.isfinite(da).all(axis=-1)
+                | ~np.isfinite(db).all(axis=-1),
+                start,
+                "pair_score",
+                "nonfinite score/sensitivity",
+            )
+        # Retain the original accurately summed pair mean and chronological
+        # all-session sum; NumPy reductions do not replace the score convention.
+        scores.extend(math.fsum(row) / len(pairs) for row in nll)
+        ga.extend(math.fsum(row) / len(pairs) for row in alpha_scores)
+        gb.extend(math.fsum(row) / len(pairs) for row in beta_scores)
+        last_q, last_da, last_db = q[-1].copy(), da[-1].copy(), db[-1].copy()
     total = math.fsum(scores)
     gradient = math.fsum(ga), math.fsum(gb)
     if not all(math.isfinite(v) for v in (total, *gradient)):
         raise DCCUnavailable("objective", "nonfinite objective/gradient")
+
+    def triples(values: FloatArray) -> tuple[Triple, ...]:
+        return tuple((float(row[0]), float(row[1]), float(row[2])) for row in values)
+
     return PairEvaluation(
         theta,
         pairs,
         tuple(scores),
         total,
         gradient,
-        tuple(states),
-        tuple(da),
-        tuple(db),
+        triples(last_q),
+        triples(last_da),
+        triples(last_db),
         correction,
     )
 
@@ -575,7 +609,7 @@ def fit_dcc(data: DCCInput) -> DCCResult:
             )
             for j in range(2)
         )
-    status = "qualified-synthetic-fit" if result else "unavailable"
+    status = "fit-complete" if result else "unavailable"
     issues = () if result else ("no_eligible_start",)
     output_hash = fingerprint(
         {

@@ -1,4 +1,4 @@
-"""Protected synthetic HTTP runtime; arbitrary ASGI hosting is unqualified."""
+"""Protected local HTTP runtime; arbitrary ASGI hosting is unqualified."""
 
 import argparse
 import asyncio
@@ -17,11 +17,12 @@ from pydantic import BaseModel, ConfigDict
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from prosper.evidence import EvidenceStore, RuntimeBoundary
+from prosper.advisory_recovery import MAX_BACKUP_BYTES
+from prosper.advisory_store import AdvisoryStore
 from prosper.import_api import BODY_MEDIA_TYPES, CONTROL_BODY_BYTES, install_import_routes
-from prosper.imports import ImportService
-from prosper.persistence import CheckpointStore
+from prosper.storage import RuntimeBoundary
 from prosper.web_assets import CONTENT_POLICY, WebAssets
+from prosper.workspace import Workspace
 
 MAX_BODY_BYTES = 2 * 1024 * 1024
 MAX_HEADER_BYTES = 16 * 1024
@@ -80,8 +81,15 @@ class _Session:
 class Diagnostic(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
-    status: Literal["synthetic_diagnostic"] = "synthetic_diagnostic"
+    status: Literal["local_diagnostic"] = "local_diagnostic"
     planning_ready: Literal[False] = False
+
+
+class RuntimeInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+    purpose: Literal["exploratory"] = "exploratory"
+    financial_use_authorized: Literal[False] = False
 
 
 class _RequestBoundary:
@@ -234,7 +242,38 @@ class _RequestBoundary:
             if supplied != media:
                 await deny(415, "content_type_denied")
                 return
-        body_limit = CONTROL_BODY_BYTES if media == b"application/json" else MAX_BODY_BYTES
+        body_limit = (
+            MAX_BACKUP_BYTES
+            if scope["path"] == "/api/v1/restore"
+            else 16 * 1024 * 1024
+            if scope["path"]
+            in (
+                "/api/v1/benchmarks/import",
+                "/api/v1/benchmarks/review",
+                "/api/v1/benchmarks/diagnostics",
+                "/api/v1/history/parts",
+                "/api/v1/history/rows",
+                "/api/v1/inputs/preview",
+                "/api/v1/inputs/diagnostics",
+            )
+            else MAX_BODY_BYTES
+            if scope["path"]
+            in (
+                "/api/v1/previews",
+                "/api/v1/history/plan",
+                "/api/v1/history/diagnostics",
+                "/api/v1/fidelity/previews",
+                "/api/v1/lots/settings",
+                "/api/v1/lots/settings/preview",
+                "/api/v1/lots/diagnostics",
+                "/api/v1/benchmarks/import",
+                "/api/v1/benchmarks/review",
+                "/api/v1/benchmarks/diagnostics",
+            )
+            else CONTROL_BODY_BYTES
+            if media == b"application/json"
+            else MAX_BODY_BYTES
+        )
         length = headers.get(b"content-length")
         if length is not None:
             if not length.isdigit() or len(length) > 10:
@@ -285,7 +324,7 @@ class _RequestBoundary:
 def _application(
     policy: LocalPolicy,
     request_shutdown: Callable[[], None],
-    service: ImportService | None = None,
+    service: Workspace | None = None,
     assets: WebAssets | None = None,
 ) -> ASGIApp:
     session = _Session()
@@ -295,6 +334,8 @@ def _application(
         try:
             yield
         finally:
+            if service is not None:
+                service.candidates.close()
             session.active = False
             session.token = b""
 
@@ -320,6 +361,10 @@ def _application(
     async def diagnostic() -> Diagnostic:
         return Diagnostic()
 
+    @app.get("/runtime", response_model=RuntimeInfo)
+    async def runtime_info() -> RuntimeInfo:
+        return RuntimeInfo()
+
     @app.post("/shutdown")
     async def shutdown() -> dict[str, str]:
         session.active = False
@@ -339,13 +384,12 @@ def serve(
     development_port: int | None = None,
     runtime: RuntimeBoundary | None = None,
     ui_dist: Path | None = None,
+    require_existing: bool = False,
 ) -> None:
     """Own the socket for one process lifetime; publish only a public origin on stdout."""
     if type(port) is not int or not 0 <= port <= 65535:
         raise ValueError("invalid_local_port")
     if runtime is not None:
-        if runtime.mode != "synthetic":
-            raise ValueError("synthetic_runtime_required")
         runtime.check()
     # Validate before binding; zero is only the launcher's OS-selected API port.
     if development_port is not None:
@@ -358,8 +402,14 @@ def serve(
         listener.listen(16)
         actual_port = listener.getsockname()[1]
         policy = LocalPolicy(actual_port, development_port)
+        if require_existing and runtime is None:
+            raise ValueError("existing_runtime_required")
         service = (
-            ImportService(CheckpointStore(EvidenceStore(runtime))) if runtime is not None else None
+            Workspace(
+                AdvisoryStore.existing(runtime) if require_existing else AdvisoryStore(runtime)
+            )
+            if runtime is not None
+            else None
         )
 
         def request_shutdown() -> None:
@@ -397,26 +447,26 @@ def serve(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Prosper protected synthetic loopback runtime")
+    parser = argparse.ArgumentParser(description="Prosper protected local loopback runtime")
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--development-port", type=int, default=None)
-    parser.add_argument("--synthetic-runtime", type=Path, default=None)
-    parser.add_argument("--source-root", type=Path, default=None)
+    parser.add_argument("--runtime", type=Path, default=None)
+    parser.add_argument("--initialize", action="store_true")
     parser.add_argument("--ui-dist", type=Path, default=None)
     args = parser.parse_args()
     try:
-        if (args.synthetic_runtime is None) != (args.source_root is None):
-            raise ValueError("runtime_source_pair_required")
-        runtime = (
-            RuntimeBoundary(args.synthetic_runtime, args.source_root, "synthetic")
-            if args.synthetic_runtime is not None
-            else None
-        )
+        runtime = RuntimeBoundary(args.runtime) if args.runtime is not None else None
+        if args.initialize:
+            if runtime is None:
+                raise ValueError("runtime_required")
+            runtime.root.mkdir(parents=True)
+            AdvisoryStore(runtime)
         serve(
             port=args.port,
             development_port=args.development_port,
             runtime=runtime,
             ui_dist=args.ui_dist,
+            require_existing=runtime is not None,
         )
     except (ValueError, OSError):
         parser.exit(2, "local_runtime_start_failed\n")

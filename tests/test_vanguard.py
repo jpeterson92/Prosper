@@ -115,8 +115,10 @@ def test_overlapping_sections_negative_values_and_nonunit_sums_not_repaired() ->
     result = inspect(raw)
     assert result.snapshot is not None
     sections = {section.name: section for section in result.snapshot.sections}
-    assert sections["equity"].known_weight_percent_sum == Fraction(49927, 500)
-    assert sections["shortTermReserves"].known_weight_percent_sum == Fraction(-1, 8)
+    assert sections["equity"].known_weight_percent_sum == pytest.approx(float(Fraction(49927, 500)))
+    assert sections["shortTermReserves"].known_weight_percent_sum == pytest.approx(
+        float(Fraction(-1, 8))
+    )
     assert sections["shortTermReserves"].rows == sections["allocationToUnderlyingFunds"].rows
     assert len(result.issues) == 2  # One retained negative observation in each source section.
     assert not result.benchmark_ready

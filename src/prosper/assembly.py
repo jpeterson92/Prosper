@@ -1,4 +1,4 @@
-"""Attributable fictional opening diagnostics; no checkpoint or financial authority."""
+"""Attributable opening diagnostics; no checkpoint or financial authority."""
 
 import hashlib
 import json
@@ -12,7 +12,7 @@ from prosper.fidelity_lots import COLUMNS, MAX_RECORDS, LotInspection, LotObserv
 
 MAX_TEXT = 256
 MAX_FINDINGS = 100
-VERSION = "synthetic-assembly-v1"
+VERSION = "assembly-v1"
 
 
 class AssemblyError(ValueError):
@@ -231,8 +231,8 @@ class Assessment:
     assembly_sufficient: bool
 
     @property
-    def schema_version(self) -> Literal["synthetic-assembly-v1"]:
-        return "synthetic-assembly-v1"
+    def schema_version(self) -> Literal["assembly-v1"]:
+        return "assembly-v1"
 
     @property
     def wash_verification(self) -> Literal["unverified"]:
@@ -280,17 +280,14 @@ def _sum(observations: tuple[LotObservation, ...], name: str) -> BookValue:
     return total
 
 
-def assess_inputs(
-    inspection: LotInspection, supplements: Supplements, *, fictional: Literal[True]
-) -> Assessment:
-    """Assess caller-declared fictional inspector output and immutable assertions.
+def assess_inputs(inspection: LotInspection, supplements: Supplements) -> Assessment:
+    """Assess inspected source output and immutable assertions.
 
     Account roles and security links are assertions, not verified tax classification.
     Source aggregates cover all observed rows (including monitoring/excluded accounts),
     never NAV. Cash facts are account/currency scoped; commitments are retained without
     subtracting them from an already asserted usable amount. No source file is opened.
     """
-    _require(fictional is True, "fictional", "fictional_assertion_required")
     _require(type(inspection) is LotInspection, "inspection", "inspection_required")
     _require(type(supplements) is Supplements, "supplements", "supplements_required")
     _tuple_of(inspection.observations, LotObservation, "inspection.observations")

@@ -1,0 +1,38 @@
+{
+  "version": "fictional-r1-comparison-v1",
+  "seed": 6241,
+  "observations": 1260,
+  "security_ids": [
+    "FICTIONAL-R1-A",
+    "FICTIONAL-R1-B",
+    "FICTIONAL-R1-C"
+  ],
+  "first_session": "2001-01-01",
+  "profile": {
+    "variant": "idr-dcc-nl",
+    "model": {
+      "identity": "R1",
+      "f": "0.25",
+      "a3": "0.17",
+      "kappa": "10000"
+    },
+    "model_reference": "P22 IDR; P19 returns-only reference; frozen synthetic R1",
+    "lookback_sessions": 1260,
+    "minimum_history_sessions": 1260,
+    "horizon_sessions": 21,
+    "annualization_sessions": 252,
+    "max_mark_age_days": 0,
+    "max_snapshot_age_days": 0,
+    "max_benchmark_age_days": 0,
+    "max_history_age_days": 0,
+    "require_full_window_validation": true,
+    "maximum_universe_size": 3,
+    "short_history_policy": "block"
+  },
+  "comparison": {
+    "rtol": 1e-08,
+    "objective_atol": 1e-08,
+    "correlation_atol": 1e-10,
+    "covariance_scale_atol": 1e-12
+  }
+}

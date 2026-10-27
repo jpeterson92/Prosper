@@ -31,7 +31,7 @@ const config = path.join(directory, "tsconfig.json");
 await writeFile(config, JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "bundler", strict: true, noEmit: true, skipLibCheck: true, types: [] }, include: ["src"] }));
 const compile = () => spawnSync(process.execPath, [path.join(root, "frontend", "node_modules", "typescript", "bin", "tsc"), "--project", config], { encoding: "utf8", windowsHide: true });
 if (compile().status !== 0) throw new Error("negative_type_baseline_failed");
-const numeric = types.replace(/(KnownValue: \{[\s\S]*?value:) string;/, "$1 number;");
+const numeric = types.replace(/(DecimalFact: \{[\s\S]*?value:) string \| null;/, "$1 number | null;");
 if (numeric === types) throw new Error("numeric_mutation_missing");
 await writeFile(typesPath, numeric);
 const failed = compile();

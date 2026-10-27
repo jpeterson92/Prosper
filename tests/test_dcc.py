@@ -181,8 +181,7 @@ def test_roundoff_symmetry_is_explicit_and_no_determinant_clipping() -> None:
 @pytest.mark.parametrize(
     "field,value,code",
     [
-        ("fictional", False, "synthetic_only"),
-        ("timezone", "", "synthetic_only"),
+        ("timezone", "", "timezone"),
         ("security_ids", ("A", "A"), "identity"),
         ("security_ids", ("", "B"), "identity"),
         ("calendar", "", "identity"),
@@ -222,7 +221,7 @@ def test_target_provenance_refusals(field: str, value: Any, code: str) -> None:
 def test_actual_twelve_start_fit_against_independent_objective_bound() -> None:
     data = orthogonal_data()
     fitted = d.fit_dcc(data)
-    assert fitted.status == "qualified-synthetic-fit" and fitted.evaluation is not None
+    assert fitted.status == "fit-complete" and fitted.evaluation is not None
     # For u*w=0 and u*u+w*w=4, each density is log(2pi)+log(D)/2+2/D.
     # It is minimized for D=1 on 0<D<=1, independently of the optimizer.
     lower_bound = len(data.z) * (math.log(2 * math.pi) + 2)
@@ -486,3 +485,77 @@ def test_start_order_matches_frozen_r1() -> None:
         (a, s - a) for a in (0.01, 0.03, 0.05, 0.10) for s in (0.99, 0.97, 0.95)
     )
     assert all(a >= 0 and b >= 0 and a + b < d.CAP for a, b in d.STARTS)
+
+
+@pytest.mark.parametrize("sessions", [1, 63, 64, 65, 129, 1260])
+@pytest.mark.parametrize("theta", [(0.0, 0.0), (0.0, d.CAP), (0.05, 0.9), (0.4, d.CAP - 0.4)])
+def test_blocked_likelihood_matches_independent_full_matrix_recurrence(
+    sessions: int, theta: d.Theta
+) -> None:
+    # The reference propagates full matrices one session at a time; it does not
+    # use the production linear filter, adjacent triples or block carry logic.
+    x = np.random.Generator(np.random.PCG64(7152)).standard_normal((sessions, 5))
+    c = np.eye(5) * 0.7 + np.ones((5, 5)) * 0.3
+    z = tuple(tuple(float(v) for v in row) for row in x)
+    target = tuple(tuple(float(v) for v in row) for row in c)
+    q = c.copy()
+    da = np.zeros_like(c)
+    db = np.zeros_like(c)
+    scores = []
+    alpha = []
+    beta = []
+    a, b = theta
+    for t, row in enumerate(x):
+        if t:
+            previous = np.outer(x[t - 1], x[t - 1])
+            da, db = -c + previous + b * da, -c + q + b * db
+            q = (1 - a - b) * c + a * previous + b * q
+        pair_scores, pair_alpha, pair_beta = [], [], []
+        for i in range(4):
+            j = i + 1
+            normalizer = np.sqrt(q[i, i] * q[j, j])
+            rho = q[i, j] / normalizer
+            correlation = np.array([[1.0, rho], [rho, 1.0]])
+            v = row[[i, j]]
+            # Direct Gaussian log determinant / inverse quadratic expression.
+            inverse = np.linalg.inv(correlation)
+            pair_scores.append(
+                math.log(2 * math.pi)
+                + np.linalg.slogdet(correlation)[1] / 2
+                + float(v @ inverse @ v) / 2
+            )
+            # Matrix-density differential: tr((R^-1 - R^-1 vv' R^-1) dR)/2.
+            density_derivative = inverse - inverse @ np.outer(v, v) @ inverse
+            derivatives = []
+            for sensitivity in (da, db):
+                drho = (
+                    sensitivity[i, j] / normalizer
+                    - rho * (sensitivity[i, i] / q[i, i] + sensitivity[j, j] / q[j, j]) / 2
+                )
+                differential = np.array([[0.0, drho], [drho, 0.0]])
+                derivatives.append(float(np.trace(density_derivative @ differential)) / 2)
+            pair_alpha.append(derivatives[0])
+            pair_beta.append(derivatives[1])
+        scores.append(math.fsum(pair_scores) / 4)
+        alpha.append(math.fsum(pair_alpha) / 4)
+        beta.append(math.fsum(pair_beta) / 4)
+    result = d.evaluate_fixed(z, target, theta)
+    np.testing.assert_allclose(result.nll, scores, rtol=1e-12, atol=1e-10)
+    assert result.nll_sum == pytest.approx(math.fsum(scores), rel=1e-12, abs=1e-8)
+    assert result.gradient == pytest.approx(
+        (math.fsum(alpha), math.fsum(beta)), rel=1e-10, abs=1e-8
+    )
+    for actual, matrix in (
+        (result.terminal_q, q),
+        (result.terminal_alpha, da),
+        (result.terminal_beta, db),
+    ):
+        expected = [(matrix[i, i], matrix[i + 1, i + 1], matrix[i, i + 1]) for i in range(4)]
+        np.testing.assert_allclose(actual, expected, rtol=1e-12, atol=1e-10)
+
+
+def test_block_boundary_determinant_failure_is_not_clipped() -> None:
+    rows = [(1.0, -1.0)] * 64 + [(1e100, 1e100), (1.0, 1.0)]
+    with pytest.raises(d.DCCUnavailable, match="pair_determinant") as error:
+        d.evaluate_fixed(tuple(rows), I2, (0.5, 0.4))
+    assert "session 65, pair 0" in str(error.value)

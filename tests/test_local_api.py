@@ -83,7 +83,7 @@ def test_real_asset_bootstrap_keeps_api_protected(tmp_path: Path) -> None:
             "GET", "/assets/index-demo.js", {"Sec-Fetch-Site": "same-origin"}
         )
         assert status == 200 and body == b"export const synthetic = true;"
-        for route in ("/session", "/diagnostic", "/api/v1/current", "/openapi.json"):
+        for route in ("/session", "/diagnostic", "/runtime", "/api/v1/current", "/openapi.json"):
             status, _, _ = api.request("GET", route, {"Sec-Fetch-Site": "same-origin"})
             assert status == 401
         token = api.session()
@@ -207,7 +207,10 @@ def test_session_diagnostic_shutdown_and_no_remote_bind(api: Running) -> None:
     assert api.session() == token  # Bounded one-session memory; repeated bootstrap is stable.
     status, headers, body = api.request("GET", "/diagnostic", api.authorized(token))
     assert status == 200
-    assert json.loads(body) == {"status": "synthetic_diagnostic", "planning_ready": False}
+    assert json.loads(body) == {"status": "local_diagnostic", "planning_ready": False}
+    status, _, info = api.request("GET", "/runtime", api.authorized(token))
+    assert status == 200
+    assert json.loads(info) == {"purpose": "exploratory", "financial_use_authorized": False}
     assert headers["access-control-allow-origin"] == api.origin
     assert headers["cache-control"] == "no-store"
     assert "set-cookie" not in headers
@@ -373,7 +376,20 @@ def test_denied_origin_rejects_before_body_and_websocket_never_upgrades(api: Run
         ).encode()
     )
     assert not response.startswith(b"HTTP/1.1 101")
-    assert b"synthetic_diagnostic" in response
+    assert b"local_diagnostic" in response
+
+
+@pytest.mark.parametrize("route", ["refresh", "preview", "plan", "diagnostics"])
+def test_history_http_limit_applies_before_body_parsing(api: Running, route: str) -> None:
+    token = api.session()
+    body_limit = 16 * 1024 * 1024 if route in ("refresh", "preview") else MAX_BODY_BYTES
+    request = (
+        f"POST /api/v1/history/{route} HTTP/1.1\r\nHost: 127.0.0.1:{api.port}\r\n"
+        f"Origin: {api.origin}\r\nAuthorization: Bearer {token}\r\n"
+        f"Content-Type: application/json\r\nContent-Length: {body_limit + 1}\r\n\r\n"
+    )
+    response = api.raw(request.encode())
+    assert response.startswith(b"HTTP/1.1 413")
 
 
 def test_declared_and_chunked_body_limits_and_timeout(api: Running) -> None:

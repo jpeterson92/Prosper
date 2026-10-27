@@ -1,278 +1,208 @@
 import { useEffect, useRef, useState } from "react";
 import { ClientError, connect } from "./client";
-import type { Command, CommitRequest, Current, Preview } from "./client";
-import type { components } from "./generated/api";
-import { decimalDisplay, locationText } from "./display";
+import type { Alignment, HistoryReview, HistoryManifest, HistoryRequest, HistoryDiagnosticRequest, Catalog, Current, DiagnosticRequest, Preview, Run, SelectRequest, SettingsRequest } from "./client";
+import { HistoryRows, SavedHistory } from "./history";
+import { decimalDisplay } from "./display";
+import { LotControls, LotView } from "./lots";
+import type { LotAction } from "./lots";
+import { BenchmarkControls } from "./benchmark";
+import type { BenchmarkAction } from "./benchmark";
+import { CandidateControls, CandidateView } from "./candidates";
+import { Worksheets } from "./worksheets";
+import type { WorksheetAction } from "./worksheets";
+import type { Worksheet } from "./client";
+import type { CandidateAction } from "./candidates";
+import { InputsControls, InputsView } from "./inputs";
+import type { InputsAction } from "./inputs";
+import type { ModeledResult } from "./client";
 
-type Source = components["schemas"]["SourceResponse"];
-type Inspection = components["schemas"]["InspectionResponse"];
-type Book = components["schemas"]["ValueResponse"];
-type Fact = { value: string | null; reason: string | null };
-const MAX_BYTES = 2 * 1024 * 1024;
-
-function Value({ value, rounded }: { value: Book; rounded: boolean }) {
-  return value.state === "known"
-    ? <span className="number" title={`Exact: ${value.value}; source: ${value.original_text}; quantum: ${value.source_quantum}`}>{decimalDisplay(value.value, rounded)}</span>
-    : <span className="unknown">Unknown <small>{value.reasons.join("; ")}</small></span>;
+type Pending = WorksheetAction | CandidateAction | InputsAction | BenchmarkAction | LotAction | { kind: "history-refresh"; body: HistoryManifest } | { kind: "history-discard"; body: HistoryManifest } | { kind: "history-diagnostic"; body: HistoryDiagnosticRequest } | { kind: "history-clear"; body: { command_key: string; expected_revision: number } } | { kind: "select"; body: SelectRequest } | { kind: "settings"; body: SettingsRequest } | { kind: "diagnostic"; body: DiagnosticRequest } | { kind: "restore"; body: Uint8Array<ArrayBuffer> };
+type Fact = { value: string | null; reason?: string | null };
+function resourceMessage(problem: unknown): string | null {
+  if (!(problem instanceof ClientError)) return null;
+  if (problem.code === "history_alignment_size_limit") return "The complete history alignment exceeds the current record limit. Retained sources remain available; risk diagnostics are blocked.";
+  if (problem.code === "pending_history_budget_exceeded") return "Pending history parts exceed the staging budget. Refresh the workspace and discard unneeded pending parts before reselecting the complete file.";
+  return null;
+}
+function FactValue({ fact, rounded = false }: { fact: Fact; rounded?: boolean }) {
+  return fact.value === null ? <span className="unknown">Unknown <small>{fact.reason}</small></span> : <span className="number" title={fact.value}>{rounded ? decimalDisplay(fact.value, true) : fact.value}</span>;
+}
+function Snapshot({ preview, rounded }: { preview: Preview; rounded: boolean }) {
+  const s = preview.snapshot;
+  return <article aria-label="Snapshot review">
+    <section><h2>Reviewed source</h2><dl className="facts">
+      <div><dt>Account</dt><dd>{s.account_alias} / {s.account_id}</dd></div>
+      <div><dt>Scope</dt><dd>{s.account_scope}</dd></div>
+      <div><dt>Source / as of</dt><dd>{s.source_name} / {s.source_as_of}</dd></div>
+      <div><dt>Snapshot ID</dt><dd>{preview.id}</dd></div>
+      <div><dt>Original source SHA-256</dt><dd>{s.source_sha256}</dd></div>
+    </dl><p>Original source bytes are retained with this snapshot. Unknown facts block their dependent financial results.</p></section>
+    <section><h3>Securities</h3><ul>{s.securities.map((row) => <li key={row.id}>{row.id} / {row.ticker} <FactValue fact={row.identity} /> <FactValue fact={row.classification} /><small>{row.source_ref}</small></li>)}</ul></section>
+    <section><h3>Lots</h3><div className="table-scroll" tabIndex={0}><table><thead><tr><th>Lot / security</th><th>Quantity</th><th>Total basis (USD)</th><th>Acquired / term</th><th>Source row</th></tr></thead>
+      <tbody>{s.lots.map((row) => <tr key={row.id}><th>{row.id}<small>{row.account_id} / {row.security_id}</small></th><td><FactValue fact={row.quantity} rounded={rounded} /></td><td><FactValue fact={row.total_basis} rounded={rounded} /></td><td><FactValue fact={row.acquired} /><FactValue fact={row.term} /></td><td>{row.source_ref}</td></tr>)}</tbody></table></div></section>
+    <section><h3>Positions and cash observations</h3><ul>{s.positions.map((row) => <li key={row.id}>{row.security_id}: <FactValue fact={row.quantity} rounded={rounded} /><small>{row.source_ref}</small></li>)}{s.cash.map((row) => <li key={row.id}>{row.kind} ({row.currency}): <FactValue fact={row.amount} rounded={rounded} /><small>{row.source_ref}</small></li>)}</ul><p>Imported cash observations do not set an investment budget.</p></section>
+    <section><h3>Source findings and exclusions</h3><ul>{[...s.findings, ...s.exclusions].map((f, i) => <li key={i}><strong>{f.code}</strong> / {f.locator}: {f.reason}</li>)}</ul><details><summary>Other supplied observations</summary><pre>{JSON.stringify(s.observations, null, 2)}</pre></details></section>
+  </article>;
 }
 
-function FactValue({ fact, rounded = false, numeric = false }: { fact: Fact; rounded?: boolean; numeric?: boolean }) {
-  return fact.value === null
-    ? <span className="unknown">Unknown <small>{fact.reason ?? "No reason supplied"}</small></span>
-    : <span className={numeric ? "number" : ""}>{numeric ? decimalDisplay(fact.value, rounded) : fact.value}</span>;
+function DiagnosticView({ run, revision }: { run: Run; revision: number | undefined }) {
+  const counts = run.outputs?.counts;
+  const findings = run.outputs?.findings;
+  return <article aria-label="Saved diagnostic">
+    <p>{run.id} / {run.status} / {run.as_of}</p>
+    <p>Saved input revision {run.input_revision}; {run.input_revision === revision ? "matches current inputs" : "historical inputs"}</p>
+    {run.outputs?.kind === "history-inputs-v1" && <>
+      <p>{run.outputs.coverage_complete === true ? "Recorded history coverage complete" : "Recorded history incomplete"}; this is input coverage, with financial qualification still unavailable.</p>
+      {Array.isArray(run.outputs.ordered_securities) && <p>Saved security order: {run.outputs.ordered_securities.map(String).join(", ")}</p>}
+      {Array.isArray(run.outputs.sessions) && <p>Saved sessions: {run.outputs.sessions.map(String).join(", ")}</p>}
+    </>}
+    {counts !== null && typeof counts === "object" && !Array.isArray(counts) && <dl className="facts">{Object.entries(counts).map(([name, value]) => <div key={name}><dt>{name}</dt><dd>{typeof value === "number" ? value : "Unavailable"}</dd></div>)}</dl>}
+    <ul>{run.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul>
+    {Array.isArray(findings) && <ul>{findings.map((finding, index) => finding && typeof finding === "object" && !Array.isArray(finding) ? <li key={index}><strong>{String(finding.code)}</strong> / {String(finding.locator)}: {String(finding.reason)}</li> : null)}</ul>}
+    {run.exclusions.length > 0 && <><h3>Exclusions</h3><ul>{run.exclusions.map((f, i) => <li key={i}>{f.locator}: {f.reason}</li>)}</ul></>}
+    {Array.isArray(run.outputs?.issues) && <ul>{run.outputs.issues.map((issue, index) => <li key={index}>{JSON.stringify(issue)}</li>)}</ul>}
+    <SavedHistory run={run} />
+    <LotView run={run} />
+    <CandidateView run={run} />
+    {run.model_version === "modeled-inputs-v1" && run.status === "partial" && <InputsView result={run.outputs as unknown as ModeledResult} label="Saved modeled inputs" />}
+    <details><summary>Saved inputs and result record</summary><pre>{JSON.stringify(run, null, 2)}</pre></details>
+  </article>;
 }
-
-function SourceDetails({ source, rounded }: { source: Source; rounded: boolean }) {
-  const doc = source.document;
-  return <>
-    <section aria-label="Source and inclusion">
-      <h3>Source &amp; checkpoint boundary</h3>
-      <dl className="facts">
-        <div><dt>Bundle</dt><dd>{doc.metadata.bundle_id}</dd></div>
-        <div><dt>Source</dt><dd>{doc.metadata.source_id} / version {doc.metadata.source_version}</dd></div>
-        <div><dt>Source cutoff</dt><dd>{doc.metadata.cutoff}</dd></div>
-        <div><dt>Source timezone</dt><dd>{doc.metadata.source_timezone}</dd></div>
-        <div><dt>Profile</dt><dd>{doc.metadata.profile_id}</dd></div>
-        <div><dt>Fictional data assertion</dt><dd>{doc.metadata.fictional === true ? "Fictional / synthetic" : "Unverified"}</dd></div>
-      </dl>
-      <p><strong>Inclusion evidence: </strong><FactValue fact={doc.metadata.inclusion} /></p>
-      <p className="subtle">Activity already included: {doc.metadata.included_activity_ids.join(", ") || "None declared"}. The checkpoint is not transaction replay.</p>
-      <details><summary>Source assertions and coverage</summary>
-        <ul>{doc.metadata.stipulations.map((text, index) => <li key={index}>{text}</li>)}</ul>
-        <pre>{JSON.stringify({ accounts: doc.accounts, coverage: doc.coverage }, null, 2)}</pre>
-      </details>
-    </section>
-    <section aria-label="Source lots">
-      <h3>Lots <span className="count">{doc.lots.length}</span></h3>
-      <div className="table-scroll" tabIndex={0} role="region" aria-label="Lots table"><table>
-        <thead><tr><th>Lot / account</th><th>Security</th><th>Acquired</th><th>Quantity</th><th>Total adjusted basis (USD)</th></tr></thead>
-        <tbody>{doc.lots.map((lot) => <tr key={lot.id}><th scope="row">{lot.id}<small>{lot.account_id}</small></th><td>{lot.security_id}</td><td><FactValue fact={lot.acquired} /></td><td><FactValue fact={lot.quantity} numeric rounded={rounded} /></td><td><FactValue fact={lot.basis} numeric rounded={rounded} /></td></tr>)}</tbody>
-      </table></div>
-      <p className="subtle">Source basis is shown as supplied, including any embedded fees. No basis reconstruction or eligibility determination is performed here.</p>
-    </section>
-    <section aria-label="Exact source values">
-      <details><summary>Exact &amp; source values <span className="count">{source.source_values.length}</span></summary>
-        <p className="subtle">Unrounded canonical text, original source text and source quantum. Display settings do not change these values.</p>
-        <div className="table-scroll" tabIndex={0} role="region" aria-label="Exact source values table"><table>
-          <thead><tr><th>Source location</th><th>Exact canonical</th><th>Original text</th><th>Source quantum</th></tr></thead>
-          <tbody>{source.source_values.map((value, index) => <tr key={index}><th scope="row">{locationText(value.path)}</th><td className="number">{value.exact.value}</td><td className="number">{value.exact.original_text}</td><td className="number">{value.exact.source_quantum}</td></tr>)}</tbody>
-        </table></div>
-      </details>
-    </section>
-  </>;
-}
-
-function InspectionView({ inspection, rounded }: { inspection: Inspection; rounded: boolean }) {
-  const ready = inspection.readiness;
-  return <>
-    <section className="readiness" aria-label="Readiness and findings">
-      <div className="section-heading"><h3>Data readiness</h3><span className={inspection.inspection_valid ? "badge" : "badge blocked"}>{inspection.inspection_valid ? "Inspection-valid" : "Not inspection-valid"}</span></div>
-      <p>Inspection checks the supplied data. Financial planning remains unavailable.</p>
-      <dl className="readiness-grid">{(["inspection", "basis", "valuation", "coverage"] as const).map((scope) => <div key={scope}><dt>{scope === "coverage" ? "Household coverage" : scope[0]!.toUpperCase() + scope.slice(1)}</dt><dd className={ready[scope] === "complete" ? "complete" : "attention"}>{ready[scope]}</dd></div>)}</dl>
-      <h4>Planning blockers</h4><ul>{ready.planning_reasons.map((reason, index) => <li key={index}><code>{reason}</code></li>)}</ul>
-      {inspection.findings.length > 0 && <><h4>Located reconciliation &amp; coverage findings</h4><ul className="finding-list">{inspection.findings.map((finding, index) => <li key={index}><strong>{finding.code}</strong> <span className="badge muted">{finding.blocking ? "Blocking" : "Diagnostic"}</span><small>{locationText(finding.path)}</small>{finding.reason !== null && <p>{finding.reason}</p>}</li>)}</ul></>}
-      {inspection.further_findings && <p className="notice">Further findings exist. This bounded report is truncated.</p>}
-    </section>
-    <div className="metrics" aria-label="Checkpoint totals">
-      <section><h3>Settled-cash NAV (USD)</h3><Value value={inspection.settled_cash_nav} rounded={rounded} /><p className="subtle">Holdings plus supplied settled cash</p></section>
-      <section><h3>Total basis (USD)</h3><Value value={inspection.total_basis} rounded={rounded} /><p className="subtle">Supplied adjusted lot basis</p></section>
-      <section><h3>Market minus basis (USD)</h3><Value value={inspection.market_minus_basis} rounded={rounded} /><p className="subtle">Snapshot difference; not investment return</p></section>
-    </div>
-    <section aria-label="Positions">
-      <h3>Positions</h3><div className="table-scroll" tabIndex={0} role="region" aria-label="Positions table"><table>
-        <thead><tr><th>Security / account</th><th>Position quantity</th><th>Lot quantity</th><th>Price (USD)</th><th>Value (USD)</th><th>Basis (USD)</th></tr></thead>
-        <tbody>{inspection.positions.map((position, index) => <tr key={index}><th scope="row">{position.security_id}<small>{position.account_id}</small></th>{(["quantity", "lot_quantity", "price", "market_value", "basis"] as const).map((field) => <td key={field}><Value value={position[field]} rounded={rounded} /></td>)}</tr>)}</tbody>
-      </table></div>
-    </section>
-    <section aria-label="Cash buckets">
-      <h3>Cash buckets (USD)</h3><p className="subtle">Separate source facts. Available and unsettled cash are not added to settled-cash NAV.</p>
-      <div className="table-scroll" tabIndex={0} role="region" aria-label="Cash table"><table>
-        <thead><tr><th>Account</th><th>Settled</th><th>Available</th><th>Unsettled</th></tr></thead>
-        <tbody>{inspection.cash.map((cash, index) => <tr key={index}><th scope="row">{cash.account_id}</th>{(["settled", "available", "unsettled"] as const).map((field) => <td key={field}><Value value={cash[field]} rounded={rounded} /></td>)}</tr>)}</tbody>
-      </table></div>
-    </section>
-  </>;
-}
-
-function ReviewContent({ source, inspection, issues = [], furtherIssues = false, rounded }: {
-  source: Source | null; inspection: Inspection | null; issues?: Preview["issues"]; furtherIssues?: boolean; rounded: boolean;
-}) {
-  return <>
-    {issues.length > 0 && <section className="parser-errors" aria-label="Parser issues"><h3>Bundle could not be parsed</h3><p>The original bytes were retained as non-ready evidence.</p><ul className="finding-list">{issues.map((issue, index) => <li key={index}><strong>{issue.code}</strong><small>{locationText(issue.path)}{issue.offset !== null ? `; byte offset ${issue.offset}` : ""}{issue.path_truncated ? "; location truncated" : ""}</small></li>)}</ul>{furtherIssues && <p className="notice">Further issues exist. This bounded report is truncated.</p>}</section>}
-    {inspection && <InspectionView inspection={inspection} rounded={rounded} />}
-    {source && <SourceDetails source={source} rounded={rounded} />}
-  </>;
-}
-
-function safeError(error: unknown, mutation = false): string {
-  if (error instanceof ClientError && error.status === 401) return "The local session expired. Retry the read or retrieval to establish a new session.";
-  if (mutation) return "The import action response is unresolved. It may have completed. Retry the same command or retrieve the preview and refresh current state before making another decision.";
-  if (error instanceof ClientError && error.status === 404) return "No retained preview was found for that SHA-256.";
-  if (error instanceof ClientError && error.status === 413) return "The selected file exceeds the 2 MiB import limit.";
-  return "The local request could not be completed. Check the runtime and retry. No active-state change was requested.";
-}
-
-const outcomes: Record<Command["outcome"], string> = {
-  committed: "Checkpoint activated. Financial planning remains unavailable.",
-  duplicate: "Already activated evidence. No new activation occurred; an older checkpoint was not restored.",
-  stale_generation: "Current state changed. Refresh current state, inspect both views and review again before issuing a new command.",
-  preview_rejected: "This preview was rejected and cannot be activated.",
-  preview_invalid: "This preview is not inspection-valid and cannot be activated. Review its located findings.",
-  identity_review_required: "Portfolio or source identity requires review. Account switching and identity overrides are unavailable.",
-  source_conflict: "Source facts conflict with retained accepted history. Correction acceptance is unavailable; retained evidence and current state are preserved.",
-};
 
 export function Review() {
-  const [view, setView] = useState<"preview" | "current">("preview");
   const [current, setCurrent] = useState<Current | null>(null);
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [run, setRun] = useState<Run | null>(null);
+  const [worksheet, setWorksheet] = useState<Worksheet | null>(null);
+  const [historyFile, setHistoryFile] = useState<HistoryReview | null>(null);
+  const [historyReviewed, setHistoryReviewed] = useState(false);
+  const [historyRequest, setHistoryRequest] = useState<HistoryRequest | null>(null);
+  const [alignment, setAlignment] = useState<Alignment | null>(null);
+  const [manualNames, setManualNames] = useState("");
+  const [clearReviewed, setClearReviewed] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [digest, setDigest] = useState("");
-  const [rounded, setRounded] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("Reading current checkpoint...");
-  const [error, setError] = useState<string | null>(null);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const [reviewed, setReviewed] = useState(false);
-  const [command, setCommand] = useState<CommitRequest | null>(null);
-  const [receipt, setReceipt] = useState<Command | null>(null);
-  const [uncertain, setUncertain] = useState(false);
-  const [refused, setRefused] = useState(false);
-  const [rejectRetry, setRejectRetry] = useState<string | null>(null);
-  const [resumeKey, setResumeKey] = useState("");
-  const [resumeGeneration, setResumeGeneration] = useState("");
-  const active = useRef(false);
+  const [rounded, setRounded] = useState(false);
+  const [settings, setSettings] = useState("{}");
+  const [settingsReviewed, setSettingsReviewed] = useState(false);
+  const [pending, setPending] = useState<Pending | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState("Reading workspace...");
+  const [runtimeReady, setRuntimeReady] = useState(false);
   const session = useRef<ReturnType<typeof connect> | null>(null);
-  function client() { return session.current ??= connect(); }
+  const active = useRef(false);
+  const client = () => session.current ??= connect();
+  async function refresh() {
+    const c = await client(); await c.runtime(); setRuntimeReady(true); const state = await c.current();
+    setCurrent(state); setCatalog(await c.catalog()); setReviewed(false); setSettingsReviewed(false);
+  }
   async function perform(action: () => Promise<void>, mutation = false) {
     if (active.current) return;
     active.current = true; setBusy(true); setError(null);
     try { await action(); } catch (problem) {
       session.current = null;
-      setMessage("Request incomplete. Refresh or retrieve before relying on this view.");
-      setReviewed(false);
-      setError(safeError(problem, mutation));
+      setError(resourceMessage(problem) ?? (mutation ? "The response is unresolved. Retry the identical pending action before making another change." : problem instanceof ClientError && problem.status === 422 ? "The file or request is invalid. Review the current format and source checksum." : "The local request failed. Check the runtime and retry."));
     } finally { active.current = false; setBusy(false); }
   }
-  function refresh() { return perform(async () => {
-    setReviewed(false);
-    setCurrent(null); setMessage("Reading current checkpoint...");
-    const result = await (await client()).current(); setCurrent(result);
-    setMessage(`Current checkpoint read. Active generation: ${result.generation}.`);
-  }); }
-  useEffect(() => { void refresh(); }, []);
-  async function stage() { await perform(async () => {
-    if (!file || file.size > MAX_BYTES) { setError("Select a synthetic file of at most 2 MiB."); return; }
-    setReviewed(false); setPreview(null); setView("preview"); setMessage("Staging original bytes for inspection...");
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-    setDigest(hash);
-    const result = await (await client()).stage(bytes); setPreview(result);
-    setMessage("Preview retained for inspection. The active checkpoint was not changed.");
-  }); }
-  async function retrieve(event: React.FormEvent) {
-    event.preventDefault(); await perform(async () => {
-      setReviewed(false); setPreview(null); setView("preview"); setMessage("Retrieving retained preview...");
-      setPreview(await (await client()).preview(digest)); setMessage("Retained preview retrieved. The active checkpoint was not changed.");
-    });
+  useEffect(() => { void perform(async () => { await refresh(); setMessage("Workspace read."); }); }, []);
+  async function refreshAfterAction() {
+    try { await refresh(); } catch {
+      session.current = null; setCurrent(null);
+      setError("The action outcome is shown above. Current state could not be refreshed. Refresh the workspace before another change.");
+    }
   }
-  async function reread() {
-    // Invalidate both cached views first. A receipt remains visible if either read fails.
-    const identity = preview?.receipt.raw_sha256;
-    setCurrent(null); setPreview(null); setReviewed(false);
-    const api = await client();
-    if (identity) setPreview(await api.preview(identity));
-    setCurrent(await api.current());
-  }
-  function commit(request: CommitRequest) { return perform(async () => {
-    setCommand(request); setReceipt(null); setUncertain(true); setRefused(false); setReviewed(false);
-    setMessage("Submitting the reviewed command. Do not assume an outcome until its receipt is available.");
-    // A thrown/lost response retains this exact descriptor for an explicit retry.
-    let result: Command;
-    try { result = await (await client()).commit(request); } catch (problem) {
-      if (problem instanceof ClientError && problem.status === 409) {
-        setUncertain(false); setRefused(true);
-        setMessage("Commit command refused. Restore its original recovery details or review again.");
-        setError("This command key is bound to a different payload. It cannot be reused with a changed preview or expected generation.");
-        return;
+  async function execute(command: Pending) {
+    const c = await client();
+    try {
+    if (command.kind === "worksheet-save") {
+      setWorksheet(await c.saveWorksheet(command.body)); setMessage("Dated manual worksheet saved. Review its frozen inputs, assumptions and warnings.");
+    } else if (command.kind === "candidate-start" || command.kind === "candidate-cancel") {
+      setRun(command.kind === "candidate-start" ? await c.startCandidate(command.body) : await c.cancelCandidate(command.body)); setMessage("Candidate run state saved. Review progress and qualification below.");
+    } else if (command.kind === "modeled-inputs") {
+      setRun(await c.diagnoseInputs(command.body)); setMessage("Dated modeled input diagnostics saved.");
+    } else if (command.kind === "benchmark-diagnostic") {
+      setRun(await c.diagnoseBenchmark(command.body)); setMessage("Reviewed benchmark result saved; selection unchanged.");
+    } else if (command.kind === "benchmark-select") {
+      const result = await c.selectBenchmark(command.body); setMessage(`Benchmark selection: ${result.outcome}; revision ${result.revision}.`);
+    } else if (command.kind === "lot-diagnostic") {
+      setRun(await c.diagnoseLots(command.body)); setMessage("Dated lot diagnostics saved.");
+    } else if ((command.kind === "diagnostic" || command.kind === "history-diagnostic")) {
+      setRun(command.kind === "history-diagnostic" ? await c.diagnoseHistory(command.body) : await c.diagnose(command.body)); setMessage(command.kind === "history-diagnostic" ? "Dated history diagnostics saved." : "Dated source diagnostics saved.");
+    } else {
+      const result = command.kind === "lot-settings" ? await c.configureLots(command.body) : command.kind === "select" ? await c.select(command.body) : command.kind === "settings" ? await c.configure(command.body) : command.kind === "history-refresh" ? await c.refreshHistory(command.body) : command.kind === "history-discard" ? await c.discardHistory(command.body) : command.kind === "history-clear" ? await c.clearHistory(command.body) : await c.restore(command.body);
+      setMessage(`Action result: ${result.outcome}; revision ${result.revision}.`);
+    }
+    } catch (problem) {
+      if (problem instanceof ClientError && [400, 404, 409, 413, 415, 422].includes(problem.status ?? 0)) {
+        setPending(null); setMessage("Action refused. Review current inputs or use an empty workspace for restore."); setError(resourceMessage(problem)); await refreshAfterAction(); return;
       }
       throw problem;
     }
-    setReceipt(result); setUncertain(false);
-    setCurrent(null);
-    setMessage(`Recorded command outcome: ${result.outcome}. Reading present state separately...`);
-    try {
-      await reread();
-      setMessage(`Recorded command outcome: ${result.outcome}. Present state read separately.`);
-    } catch {
-      session.current = null;
-      setMessage(`Recorded command outcome: ${result.outcome}. Follow-up read incomplete.`);
-      setError("The command receipt is recorded. A follow-up read failed. Retrieve the preview and refresh current state before reviewing again.");
-    }
-  }, true); }
-  function reject(identity: string) { return perform(async () => {
-    setRejectRetry(identity); setReviewed(false);
-    setMessage("Rejecting this retained preview; active state is preserved.");
-    const result = await (await client()).reject(identity);
-    setRejectRetry(null);
-    if (preview?.receipt.raw_sha256 === identity) setPreview(result);
-    setMessage(`Preview ${result.state}. Original evidence remains retained; active state was not changed by rejection.`);
-  }, true); }
-  const canReview = !!preview && !!current && !uncertain && !rejectRetry;
-  const canCommit = canReview && reviewed && preview.state !== "rejected" && preview.inspection?.inspection_valid === true;
-  const resumeNumber = /^\d+$/.test(resumeGeneration) ? Number(resumeGeneration) : NaN;
-  const canResume = !!preview && reviewed && !!current && !uncertain && !rejectRetry &&
-    /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(resumeKey) && Number.isSafeInteger(resumeNumber) && resumeNumber >= 0;
+    setPending(null); setReviewed(false); setSettingsReviewed(false); await refreshAfterAction();
+  }
+  function mutate(command: Pending) { setPending(command); void perform(() => execute(command), true); }
+  function plan(mode: "missing" | "selected" | "full") {
+    if (!historyRequest) return;
+    const selected = mode === "full" ? historyRequest.series.map(s => s.security_id) : mode === "selected" ? manualNames.split(",").map(s => s.trim()).filter(Boolean) : [];
+    const request = { ...historyRequest, manual_security_ids: selected };
+    void perform(async () => { setAlignment(await (await client()).planHistory(request)); setMessage("History refresh plan read; no acquisition or financial calculation was requested."); });
+  }
+  const disabled = busy || pending !== null || current === null;
   return <>
-    <header className="page-header"><div><p className="eyebrow">PROSPER / SYNTHETIC WORKSPACE</p><h1>Import review</h1><p>Inspect the evidence before it becomes portfolio state.</p></div><span className="badge">Fictional data only</span></header>
-    <div className="notice">Synthetic import review. Financial planning and trade approval are unavailable.</div>
-    <section className="import-panel" aria-label="Stage a synthetic file">
-      <div><h2>Stage a synthetic bundle</h2><p>Choose a fictional canonical JSON bundle. Never select real account data. Original bytes are retained locally; staging does not activate a checkpoint.</p></div>
-      <div className="file-controls"><label htmlFor="bundle-file">Synthetic JSON file (up to 2 MiB)</label><input id="bundle-file" type="file" accept=".json,application/json" disabled={busy} onChange={(event) => {
-        const selected = event.target.files?.[0] ?? null; setReviewed(false); setFile(selected); setPreview(null); setView("preview"); setError(selected && selected.size > MAX_BYTES ? "The selected file exceeds the 2 MiB import limit." : null);
-      }} /><button disabled={busy || !file || file.size > MAX_BYTES} onClick={() => void stage()}>Stage preview</button></div>
-      <details className="retrieval"><summary>Retrieve a retained preview</summary><form onSubmit={(event) => void retrieve(event)}><label htmlFor="preview-digest">Original-byte SHA-256</label><input id="preview-digest" value={digest} onChange={(event) => setDigest(event.target.value)} autoComplete="off" spellCheck={false} disabled={busy} maxLength={64} /><button className="secondary" disabled={busy || !/^[0-9a-f]{64}$/.test(digest)}>Retrieve preview</button></form><p className="subtle">If an upload response is interrupted, use its computed digest here to check whether it was retained. No automatic upload retry occurs.</p></details>
+    <header className="page-header"><div><p className="eyebrow">PROSPER / LOCAL WORKSPACE</p><h1>Current advisory workspace</h1><p>Review a snapshot, record explicit settings and save dated source diagnostics.</p></div><span className="badge" role="status" aria-label="Workspace purpose">{runtimeReady ? "Exploratory estimates; financial use unauthorized" : "Reading workspace"}</span></header>
+    <p className="notice">Conditional lot loss estimates use reviewed source facts, marks and screening assumptions. Fitted-risk candidate runs require complete inputs and explicit settings. Financial-use authorization remains unavailable.</p>
+    <p role="status" aria-label="Workspace status">{message}</p>{error && <p role="alert">{error}</p>}
+    {pending && <section aria-label="Pending action"><p>An action is unresolved. Its original request is retained in this window.</p><button disabled={busy} onClick={() => void perform(() => execute(pending), true)}>Retry identical action</button></section>}
+    <section aria-label="Current selection"><h2>Selected snapshot and settings</h2><p>Revision {current?.revision ?? "unknown"}; selected snapshot: {current?.snapshot_id ?? "None"}</p><p>Current diagnostic: {current?.current_run_id ?? "None"}</p><pre aria-label="Current settings">{JSON.stringify(current?.settings ?? {}, null, 2)}</pre>
+      <button disabled={busy} onClick={() => void perform(async () => { await refresh(); setMessage("Workspace read."); })}>Refresh workspace</button>
+      <button disabled={disabled || !current?.snapshot_id} onClick={() => void perform(async () => { setPreview(await (await client()).preview(current!.snapshot_id!)); setReviewed(false); })}>Review selected snapshot</button>
     </section>
-    <div className="review-toolbar"><div className="view-buttons" role="group" aria-label="Review view"><button className={view === "preview" ? "selected" : "secondary"} aria-pressed={view === "preview"} onClick={() => setView("preview")}>Selected preview</button><button className={view === "current" ? "selected" : "secondary"} aria-pressed={view === "current"} onClick={() => setView("current")}>Current checkpoint</button></div><button className="secondary" disabled={busy} onClick={() => void refresh()}>Refresh current state</button></div>
-    <p className="current-indicator">Last read active generation: <strong>{current ? current.generation : "Unavailable"}</strong>. Preview and current state are separate.</p>
-    <p role="status" aria-label="Review status" className="review-status">{busy ? "Working. " : ""}{message}</p>
-    {error && <p role="alert" className="error">{error}</p>}
-    {(command || rejectRetry) && <section aria-label="Last lifecycle command" className="lifecycle">
-      <h2>Last lifecycle command</h2>
-      {command && <>
-        <p className="subtle">Keep these recovery details before reloading. This command always refers to its original preview and generation, even when a different preview is selected.</p>
-        <dl className="facts"><div><dt>Command key</dt><dd>{command.command_key}</dd></div><div><dt>Expected generation</dt><dd>{command.expected_generation}</dd></div><div><dt>Command preview SHA-256</dt><dd>{command.preview_sha256}</dd></div></dl>
-        {receipt ? <div role="status" aria-label="Command receipt">
-          <h3>Recorded outcome: {receipt.outcome}</h3><p>{outcomes[receipt.outcome]}</p>
-          <p>Observed generation at command: {receipt.generation}. Original activation generation: {receipt.activation_generation ?? "None"}.</p>
-          <p className="subtle">Recorded at {receipt.recorded_at}. This receipt is the original durable result, not a statement of current active state.</p>
-        </div> : <p className="notice">{refused ? "Command refused because its key is bound to different recovery details. Restore the original preview and expected generation, or review again for a new command." : "Outcome unresolved. Do not create a replacement command until this one is resolved."}</p>}
-        <button className="secondary" disabled={busy || !!rejectRetry} onClick={() => void commit(command)}>Retry same commit command</button>
-      </>}
-      {rejectRetry && <><p className="notice">Rejection response unresolved for <code>{rejectRetry}</code>. A concurrent commit may prevent rejection. Retrieve that preview to inspect its lifecycle.</p><button className="secondary" disabled={busy} onClick={() => void reject(rejectRetry)}>Retry same rejection</button><button className="secondary" disabled={busy} onClick={() => { setRejectRetry(null); setReviewed(false); setPreview(null); setCurrent(null); setMessage("Retrieve the preview and refresh current state before reviewing again."); }}>Resolve by fresh reads</button></>}
-    </section>}
-    <div className="display-controls"><label><input type="checkbox" checked={rounded} onChange={(event) => setRounded(event.target.checked)} /> Round displayed numeric values to 2 decimals</label><p className="subtle">Display only; ties round to even. Exact canonical/source values remain unchanged and are available below.</p></div>
-    <article aria-label={view === "preview" ? "Selected preview review" : "Current checkpoint review"} aria-busy={busy}>
-      <div className="section-heading"><h2>{view === "preview" ? "Selected preview" : "Current checkpoint"}</h2>{view === "preview" && preview && <span className="badge muted">{preview.state}</span>}</div>
-      {view === "preview" ? preview ? <>
-        <div className="identity"><p><strong>Original-byte SHA-256</strong><code>{preview.receipt.raw_sha256}</code></p><p><strong>Recorded at</strong> {preview.recorded_at} / {preview.receipt.byte_length} bytes</p></div>
-        <ReviewContent source={preview.source} inspection={preview.inspection} issues={preview.issues} furtherIssues={preview.further_issues} rounded={rounded} />
-        <section aria-label="Review lifecycle actions" className="lifecycle">
-          <h3>Review this import</h3>
-          <p>Commit activates this checkpoint for synthetic inspection. Reject is terminal for these original bytes and retains the evidence. A committed preview cannot be rejected. Neither action approves trades or removes financial blockers.</p>
-          <p>Review the selected preview and the separately read current checkpoint before choosing an action. Expected generation for a new commit: <strong>{current?.generation ?? "Unavailable; refresh current state"}</strong>.</p>
-          {preview.state === "rejected" && <p className="notice">Rejected at {preview.rejected_at}. These original bytes cannot be activated.</p>}
-          {!preview.inspection?.inspection_valid && <p className="notice">Commit unavailable: this preview is not inspection-valid. Its original evidence can be rejected.</p>}
-          <label className="review-check"><input type="checkbox" checked={reviewed} disabled={busy || !canReview} onChange={(event) => setReviewed(event.target.checked)} /> I reviewed this preview, its readiness reasons and the current checkpoint.</label>
-          <div className="lifecycle-buttons"><button disabled={busy || !canCommit} onClick={() => {
-            if (current && preview && canCommit) void commit({ schema_version: "synthetic-import-api-v1", preview_sha256: preview.receipt.raw_sha256, command_key: crypto.randomUUID(), expected_generation: current.generation });
-          }}>Commit reviewed preview</button><button className="secondary" disabled={busy || !canReview || !reviewed || preview.state !== "staged"} onClick={() => void reject(preview.receipt.raw_sha256)}>Reject reviewed preview</button></div>
-          <details className="resume-command"><summary>Resume a commit after reload</summary><p className="subtle">Retrieve the original preview, inspect current state and enter the saved command key and original expected generation. This explicitly retries that exact payload. If it never reached the runtime, it may execute now; it does not silently use the current generation.</p><label>Saved command key<input value={resumeKey} maxLength={128} disabled={busy} onChange={(event) => setResumeKey(event.target.value)} /></label><label>Original expected generation<input value={resumeGeneration} inputMode="numeric" maxLength={16} disabled={busy} onChange={(event) => setResumeGeneration(event.target.value)} /></label><button className="secondary" disabled={busy || !canResume} onClick={() => void commit({ schema_version: "synthetic-import-api-v1", preview_sha256: preview.receipt.raw_sha256, command_key: resumeKey, expected_generation: resumeNumber })}>Resume saved commit command</button></details>
-        </section>
-      </> : <section className="empty"><h3>No preview selected</h3><p>Stage a synthetic file or retrieve an existing preview by digest. This does not replace the active checkpoint.</p></section>
-      : current?.checkpoint ? <>
-        <div className="identity"><p><strong>Active generation {current.generation}</strong> / checkpoint sequence {current.checkpoint.sequence}</p><p><strong>Recorded at</strong> {current.checkpoint.recorded_at}</p><code>{current.checkpoint.receipt.raw_sha256}</code></div>
-        <ReviewContent source={current.checkpoint.source} inspection={current.checkpoint.inspection} rounded={rounded} />
-      </> : <section className="empty"><h3>{current ? "No active checkpoint" : "Current state unavailable"}</h3><p>{current ? "Generation zero. A staged preview alone does not activate a portfolio." : "Refresh current state to obtain a new read."}</p></section>}
-    </article>
+    <section aria-label="Import"><h2>Import and review</h2><label>Normalized snapshot JSON file (up to 2 MiB)<input type="file" accept=".json" disabled={disabled} onChange={(event) => setFile(event.target.files?.[0] ?? null)} /></label>
+      <button disabled={disabled || !file} onClick={() => void perform(async () => {
+        if (!file || file.size > 2 * 1024 * 1024) throw new ClientError(422);
+        setReviewed(false); setPreview(await (await client()).stage(await file.text())); await refresh(); setMessage("Preview staged; selected snapshot unchanged.");
+      })}>Stage preview</button>
+      <label>Retained snapshot<select value="" disabled={disabled} onChange={(event) => { const id = event.target.value; if (id) void perform(async () => { setReviewed(false); setPreview(await (await client()).preview(id)); }); }}><option value="">Choose a snapshot</option>{catalog?.snapshots.map((s) => <option key={s.id} value={s.id}>{s.state} / {s.imported_at} / {s.id}</option>)}</select></label>
+      <label><input type="checkbox" checked={rounded} onChange={(event) => setRounded(event.target.checked)} />Round displayed numeric values to 2 decimals</label>
+      {preview && <><label><input type="checkbox" checked={reviewed} disabled={disabled} onChange={(event) => setReviewed(event.target.checked)} />I reviewed this snapshot and its unknowns</label><button disabled={disabled || !reviewed} onClick={() => mutate({ kind: "select", body: { snapshot_id: preview.id, command_key: crypto.randomUUID(), expected_revision: current!.revision } })}>Select reviewed snapshot</button><button disabled={disabled} onClick={() => void perform(async () => { await (await client()).reject(preview.id); await refresh(); setReviewed(false); setMessage("Preview rejected."); })}>Reject preview</button></>}
+    </section>
+    <LotControls current={current} disabled={disabled} api={client} onPreview={value => { setPreview(value); setReviewed(false); void perform(refresh); }} onMutate={mutate} />
+    <Worksheets current={current} run={run} catalog={catalog} worksheet={worksheet} onOpen={id=>void perform(async()=>setWorksheet(await (await client()).worksheet(id)))} api={client} onMutate={mutate} disabled={disabled}/>
+    <CandidateControls current={current} disabled={disabled} api={client} onMutate={mutate} saved={run} onRead={setRun} onFinished={refresh} />
+    <InputsControls current={current} disabled={disabled} api={client} onMutate={mutate} />
+    <BenchmarkControls current={current} catalog={catalog} disabled={disabled} api={client} onMutate={mutate} onRefresh={refresh} saved={run} />
+    {preview && <Snapshot preview={preview} rounded={rounded} />}
+    <section aria-label="Settings"><h2>Explicit settings</h2><p>Record supplied settings as a JSON object. No financial defaults or validation of investor limits is supplied by this foundation.</p><label>Settings JSON<textarea rows={8} value={settings} disabled={disabled} onChange={(e) => { setSettings(e.target.value); setSettingsReviewed(false); }} /></label><button disabled={disabled} onClick={() => { setSettings(JSON.stringify(current!.settings, null, 2)); setSettingsReviewed(false); }}>Load current settings</button><label><input type="checkbox" checked={settingsReviewed} disabled={disabled} onChange={(e) => setSettingsReviewed(e.target.checked)} />I reviewed these settings</label><button disabled={disabled || !settingsReviewed} onClick={() => void perform(async () => {
+      const value: unknown = JSON.parse(settings, (_key, value: unknown) => { if (typeof value === "number" && !Number.isFinite(value)) throw new ClientError(422); return value; }); if (value === null || Array.isArray(value) || typeof value !== "object") throw new ClientError(422);
+      const command: Pending = { kind: "settings", body: { settings: value as SettingsRequest["settings"], command_key: crypto.randomUUID(), expected_revision: current!.revision } };
+      setPending(command); try { await execute(command); } catch (problem) { session.current = null; setError("The settings response is unresolved. Retry the identical pending action."); }
+    })}>Save reviewed settings</button></section>
+    <section aria-label="Saved diagnostics"><h2>Dated diagnostics</h2><p>Saved source quality, conditional lot estimates and history coverage retain their original inputs. Financial qualification remains unavailable.</p><button disabled={disabled || !current?.snapshot_id} onClick={() => mutate({ kind: "diagnostic", body: { run_id: crypto.randomUUID(), expected_revision: current!.revision, as_of: new Date().toISOString() } })}>Save source diagnostics</button><label>Saved diagnostic<select value="" disabled={busy} onChange={(event) => { const id = event.target.value; if (id) void perform(async () => setRun(await (await client()).run(id))); }}><option value="">Choose a saved diagnostic</option>{catalog?.runs.map((id) => <option key={id} value={id}>{id}</option>)}</select></label>{run && <><DiagnosticView run={run} revision={current?.revision} />{run.status === "running" && run.model_version === "lot-opportunities-v1" && run.inputs?.lot_request && <button disabled={disabled} onClick={() => mutate({ kind: "lot-diagnostic", body: run.inputs!.lot_request as unknown as Extract<LotAction, {kind: "lot-diagnostic"}>["body"] })}>Resume saved lot diagnostic</button>}{run.status === "running" && run.model_version === "history-inputs-v1" && run.inputs?.history_request && <button disabled={disabled} onClick={() => mutate({ kind: "history-diagnostic", body: { run_id: run.id, expected_revision: run.input_revision, as_of: run.as_of, request: run.inputs!.history_request as HistoryRequest } })}>Resume saved history diagnostic</button>}{run.status === "running" && run.model_version === "source-quality-v1" && <button disabled={disabled} onClick={() => mutate({ kind: "diagnostic", body: { run_id: run.id, expected_revision: run.input_revision, as_of: run.as_of } })}>Resume saved diagnostic</button>}</>}</section>
+    <section aria-label="Retained history">
+      <h2>Retained history and manual refresh</h2>
+      <p>Use normalized source responses with explicit identities, calendar, dates and conventions. Compatible observations can be reused. Changed or unverified vintages require a coherent full-window refresh. No provider is selected automatically.</p>
+      <p>{catalog?.pending_history_parts.length ?? 0} pending history parts retained. Pending parts do not change active inputs; reselect the original file after restart to resume review. Backups include pending originals.</p>
+      <button disabled={disabled || !catalog?.pending_history_parts.length} onClick={() => { setHistoryFile(null); setHistoryReviewed(false); void mutate({kind:"history-discard",body:{version:"advisory-history-manifest-v1",part_count:catalog!.pending_history_parts.length,part_ids:catalog!.pending_history_parts,command_key:crypto.randomUUID(),expected_revision:current!.revision}}); }}>Discard pending history parts</button>
+      <label>History file (up to 64 MiB; staged in bounded parts)<input type="file" accept=".json" disabled={disabled} onChange={(event) => {
+        const file = event.target.files?.[0]; if (file) void perform(async () => { setHistoryFile(null); setHistoryReviewed(false); if (file.size > 64 * 1024 * 1024) throw new ClientError(422); const review = await (await client()).previewHistory(await file.text()); await refresh(); setHistoryFile(review); });
+      }} /></label>
+      {historyFile && <><p>{historyFile.manifest.part_count} source parts staged; activation saves all reviewed parts together.</p>{historyFile.parts.map((part, i) => <article key={i} aria-label={`History source part ${i + 1}`}><p>{part.batch.source_name} / validated {part.batch.validated_at} / {part.batch.validation_scope}</p><p>{part.batch.rows.row_count} observations; {part.batch.contexts.map(c => `${c.security_id}: ${c.provider} / ${c.dataset} / ${c.vintage} / ${c.adjustment}`).join("; ")}</p><p>Original source SHA-256: {part.batch.source_sha256}</p><HistoryRows table={part.batch.rows} /></article>)}<label><input type="checkbox" checked={historyReviewed} disabled={disabled} onChange={(e) => setHistoryReviewed(e.target.checked)} />I reviewed the history source and conventions</label><button disabled={disabled || !historyReviewed} onClick={() => mutate({ kind: "history-refresh", body: { ...historyFile.manifest, command_key: crypto.randomUUID(), expected_revision: current!.revision } })}>Refresh from reviewed source</button></>}
+
+      <label>Required history window JSON<input type="file" accept=".json" disabled={disabled} onChange={(event) => {
+        const file = event.target.files?.[0]; if (file) void perform(async () => { if (file.size > 2 * 1024 * 1024) throw new ClientError(422); const value = await (await client()).planHistoryDocument(await file.text()); setHistoryRequest(value.request); setAlignment(value); });
+      }} /></label>
+      {historyRequest && <><p>Requested order: {historyRequest.series.map(c => c.security_id).join(", ")}; sessions {historyRequest.sessions[0]} through {historyRequest.cutoff}; predecessor {historyRequest.predecessor}.</p><p>Known at {historyRequest.known_at}; calendar evidence: {historyRequest.calendar_evidence}</p><label>Selected security IDs for manual refresh<input value={manualNames} disabled={disabled} onChange={(e) => setManualNames(e.target.value)} /></label><button disabled={disabled} onClick={() => plan("missing")}>Plan missing history</button><button disabled={disabled || !manualNames.trim()} onClick={() => plan("selected")}>Plan selected-name refresh</button><button disabled={disabled} onClick={() => plan("full")}>Plan full-window refresh</button><button disabled={disabled || !current?.snapshot_id} onClick={() => mutate({ kind: "history-diagnostic", body: { request: historyRequest, run_id: crypto.randomUUID(), expected_revision: current!.revision, as_of: new Date().toISOString() } })}>Save history diagnostics</button></>}
+      {alignment && <article aria-label="History coverage"><p>{alignment.complete ? "Required retained observations complete" : "Required history incomplete"}. This coverage result does not establish model or source qualification.</p><ul>{alignment.intervals.map((i,n) => <li key={n}>{i.security_id}: {i.reason}; {i.sessions.join(", ")}</li>)}</ul><ul>{alignment.issues.map((i,n) => <li key={n}>{i.security_id} / {i.session ?? "window"}: {i.code} / {i.reason}</li>)}</ul><p>Full-window validation scope: {JSON.stringify(alignment.validated_at)}</p><HistoryRows table={alignment.rows} /></article>}
+      <label><input type="checkbox" disabled={disabled} checked={clearReviewed} onChange={(e) => setClearReviewed(e.target.checked)} />Remove reusable history cache; keep all saved-run inputs and outputs</label><button disabled={disabled || !clearReviewed} onClick={() => mutate({ kind: "history-clear", body: { command_key: crypto.randomUUID(), expected_revision: current!.revision } })}>Clear reusable history cache</button>
+    </section>
+    <section aria-label="Recovery"><h2>Backup and restore</h2><p>Download the current workspace, including original sources and saved outputs. Restore accepts an empty workspace and never overwrites user work. Old development backups are unsupported.</p><button disabled={disabled} onClick={() => void perform(async () => {
+      const blob = await (await client()).backup(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "prosper-advisory.sqlite3"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage("Workspace backup downloaded.");
+    })}>Download workspace backup</button><label>Current workspace backup (up to 64 MiB)<input type="file" disabled={disabled} onChange={(e) => setRestoreFile(e.target.files?.[0] ?? null)} /></label><button disabled={disabled || !restoreFile} onClick={() => void perform(async () => {
+      if (!restoreFile || restoreFile.size > 64 * 1024 * 1024) throw new ClientError(422);
+      const command: Pending = { kind: "restore", body: new Uint8Array(await restoreFile.arrayBuffer()) }; setPending(command); try { await execute(command); } catch { session.current = null; setError("Restore response unresolved or refused. Use an empty current workspace; retrying the same backup is safe."); }
+    })}>Restore into empty workspace</button></section>
   </>;
 }

@@ -78,7 +78,6 @@ def test_new_source_spellings_and_precision_are_not_legacy_fixed_point_rules(qua
     changed = replace(data, positions=(position, *data.positions[1:]))
     assert b.estimate(changed).weights is not None
     assert b.estimate(changed).data.positions[0].quantity.raw == quantity
-    assert b.qualify(changed).weights is None  # Legacy validation is not silently loosened.
 
 
 @pytest.mark.parametrize(
@@ -256,7 +255,7 @@ def test_derived_equity_weight_underflow_is_not_a_known_zero() -> None:
     assert "unrepresentable_equity_weights" in {issue.code for issue in result.issues}
 
 
-def test_equity_source_decisions_now_feed_plain_estimates_and_legacy_stays_exact() -> None:
+def test_equity_source_decisions_feed_current_plain_estimates() -> None:
     acquisition, stipulation, policy, portfolio = equity_scenario()
     result = e.estimate(acquisition, stipulation, policy, portfolio)
     assert result.status == "estimated-equity-benchmark"
@@ -268,9 +267,6 @@ def test_equity_source_decisions_now_feed_plain_estimates_and_legacy_stays_exact
     assert (
         len(result.ledger) == 8 and sum(row.disposition == "excluded" for row in result.ledger) == 6
     )
-    legacy = e.select(acquisition, stipulation, policy)
-    assert legacy.benchmark_rows is not None and legacy.benchmark_rows[0].unit == "exact-ratio"
-    assert e.bridge(legacy, portfolio).basket.weights is not None
     json.dumps(asdict(result), allow_nan=False)
 
 

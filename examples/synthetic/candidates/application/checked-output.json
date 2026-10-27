@@ -1,0 +1,1724 @@
+{
+  "financial_use_authorized": false,
+  "issues": [],
+  "kind": "candidate-workflow-v1",
+  "outcome": "checked",
+  "risk": {
+    "calendar": "fictional-all-days",
+    "configuration_sha256": "50ebf130ade911427f712b2873ad1d874ddd8174fc5bcec17c33db02c673e952",
+    "cutoff": "2026-10-23",
+    "dcc_fit": {
+      "configuration_sha256": "1d407c4e1c54f207dd2ee5ddac405d4bf5237034a618bfb23614fbedb1025498",
+      "gradient": [
+        8.240926932627513e-07,
+        1.2842938185594228
+      ],
+      "identity_sha256": "cb5c0a99bc742f4af1ae321c461e62ca4bc8e32eb0aeabd36177e4055fdc009f",
+      "input_sha256": "63e6b445d8b9a13a79df9ef1d51542c81f44c16ca5b6f68ac82b2b59b3b279cc",
+      "issues": [],
+      "objective": 3297.027658610135,
+      "objective_range": [
+        3297.027658610135,
+        3298.1296411382523
+      ],
+      "output_sha256": "e06a2087abb461cba121d54d8494ee9c4e30ef53f7c76523452c956860a45e75",
+      "parameter_ranges": [
+        [
+          0.0,
+          0.032745883998551016
+        ],
+        [
+          0.0,
+          0.7373754061098573
+        ]
+      ],
+      "parameters": [
+        0.032745677486127674,
+        0.0
+      ],
+      "selected_start": 1,
+      "starts": [
+        {
+          "boundary": [
+            "alpha_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 3,
+          "index": 0,
+          "initial": [
+            0.01,
+            0.98
+          ],
+          "iterations": 3,
+          "last_evaluated_objective": 3298.1296411382523,
+          "last_evaluated_parameters": [
+            0.0,
+            0.7373754061098573
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3298.1296411382523,
+          "objective_callbacks": 6,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.0,
+            0.7373754061098573
+          ],
+          "projected_gradient_residual": 0.0,
+          "reported_objective": 3298.1296411382523,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 7,
+          "index": 1,
+          "initial": [
+            0.01,
+            0.96
+          ],
+          "iterations": 7,
+          "last_evaluated_objective": 3297.027658610135,
+          "last_evaluated_parameters": [
+            0.032745677486127674,
+            0.0
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610135,
+          "objective_callbacks": 8,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.032745677486127674,
+            0.0
+          ],
+          "projected_gradient_residual": 6.54041820702389e-10,
+          "reported_objective": 3297.027658610135,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 6,
+          "index": 2,
+          "initial": [
+            0.01,
+            0.94
+          ],
+          "iterations": 6,
+          "last_evaluated_objective": 3297.0276586101754,
+          "last_evaluated_parameters": [
+            0.032745883998551016,
+            5.340349731292075e-16
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.0276586101754,
+          "objective_callbacks": 7,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.032745883998551016,
+            5.340349731292075e-16
+          ],
+          "projected_gradient_residual": 3.0919904438903023e-07,
+          "reported_objective": 3297.0276586101754,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "alpha_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 3,
+          "index": 3,
+          "initial": [
+            0.03,
+            0.96
+          ],
+          "iterations": 3,
+          "last_evaluated_objective": 3298.1296411382523,
+          "last_evaluated_parameters": [
+            0.0,
+            0.7329560069802625
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3298.1296411382523,
+          "objective_callbacks": 6,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.0,
+            0.7329560069802625
+          ],
+          "projected_gradient_residual": 0.0,
+          "reported_objective": 3298.1296411382523,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 10,
+          "index": 4,
+          "initial": [
+            0.03,
+            0.94
+          ],
+          "iterations": 10,
+          "last_evaluated_objective": 3297.027658610135,
+          "last_evaluated_parameters": [
+            0.03274567749665448,
+            1.0910329905247252e-17
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610135,
+          "objective_callbacks": 13,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.03274567749665448,
+            1.0910329905247252e-17
+          ],
+          "projected_gradient_residual": 6.697696425250754e-10,
+          "reported_objective": 3297.027658610135,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 10,
+          "index": 5,
+          "initial": [
+            0.03,
+            0.9199999999999999
+          ],
+          "iterations": 10,
+          "last_evaluated_objective": 3297.027658610135,
+          "last_evaluated_parameters": [
+            0.03274567675366274,
+            0.0
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610135,
+          "objective_callbacks": 12,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.03274567675366274,
+            0.0
+          ],
+          "projected_gradient_residual": 4.4031634588437285e-10,
+          "reported_objective": 3297.027658610135,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 9,
+          "index": 6,
+          "initial": [
+            0.05,
+            0.94
+          ],
+          "iterations": 9,
+          "last_evaluated_objective": 3297.027658610135,
+          "last_evaluated_parameters": [
+            0.032745681268046306,
+            0.0
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610135,
+          "objective_callbacks": 11,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.032745681268046306,
+            0.0
+          ],
+          "projected_gradient_residual": 6.3045149586993254e-09,
+          "reported_objective": 3297.027658610135,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 8,
+          "index": 7,
+          "initial": [
+            0.05,
+            0.9199999999999999
+          ],
+          "iterations": 8,
+          "last_evaluated_objective": 3297.027658610135,
+          "last_evaluated_parameters": [
+            0.03274567912236845,
+            9.886069006724048e-18
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610135,
+          "objective_callbacks": 11,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.03274567912236845,
+            9.886069006724048e-18
+          ],
+          "projected_gradient_residual": 3.0987096083512355e-09,
+          "reported_objective": 3297.027658610135,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 8,
+          "index": 8,
+          "initial": [
+            0.05,
+            0.8999999999999999
+          ],
+          "iterations": 8,
+          "last_evaluated_objective": 3297.027658610135,
+          "last_evaluated_parameters": [
+            0.03274568212165052,
+            0.0
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610135,
+          "objective_callbacks": 10,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.03274568212165052,
+            0.0
+          ],
+          "projected_gradient_residual": 7.579864333417952e-09,
+          "reported_objective": 3297.027658610135,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 10,
+          "index": 9,
+          "initial": [
+            0.1,
+            0.89
+          ],
+          "iterations": 10,
+          "last_evaluated_objective": 3297.0276586101363,
+          "last_evaluated_parameters": [
+            0.032745718157087655,
+            0.0
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.0276586101363,
+          "objective_callbacks": 11,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.032745718157087655,
+            0.0
+          ],
+          "projected_gradient_residual": 6.141953141219902e-08,
+          "reported_objective": 3297.0276586101363,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 10,
+          "index": 10,
+          "initial": [
+            0.1,
+            0.87
+          ],
+          "iterations": 10,
+          "last_evaluated_objective": 3297.027658610136,
+          "last_evaluated_parameters": [
+            0.03274571042147992,
+            0.0
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610136,
+          "objective_callbacks": 11,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.03274571042147992,
+            0.0
+          ],
+          "projected_gradient_residual": 4.986194981904113e-08,
+          "reported_objective": 3297.027658610136,
+          "status": "eligible"
+        },
+        {
+          "boundary": [
+            "beta_zero"
+          ],
+          "feasibility_residual": 0.0,
+          "gradient_callbacks": 6,
+          "index": 11,
+          "initial": [
+            0.1,
+            0.85
+          ],
+          "iterations": 6,
+          "last_evaluated_objective": 3297.027658610146,
+          "last_evaluated_parameters": [
+            0.03274556802346433,
+            0.0
+          ],
+          "message": "Optimization terminated successfully",
+          "objective": 3297.027658610146,
+          "objective_callbacks": 6,
+          "optimizer_status": 0,
+          "optimizer_success": true,
+          "parameters": [
+            0.03274556802346433,
+            0.0
+          ],
+          "projected_gradient_residual": 1.6289153768889175e-07,
+          "reported_objective": 3297.027658610146,
+          "status": "eligible"
+        }
+      ],
+      "status": "fit-complete",
+      "target_identity_sha256": "5641e33069454ed6edf9e6f707c646ef96b058c319e65a83566eb1530449d54b",
+      "target_input_sha256": "a2e0be2dd6f426117b86255c81e4732f5d13b492af2e0e7f364f4b9a3f4b748a",
+      "target_kind": "analytical-r1",
+      "target_symmetry_correction": 0.0,
+      "version": "dcc-pairs-r1-v1"
+    },
+    "horizon": 21,
+    "identity_sha256": "57fede3e5b141218a3bb9723d7ba2c20785b76e9728c019c9790fd7e9a6f4553",
+    "input_sha256": "9c66c51bc7fa0388a0c99fb013d798c4f5bf24254f97ea8732489f848d56bf33",
+    "issues": [],
+    "kind": "candidate-fit-v1",
+    "output_sha256": "d783c2de033f319ca8627b05fd2bbcabd19c088d8282052a8f21edfeb6a11993",
+    "projection": {
+      "annual_covariance_sha256": "0d93a0969b91c5a89e570c8df9ace833b6baed73532c62c740e515918738a11c",
+      "annualization": 252,
+      "approximation": "P22 normalized-correlation blend; fixed weights/zero mean/zero cross-day covariance",
+      "horizon": 21,
+      "identity_sha256": "ddec87d5716433dd913915833a5cf916eb1681bc0641f1ae0a89f33fb66a2d85",
+      "input_sha256": "4f642961d6b7a7e4a7b1e002f81c3220dcbedb882713a112f35df65e311063b2",
+      "units": "decimal-return-squared"
+    },
+    "purpose": "research-window",
+    "scalars": [
+      {
+        "configuration_sha256": "ecd6429af7fdf13e407c503d589c93b937a2f71fe25757dbadf0cf561d609828",
+        "forecast": [
+          5.942836566546125e-05,
+          5.9406543523646785e-05,
+          5.938526241042278e-05,
+          5.9364508912260074e-05,
+          5.934426994818635e-05,
+          5.932453276154118e-05,
+          5.930528491193548e-05,
+          5.9286514267410294e-05,
+          5.926820899679002e-05,
+          5.925035756222515e-05,
+          5.923294871192e-05,
+          5.921597147304064e-05,
+          5.9199415144798685e-05,
+          5.9183269291706615e-05,
+          5.916752373700022e-05,
+          5.915216855622417e-05,
+          5.913719407097665e-05,
+          5.912259084280899e-05,
+          5.910834966727663e-05,
+          5.909446156813752e-05,
+          5.908091779169438e-05
+        ],
+        "identity_sha256": "a60cdeb0b0b2172acc51e19eb7ee98b6652336503bdf8525048ae30ac830fbd8",
+        "innovation_identity_sha256": "8cd4458f01f482d8b291d62e9ed8074629b26aec98206989314f007e21685898",
+        "input_sha256": "94717b0b069e491877cc4eeca70d68f9a7ab8416443c056590aa33d6e6bfe525",
+        "issues": [],
+        "objective_range": [
+          -4360.209505108563,
+          -4360.209505108519
+        ],
+        "omega": 1.451564163842563e-06,
+        "output_sha256": "6d01e59aea56bb845d11c163823e2d04931de753eb1e2ef326e4f1f529ff4947",
+        "parameter_ranges": [
+          [
+            0.02476462473776436,
+            0.024764781123609636
+          ],
+          [
+            0.0333085915524395,
+            0.03330877711348743
+          ],
+          [
+            0.9418984647487513,
+            0.941898783302486
+          ]
+        ],
+        "parameters": [
+          0.024764640622563408,
+          0.03330862623640752,
+          0.9418987298946506
+        ],
+        "second_moment": 5.861438435411911e-05,
+        "security_id": "security-faaa",
+        "seed": 5.981363531119569e-05,
+        "selected_start": 0,
+        "starts": [
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 16,
+            "index": 0,
+            "initial": [
+              0.09999999999999998,
+              0.01,
+              0.89
+            ],
+            "iterations": 16,
+            "last_evaluated_objective": -4360.209505108563,
+            "last_evaluated_parameters": [
+              0.024764640622563408,
+              0.03330862623640752,
+              0.9418987298946506
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108563,
+            "objective_callbacks": 32,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.024764640622563408,
+              0.03330862623640752,
+              0.9418987298946506
+            ],
+            "projected_gradient_residual": 4.329992435436747e-08,
+            "reported_objective": -4360.209505108563,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 14,
+            "index": 1,
+            "initial": [
+              0.030000000000000027,
+              0.01,
+              0.96
+            ],
+            "iterations": 14,
+            "last_evaluated_objective": -4360.209505108558,
+            "last_evaluated_parameters": [
+              0.024764671339787256,
+              0.03330867559689548,
+              0.9418986508775502
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108558,
+            "objective_callbacks": 24,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.024764671339787256,
+              0.03330867559689548,
+              0.9418986508775502
+            ],
+            "projected_gradient_residual": 1.5546453955780914e-07,
+            "reported_objective": -4360.209505108558,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 15,
+            "index": 2,
+            "initial": [
+              0.010000000000000009,
+              0.01,
+              0.98
+            ],
+            "iterations": 15,
+            "last_evaluated_objective": -4360.209505108562,
+            "last_evaluated_parameters": [
+              0.02476464698606925,
+              0.03330862682324497,
+              0.9418987206542492
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108562,
+            "objective_callbacks": 27,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.02476464698606925,
+              0.03330862682324497,
+              0.9418987206542492
+            ],
+            "projected_gradient_residual": 3.6016493307547415e-07,
+            "reported_objective": -4360.209505108562,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 16,
+            "index": 3,
+            "initial": [
+              0.09999999999999998,
+              0.05,
+              0.85
+            ],
+            "iterations": 16,
+            "last_evaluated_objective": -4360.209505108553,
+            "last_evaluated_parameters": [
+              0.024764688674035116,
+              0.03330861592544931,
+              0.9418986841071594
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108553,
+            "objective_callbacks": 28,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.024764688674035116,
+              0.03330861592544931,
+              0.9418986841071594
+            ],
+            "projected_gradient_residual": 1.1325223246566596e-06,
+            "reported_objective": -4360.209505108553,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 12,
+            "index": 4,
+            "initial": [
+              0.030000000000000027,
+              0.05,
+              0.9199999999999999
+            ],
+            "iterations": 12,
+            "last_evaluated_objective": -4360.209505108556,
+            "last_evaluated_parameters": [
+              0.02476462473776436,
+              0.03330866037796711,
+              0.9418987112329615
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108556,
+            "objective_callbacks": 23,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.02476462473776436,
+              0.03330866037796711,
+              0.9418987112329615
+            ],
+            "projected_gradient_residual": 5.080637341912941e-07,
+            "reported_objective": -4360.209505108556,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 13,
+            "index": 5,
+            "initial": [
+              0.010000000000000009,
+              0.05,
+              0.94
+            ],
+            "iterations": 13,
+            "last_evaluated_objective": -4360.209505108558,
+            "last_evaluated_parameters": [
+              0.024764625024411395,
+              0.0333085915524395,
+              0.941898783302486
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108558,
+            "objective_callbacks": 25,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.024764625024411395,
+              0.0333085915524395,
+              0.941898783302486
+            ],
+            "projected_gradient_residual": 6.585945896177281e-07,
+            "reported_objective": -4360.209505108558,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 21,
+            "index": 6,
+            "initial": [
+              0.09999999999999998,
+              0.1,
+              0.8
+            ],
+            "iterations": 21,
+            "last_evaluated_objective": -4360.209505108537,
+            "last_evaluated_parameters": [
+              0.024764781123609636,
+              0.03330865447656656,
+              0.9418985646389834
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108537,
+            "objective_callbacks": 35,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.024764781123609636,
+              0.03330865447656656,
+              0.9418985646389834
+            ],
+            "projected_gradient_residual": 1.0389338069502485e-06,
+            "reported_objective": -4360.209505108537,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 15,
+            "index": 7,
+            "initial": [
+              0.030000000000000027,
+              0.1,
+              0.87
+            ],
+            "iterations": 15,
+            "last_evaluated_objective": -4360.209505108563,
+            "last_evaluated_parameters": [
+              0.02476464624789426,
+              0.033308628285786235,
+              0.9418987227389518
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108563,
+            "objective_callbacks": 32,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.02476464624789426,
+              0.033308628285786235,
+              0.9418987227389518
+            ],
+            "projected_gradient_residual": 4.9340673408115876e-08,
+            "reported_objective": -4360.209505108563,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 19,
+            "index": 8,
+            "initial": [
+              0.010000000000000009,
+              0.1,
+              0.89
+            ],
+            "iterations": 19,
+            "last_evaluated_objective": -4360.209505108519,
+            "last_evaluated_parameters": [
+              0.0247647561914184,
+              0.03330877711348743,
+              0.9418984647487513
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4360.209505108519,
+            "objective_callbacks": 37,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.0247647561914184,
+              0.03330877711348743,
+              0.9418984647487513
+            ],
+            "projected_gradient_residual": 5.564236064195538e-07,
+            "reported_objective": -4360.209505108519,
+            "status": "eligible"
+          }
+        ],
+        "status": "fit-complete",
+        "terminal_variance": 6.111672469053989e-05,
+        "version": "scalar-garch-r1-v1"
+      },
+      {
+        "configuration_sha256": "ecd6429af7fdf13e407c503d589c93b937a2f71fe25757dbadf0cf561d609828",
+        "forecast": [
+          6.654486584361225e-05,
+          6.607279166503358e-05,
+          6.56431724148857e-05,
+          6.525219000476247e-05,
+          6.489636971744261e-05,
+          6.45725493265752e-05,
+          6.427785099351679e-05,
+          6.400965569156325e-05,
+          6.37655799302806e-05,
+          6.354345457308096e-05,
+          6.334130555979185e-05,
+          6.31573363628981e-05,
+          6.29899120215419e-05,
+          6.283754461138928e-05,
+          6.269888002123138e-05,
+          6.257268591880226e-05,
+          6.245784079886387e-05,
+          6.235332401622682e-05,
+          6.225820671512894e-05,
+          6.217164357435985e-05,
+          6.209286529476905e-05
+        ],
+        "identity_sha256": "fc229ea68f4a00c736d8d8d2be50982296484954cc02f0ca1d9273a837969de1",
+        "innovation_identity_sha256": "8cd4458f01f482d8b291d62e9ed8074629b26aec98206989314f007e21685898",
+        "input_sha256": "bbeea5d81616de12a79041f826530753c1848b647fd4889887de1fd3115408ee",
+        "issues": [],
+        "objective_range": [
+          -4326.840139568218,
+          -4326.8401395682085
+        ],
+        "omega": 5.512488513101322e-06,
+        "output_sha256": "bc41b74356fc74833f7794dd364fe0828edc23abfc2b06aaa53d7324eb18c5cc",
+        "parameter_ranges": [
+          [
+            0.09001675736272576,
+            0.09001708246997339
+          ],
+          [
+            0.04439117997845951,
+            0.04439124703102094
+          ],
+          [
+            0.8656758096201265,
+            0.8656761641088035
+          ]
+        ],
+        "parameters": [
+          0.09001689059336868,
+          0.04439121598821965,
+          0.8656760353945635
+        ],
+        "second_moment": 6.123837956148436e-05,
+        "security_id": "security-fbbb",
+        "seed": 6.71576256774776e-05,
+        "selected_start": 0,
+        "starts": [
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 10,
+            "index": 0,
+            "initial": [
+              0.09999999999999998,
+              0.01,
+              0.89
+            ],
+            "iterations": 10,
+            "last_evaluated_objective": -4326.840139568218,
+            "last_evaluated_parameters": [
+              0.09001689059336868,
+              0.04439121598821965,
+              0.8656760353945635
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568218,
+            "objective_callbacks": 19,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.09001689059336868,
+              0.04439121598821965,
+              0.8656760353945635
+            ],
+            "projected_gradient_residual": 3.607708576325308e-09,
+            "reported_objective": -4326.840139568218,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 13,
+            "index": 1,
+            "initial": [
+              0.030000000000000027,
+              0.01,
+              0.96
+            ],
+            "iterations": 13,
+            "last_evaluated_objective": -4326.840139568218,
+            "last_evaluated_parameters": [
+              0.0900169007032815,
+              0.04439122064830826,
+              0.86567602522396
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568218,
+            "objective_callbacks": 23,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.0900169007032815,
+              0.04439122064830826,
+              0.86567602522396
+            ],
+            "projected_gradient_residual": 1.2857037631763824e-07,
+            "reported_objective": -4326.840139568218,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 18,
+            "index": 2,
+            "initial": [
+              0.010000000000000009,
+              0.01,
+              0.98
+            ],
+            "iterations": 18,
+            "last_evaluated_objective": -4326.8401395682085,
+            "last_evaluated_parameters": [
+              0.09001675736272576,
+              0.04439119868090765,
+              0.8656761641088035
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.8401395682085,
+            "objective_callbacks": 32,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.09001675736272576,
+              0.04439119868090765,
+              0.8656761641088035
+            ],
+            "projected_gradient_residual": 6.239878028030388e-07,
+            "reported_objective": -4326.8401395682085,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 9,
+            "index": 3,
+            "initial": [
+              0.09999999999999998,
+              0.05,
+              0.85
+            ],
+            "iterations": 9,
+            "last_evaluated_objective": -4326.840139568216,
+            "last_evaluated_parameters": [
+              0.09001683446261487,
+              0.04439117997845951,
+              0.8656761353111757
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568216,
+            "objective_callbacks": 18,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.09001683446261487,
+              0.04439117997845951,
+              0.8656761353111757
+            ],
+            "projected_gradient_residual": 2.601227763326941e-07,
+            "reported_objective": -4326.840139568216,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 14,
+            "index": 4,
+            "initial": [
+              0.030000000000000027,
+              0.05,
+              0.9199999999999999
+            ],
+            "iterations": 14,
+            "last_evaluated_objective": -4326.840139568218,
+            "last_evaluated_parameters": [
+              0.09001685038740731,
+              0.04439120941290639,
+              0.8656760805739924
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568218,
+            "objective_callbacks": 25,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.09001685038740731,
+              0.04439120941290639,
+              0.8656760805739924
+            ],
+            "projected_gradient_residual": 4.385983973231866e-08,
+            "reported_objective": -4326.840139568218,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 16,
+            "index": 5,
+            "initial": [
+              0.010000000000000009,
+              0.05,
+              0.94
+            ],
+            "iterations": 16,
+            "last_evaluated_objective": -4326.840139568218,
+            "last_evaluated_parameters": [
+              0.0900169492188707,
+              0.04439120777111741,
+              0.8656759835989055
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568218,
+            "objective_callbacks": 29,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.0900169492188707,
+              0.04439120777111741,
+              0.8656759835989055
+            ],
+            "projected_gradient_residual": 4.9575737202933734e-08,
+            "reported_objective": -4326.840139568218,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 22,
+            "index": 6,
+            "initial": [
+              0.09999999999999998,
+              0.1,
+              0.8
+            ],
+            "iterations": 22,
+            "last_evaluated_objective": -4326.840139568215,
+            "last_evaluated_parameters": [
+              0.09001708246997339,
+              0.04439124703102094,
+              0.8656758096201265
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568215,
+            "objective_callbacks": 37,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.09001708246997339,
+              0.04439124703102094,
+              0.8656758096201265
+            ],
+            "projected_gradient_residual": 9.139943618619029e-08,
+            "reported_objective": -4326.840139568215,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 17,
+            "index": 7,
+            "initial": [
+              0.030000000000000027,
+              0.1,
+              0.87
+            ],
+            "iterations": 17,
+            "last_evaluated_objective": -4326.840139568218,
+            "last_evaluated_parameters": [
+              0.09001688728763145,
+              0.04439122832182088,
+              0.8656760280621719
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568218,
+            "objective_callbacks": 27,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.09001688728763145,
+              0.04439122832182088,
+              0.8656760280621719
+            ],
+            "projected_gradient_residual": 5.346055539923178e-08,
+            "reported_objective": -4326.840139568218,
+            "status": "eligible"
+          },
+          {
+            "boundary": [],
+            "feasibility_residual": 0.0,
+            "gradient_callbacks": 18,
+            "index": 8,
+            "initial": [
+              0.010000000000000009,
+              0.1,
+              0.89
+            ],
+            "iterations": 18,
+            "last_evaluated_objective": -4326.840139568218,
+            "last_evaluated_parameters": [
+              0.09001687547894152,
+              0.044391225191030094,
+              0.8656760411671863
+            ],
+            "message": "Optimization terminated successfully",
+            "objective": -4326.840139568218,
+            "objective_callbacks": 33,
+            "optimizer_status": 0,
+            "optimizer_success": true,
+            "parameters": [
+              0.09001687547894152,
+              0.044391225191030094,
+              0.8656760411671863
+            ],
+            "projected_gradient_residual": 1.9481361607232017e-08,
+            "reported_objective": -4326.840139568218,
+            "status": "eligible"
+          }
+        ],
+        "status": "fit-complete",
+        "terminal_variance": 6.693200376337038e-05,
+        "version": "scalar-garch-r1-v1"
+      }
+    ],
+    "security_ids": [
+      "security-faaa",
+      "security-fbbb"
+    ],
+    "sessions": 1260,
+    "source_units": "decimal",
+    "status": "forecast-complete",
+    "timezone": "UTC",
+    "variant": "idr",
+    "version": "covariance-normalized-blend-r1-v1"
+  },
+  "search": {
+    "baseline": {
+      "blockers": [],
+      "feasible": true,
+      "metrics": {
+        "final_cash": 0.0,
+        "final_nav": 25.0,
+        "final_quantities": [
+          2.5,
+          0.0
+        ],
+        "final_weights": [
+          1.0,
+          0.0
+        ],
+        "long_term_loss": 0.0,
+        "modeled_cost": 0.0,
+        "net_proceeds_tax_pnl": 0.0,
+        "order_count": 0,
+        "price_loss": 0.0,
+        "risk_upper_bound": 0.03734673713405914,
+        "scenario_net_value": null,
+        "short_term_loss": 0.0,
+        "tracking_error": 0.03734673713405094,
+        "turnover": 0.0,
+        "unknown_term_loss": 0.0
+      },
+      "orders": {
+        "buys": [],
+        "sales": []
+      },
+      "unresolved": false,
+      "warnings": [
+        "Unqualified covariance estimate; no calibrated investor risk or financial authorization",
+        "Conditional wash-sale screening: future activity and incomplete household history can change losses",
+        "Reference marks, pro-rata basis and costs are estimates; broker lot selection/funding remain unverified",
+        "Excluded holdings and untouched account cash are outside the modeled sleeve"
+      ]
+    },
+    "best": {
+      "blockers": [],
+      "feasible": true,
+      "metrics": {
+        "final_cash": 20.0,
+        "final_nav": 25.0,
+        "final_quantities": [
+          0.5,
+          0.0
+        ],
+        "final_weights": [
+          0.2,
+          0.0
+        ],
+        "long_term_loss": 4.0,
+        "modeled_cost": 0.0,
+        "net_proceeds_tax_pnl": -4.0,
+        "order_count": 1,
+        "price_loss": 4.0,
+        "risk_upper_bound": 0.088886020226853,
+        "scenario_net_value": null,
+        "short_term_loss": 0.0,
+        "tracking_error": 0.08888602022684917,
+        "turnover": 0.8,
+        "unknown_term_loss": 0.0
+      },
+      "orders": {
+        "buys": [],
+        "sales": [
+          {
+            "lot_id": "lot-a",
+            "shares": 2
+          }
+        ]
+      },
+      "unresolved": false,
+      "warnings": [
+        "Unqualified covariance estimate; no calibrated investor risk or financial authorization",
+        "Conditional wash-sale screening: future activity and incomplete household history can change losses",
+        "Reference marks, pro-rata basis and costs are estimates; broker lot selection/funding remain unverified",
+        "Excluded holdings and untouched account cash are outside the modeled sleeve"
+      ]
+    },
+    "candidates": [
+      {
+        "blockers": [],
+        "feasible": true,
+        "metrics": {
+          "final_cash": 20.0,
+          "final_nav": 25.0,
+          "final_quantities": [
+            0.5,
+            0.0
+          ],
+          "final_weights": [
+            0.2,
+            0.0
+          ],
+          "long_term_loss": 4.0,
+          "modeled_cost": 0.0,
+          "net_proceeds_tax_pnl": -4.0,
+          "order_count": 1,
+          "price_loss": 4.0,
+          "risk_upper_bound": 0.088886020226853,
+          "scenario_net_value": null,
+          "short_term_loss": 0.0,
+          "tracking_error": 0.08888602022684917,
+          "turnover": 0.8,
+          "unknown_term_loss": 0.0
+        },
+        "orders": {
+          "buys": [],
+          "sales": [
+            {
+              "lot_id": "lot-a",
+              "shares": 2
+            }
+          ]
+        },
+        "unresolved": false,
+        "warnings": [
+          "Unqualified covariance estimate; no calibrated investor risk or financial authorization",
+          "Conditional wash-sale screening: future activity and incomplete household history can change losses",
+          "Reference marks, pro-rata basis and costs are estimates; broker lot selection/funding remain unverified",
+          "Excluded holdings and untouched account cash are outside the modeled sleeve"
+        ]
+      }
+    ],
+    "domain_states": 9,
+    "evaluated_states": 9,
+    "exclusions": [],
+    "feasible_harvests": 5,
+    "financial_use_authorized": false,
+    "inputs": {
+      "assets": [
+        {
+          "industry": {
+            "reason": null,
+            "value": "Industry-0"
+          },
+          "sector": {
+            "reason": null,
+            "value": "Sector-0"
+          },
+          "security": {
+            "classification": {
+              "reason": null,
+              "value": "us-domestic-common-equity"
+            },
+            "currency": "USD",
+            "id": "security-faaa",
+            "identity": {
+              "reason": null,
+              "value": "fictional-identity:FAAA"
+            },
+            "source_ref": "fictional-symbol-review:FAAA",
+            "ticker": "FAAA"
+          }
+        },
+        {
+          "industry": {
+            "reason": null,
+            "value": "Industry-1"
+          },
+          "sector": {
+            "reason": null,
+            "value": "Sector-1"
+          },
+          "security": {
+            "classification": {
+              "reason": null,
+              "value": "us-domestic-common-equity"
+            },
+            "currency": "USD",
+            "id": "security-fbbb",
+            "identity": {
+              "reason": null,
+              "value": "fictional-identity:FBBB"
+            },
+            "source_ref": "fictional-symbol-review:FBBB",
+            "ticker": "FBBB"
+          }
+        }
+      ],
+      "buy_bounds": {
+        "security-fbbb": 2
+      },
+      "buy_fee_per_security_order": "0",
+      "buy_premium_bps": "0",
+      "limits": {
+        "exposures": [],
+        "max_cost": "10",
+        "max_cost_to_loss": {
+          "enabled": false,
+          "value": null
+        },
+        "max_order_notional": {
+          "enabled": false,
+          "value": null
+        },
+        "max_orders": 3,
+        "max_position_weight": "1",
+        "max_turnover": "2",
+        "min_order_notional": "0",
+        "min_price_loss": {
+          "enabled": false,
+          "value": null
+        },
+        "min_scenario_net_value": {
+          "enabled": false,
+          "value": null
+        },
+        "scenario": null,
+        "tracking_error": "1"
+      },
+      "max_candidates": 3,
+      "max_states": 100,
+      "method": "complete-cartesian-whole-share-reference",
+      "retained_snapshots": [],
+      "risk": {
+        "annual_covariance": [
+          [
+            0.014928703917785564,
+            0.009212907623707776
+          ],
+          [
+            0.009212907623707774,
+            0.01605012030066908
+          ]
+        ],
+        "annualization_sessions": 252,
+        "as_of": "2026-10-23",
+        "benchmark_ids": [
+          "security-faaa",
+          "security-fbbb"
+        ],
+        "benchmark_weights": [
+          0.6666666666666667,
+          0.33333333333333337
+        ],
+        "max_age_days": 3,
+        "reference": "covariance-normalized-blend-r1-v1/57fede3e5b141218a3bb9723d7ba2c20785b76e9728c019c9790fd7e9a6f4553; horizon 21; cutoff 2026-10-23",
+        "security_ids": [
+          "security-faaa",
+          "security-fbbb"
+        ],
+        "units": "annualized-simple-return-covariance"
+      },
+      "sale_bounds": {
+        "lot-a": 2
+      },
+      "settings": {
+        "analysis_date": "2026-10-23",
+        "cash_budget_reviewed": true,
+        "cash_to_invest": "0",
+        "final_cash_target": {
+          "amount": null,
+          "enabled": false,
+          "investor_tolerance": null
+        },
+        "funding_assumption": {
+          "reason": null,
+          "value": "Fictional same-session sell proceeds may fund buys; broker availability remains unverified"
+        },
+        "history_coverage": {
+          "reason": "No complete household activity history was supplied",
+          "value": null
+        },
+        "manual_restrictions": [],
+        "marks": [
+          {
+            "currency": "USD",
+            "day": {
+              "reason": null,
+              "value": "2026-10-23"
+            },
+            "identity": "fictional-identity:FAAA",
+            "price": {
+              "reason": null,
+              "value": "10"
+            },
+            "security_id": "security-faaa",
+            "source_ref": "Fictional tiny reference mark"
+          },
+          {
+            "currency": "USD",
+            "day": {
+              "reason": null,
+              "value": "2026-10-23"
+            },
+            "identity": "fictional-identity:FBBB",
+            "price": {
+              "reason": null,
+              "value": "10"
+            },
+            "security_id": "security-fbbb",
+            "source_ref": "Fictional tiny reference mark"
+          }
+        ],
+        "max_mark_age_days": 0,
+        "max_snapshot_age_days": 0,
+        "relationships": [],
+        "sell_discount_bps": {
+          "reason": null,
+          "value": "0"
+        },
+        "sell_fee_per_isolated_order": {
+          "reason": null,
+          "value": "0"
+        },
+        "supplied_activity": []
+      },
+      "snapshot": {
+        "account_alias": "Fictional tiny taxable account",
+        "account_id": "account-1",
+        "account_scope": "us-taxable-individual",
+        "cash": [],
+        "exclusions": [],
+        "findings": [],
+        "lots": [
+          {
+            "account_id": "account-1",
+            "acquired": {
+              "reason": null,
+              "value": "2000-01-01"
+            },
+            "id": "lot-a",
+            "quantity": {
+              "reason": null,
+              "value": "2.5000"
+            },
+            "security_id": "security-faaa",
+            "source_ref": "tiny-holdings.csv:2",
+            "term": {
+              "reason": null,
+              "value": "long-term"
+            },
+            "total_basis": {
+              "reason": null,
+              "value": "30.00"
+            }
+          }
+        ],
+        "observations": {
+          "lot_context": {
+            "accounts": [
+              {
+                "account_id": "account-1",
+                "alias": "Fictional account 1",
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "role": "traded-taxable",
+                "source_account": "000SYNTH001"
+              },
+              {
+                "account_id": "account-2",
+                "alias": "Fictional account 2",
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "role": "ira-roth",
+                "source_account": "000SYNTH002"
+              },
+              {
+                "account_id": "account-3",
+                "alias": "Fictional account 3",
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "role": "scope-unresolved",
+                "source_account": "000SYNTH003"
+              }
+            ],
+            "currency": "USD",
+            "evidence": {
+              "actor": "Fictional fixture owner",
+              "effective_at": "2026-10-23",
+              "recorded_at": "2026-10-23T20:00:00Z",
+              "reference": "Fictional source review - not broker qualification"
+            },
+            "independent_positions": [],
+            "mappings": [
+              {
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "security": {
+                  "classification": {
+                    "reason": null,
+                    "value": "us-domestic-common-equity"
+                  },
+                  "currency": "USD",
+                  "id": "security-faaa",
+                  "identity": {
+                    "reason": null,
+                    "value": "fictional-identity:FAAA"
+                  },
+                  "source_ref": "fictional-symbol-review:FAAA",
+                  "ticker": "FAAA"
+                },
+                "source_account": "000SYNTH001",
+                "symbol": "FAAA"
+              },
+              {
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "security": {
+                  "classification": {
+                    "reason": null,
+                    "value": "us-domestic-common-equity"
+                  },
+                  "currency": "USD",
+                  "id": "security-fbbb",
+                  "identity": {
+                    "reason": null,
+                    "value": "fictional-identity:FBBB"
+                  },
+                  "source_ref": "fictional-symbol-review:FBBB",
+                  "ticker": "FBBB"
+                },
+                "source_account": "000SYNTH001",
+                "symbol": "FBBB"
+              },
+              {
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "security": {
+                  "classification": {
+                    "reason": null,
+                    "value": "us-domestic-common-equity"
+                  },
+                  "currency": "USD",
+                  "id": "security-faaa",
+                  "identity": {
+                    "reason": null,
+                    "value": "fictional-identity:FAAA"
+                  },
+                  "source_ref": "fictional-symbol-review:FAAA",
+                  "ticker": "FAAA"
+                },
+                "source_account": "000SYNTH002",
+                "symbol": "FAAA"
+              },
+              {
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "security": {
+                  "classification": {
+                    "reason": null,
+                    "value": "us-domestic-common-equity"
+                  },
+                  "currency": "USD",
+                  "id": "security-fccc",
+                  "identity": {
+                    "reason": null,
+                    "value": "fictional-identity:FCCC"
+                  },
+                  "source_ref": "fictional-symbol-review:FCCC",
+                  "ticker": "FCCC"
+                },
+                "source_account": "000SYNTH002",
+                "symbol": "FCCC"
+              },
+              {
+                "evidence": {
+                  "actor": "Fictional fixture owner",
+                  "effective_at": "2026-10-23",
+                  "recorded_at": "2026-10-23T20:00:00Z",
+                  "reference": "Fictional source review - not broker qualification"
+                },
+                "security": {
+                  "classification": {
+                    "reason": null,
+                    "value": "adr-foreign"
+                  },
+                  "currency": "USD",
+                  "id": "security-fddd",
+                  "identity": {
+                    "reason": null,
+                    "value": "fictional-identity:FDDD"
+                  },
+                  "source_ref": "fictional-symbol-review:FDDD",
+                  "ticker": "FDDD"
+                },
+                "source_account": "000SYNTH003",
+                "symbol": "FDDD"
+              }
+            ],
+            "reported_basis_assumption": {
+              "reason": null,
+              "value": true
+            },
+            "screening": {
+              "activities": [],
+              "basis_disputes": [],
+              "relationships": [],
+              "restrictions": [],
+              "unbounded_event": {
+                "reason": null,
+                "value": false
+              }
+            },
+            "source_as_of": "2026-10-23",
+            "source_coverage": {
+              "reason": "Combined export completeness is not independently established",
+              "value": null
+            },
+            "source_sha256": "c1bb3b5849fc2eeba20100840b8c6686d5862b8089acfe5249af41ab37daf5b5",
+            "version": "fidelity-lot-context-v1"
+          },
+          "screening": {
+            "activities": [],
+            "basis_disputes": [],
+            "relationships": [],
+            "restrictions": [],
+            "unbounded_event": {
+              "reason": null,
+              "value": false
+            }
+          }
+        },
+        "positions": [],
+        "securities": [
+          {
+            "classification": {
+              "reason": null,
+              "value": "us-domestic-common-equity"
+            },
+            "currency": "USD",
+            "id": "security-faaa",
+            "identity": {
+              "reason": null,
+              "value": "fictional-identity:FAAA"
+            },
+            "source_ref": "fictional-symbol-review:FAAA",
+            "ticker": "FAAA"
+          },
+          {
+            "classification": {
+              "reason": null,
+              "value": "us-domestic-common-equity"
+            },
+            "currency": "USD",
+            "id": "security-fbbb",
+            "identity": {
+              "reason": null,
+              "value": "fictional-identity:FBBB"
+            },
+            "source_ref": "fictional-symbol-review:FBBB",
+            "ticker": "FBBB"
+          }
+        ],
+        "source_as_of": "2026-10-23",
+        "source_name": "tiny-holdings.csv",
+        "source_sha256": "c1bb3b5849fc2eeba20100840b8c6686d5862b8089acfe5249af41ab37daf5b5",
+        "source_type": "fictional-normalized",
+        "version": "advisory-import-v1"
+      },
+      "version": "tiny-candidate-request-v1"
+    },
+    "method": "complete-cartesian-whole-share-reference",
+    "outcome": "optimal-in-domain",
+    "stopping": "complete",
+    "unresolved_states": 0,
+    "version": "tiny-candidate-result-v1",
+    "warnings": [
+      "Unqualified covariance estimate; no calibrated investor risk or financial authorization",
+      "Conditional wash-sale screening: future activity and incomplete household history can change losses",
+      "Reference marks, pro-rata basis and costs are estimates; broker lot selection/funding remain unverified",
+      "Excluded holdings and untouched account cash are outside the modeled sleeve"
+    ]
+  },
+  "warnings": [
+    "Synthetic fitted proxy risk and conditional loss estimates; no financial-use authorization",
+    "Independent tax/model review, real-source qualification and calibration remain open"
+  ]
+}

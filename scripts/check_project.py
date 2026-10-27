@@ -1,14 +1,11 @@
-"""Check authored text, local Markdown links and the no-commit hash fallback."""
+"""Check current authored text and local Markdown links without a hash manifest."""
 
-import argparse
-import hashlib
 import re
 import subprocess
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = ROOT / "docs/PLANNING_MANIFEST.sha256"
 TEXT_SUFFIXES = {
     ".md",
     ".py",
@@ -33,16 +30,12 @@ def authored_files() -> list[Path]:
         capture_output=True,
         check=True,
     )
-    return sorted(
-        {ROOT / name.decode("utf-8") for name in result.stdout.split(b"\0") if name} - {MANIFEST}
+    deleted = subprocess.run(
+        ["git", "ls-files", "--deleted", "-z"], cwd=ROOT, capture_output=True, check=True
     )
-
-
-def manifest_text(files: list[Path], digests: dict[Path, str] | None = None) -> str:
-    return "".join(
-        f"{digests[path] if digests is not None else hashlib.sha256(path.read_bytes()).hexdigest()}"
-        f"  {path.relative_to(ROOT).as_posix()}\n"
-        for path in files
+    removed = {ROOT / name.decode("utf-8") for name in deleted.stdout.split(b"\0") if name}
+    return sorted(
+        {ROOT / name.decode("utf-8") for name in result.stdout.split(b"\0") if name} - removed
     )
 
 
@@ -58,14 +51,10 @@ def heading_ids(text: str) -> set[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--write-manifest", action="store_true")
-    args = parser.parse_args()
     files = authored_files()
     errors: list[str] = []
     links = 0
     markdown = 0
-    digests: dict[Path, str] = {}
     anchors: dict[Path, set[str]] = {}
     unreadable_targets: set[Path] = set()
     local_links: list[tuple[Path, str]] = []
@@ -74,7 +63,6 @@ def main() -> int:
             errors.append(f"Missing authored file: {path.relative_to(ROOT)}")
             continue
         data = path.read_bytes()
-        digests[path] = hashlib.sha256(data).hexdigest()
         if path.suffix not in TEXT_SUFFIXES and not path.name.startswith("."):
             continue
         try:
@@ -116,14 +104,6 @@ def main() -> int:
                     continue
             if unquote(parsed.fragment) not in anchors[destination]:
                 errors.append(f"Missing heading: {path.name}: {target}")
-    if not errors:
-        expected = manifest_text(files, digests)
-        if args.write_manifest:
-            MANIFEST.write_text(expected, encoding="utf-8", newline="\n")
-        elif MANIFEST.read_text(encoding="utf-8") != expected:
-            errors.append(
-                "Authored manifest is stale; run scripts/check_project.py --write-manifest."
-            )
     for error in errors:
         print(error)
     if errors:

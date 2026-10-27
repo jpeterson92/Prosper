@@ -1,4 +1,4 @@
-"""Pure stipulated synthetic basket valuation and exact weight qualification.
+"""Current Float64 basket valuation and weight diagnostics.
 
 No source adapter, lookup, persistence, price forecast or financial readiness.
 Every supplied row and unknown remains in the immutable result input evidence.
@@ -6,19 +6,15 @@ Every supplied row and unknown remains in the immutable result input evidence.
 
 import hashlib
 import math
-import re
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import date
-from fractions import Fraction
 from pathlib import Path
 
 import polars as pl
 
 from prosper import advisory, industry
-from prosper.exact import ExactValue, ExactValueError, Sign
-from prosper.innovations import fingerprint
 
-VERSION = "synthetic-basket-v1"
+VERSION = "basket-v1"
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 MAX_ROWS = 10000
 
@@ -81,7 +77,6 @@ class BasketInput:
     portfolio_cash: Fact
     benchmark_cash: Fact
     benchmark_cash_unit: str
-    scope: str = "explicitly-stipulated-synthetic"
 
 
 @dataclass(frozen=True)
@@ -89,27 +84,6 @@ class Issue:
     location: str
     code: str
     reasons: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True)
-class PositionValue:
-    row_id: str
-    value_usd: str | None
-
-
-@dataclass(frozen=True)
-class BasketResult:
-    status: str
-    issues: tuple[Issue, ...]
-    data: BasketInput
-    position_values: tuple[PositionValue, ...]
-    portfolio_nav_usd: str | None
-    benchmark_weight_sum: str | None
-    benchmark_residual: str | None
-    weights: industry.Weights | None
-    input_sha256: str
-    canonical_sha256: str
-    identity_sha256: str
 
 
 @dataclass(frozen=True)
@@ -181,37 +155,6 @@ def _reasons(reasons: tuple[str, ...]) -> None:
         raise BasketUnavailable("bounded immutable unknown reasons required")
 
 
-def _fact(
-    f: Fact,
-    cutoff: date,
-    known_at: date,
-    location: str,
-    issues: list[Issue],
-    *,
-    positive: bool = False,
-) -> Fraction | None:
-    if not isinstance(f, Fact) or (f.raw is not None and not isinstance(f.raw, str)):
-        raise BasketUnavailable(
-            "immutable fact with decimal source text or explicit unknown required"
-        )
-    valid = _evidence(f.evidence, cutoff, known_at, location, issues)
-    _reasons(f.unknown_reasons)
-    if f.raw is None:
-        if not f.unknown_reasons:
-            raise BasketUnavailable("missing fact requires explicit unknown reasons")
-        issues.append(Issue(location, "unknown", f.unknown_reasons))
-        return None
-    if f.unknown_reasons:
-        issues.append(Issue(location, "contradictory_known_and_unknown", f.unknown_reasons))
-        return None
-    try:
-        value = ExactValue(f.raw, Sign.POSITIVE if positive else Sign.NONNEGATIVE, location)
-    except ExactValueError as exc:
-        issues.append(Issue(location, exc.code))
-        return None
-    return Fraction(value.value) if valid else None
-
-
 def _security(
     s: Security, cutoff: date, known_at: date, location: str, issues: list[Issue]
 ) -> bool:
@@ -241,252 +184,6 @@ def _security(
     return valid
 
 
-def _weight(
-    f: Fact, unit: str, cutoff: date, known_at: date, location: str, issues: list[Issue]
-) -> Fraction | None:
-    if unit == "exact-ratio":
-        # Explicit derived rational weights never pass through a decimal/float
-        # approximation. Original source observations stay in their own evidence.
-        if not isinstance(f, Fact) or (f.raw is not None and not isinstance(f.raw, str)):
-            raise BasketUnavailable("immutable fact with exact ratio text required")
-        valid = _evidence(f.evidence, cutoff, known_at, location, issues)
-        _reasons(f.unknown_reasons)
-        if f.raw is None or f.unknown_reasons:
-            issues.append(Issue(location, "unknown_or_contradictory_ratio", f.unknown_reasons))
-            return None
-        if re.fullmatch(r"(?:0|[1-9][0-9]{0,127})/[1-9][0-9]{0,127}", f.raw) is None:
-            issues.append(Issue(location, "invalid_exact_ratio"))
-            return None
-        ratio = Fraction(f.raw)
-        if f.raw != f"{ratio.numerator}/{ratio.denominator}":
-            issues.append(Issue(location, "noncanonical_exact_ratio"))
-            return None
-        return ratio if valid else None
-    value = _fact(f, cutoff, known_at, location, issues)
-    if unit not in ("decimal", "percent"):
-        issues.append(Issue(location, "explicit_weight_unit_required"))
-        return None
-    return value / (100 if unit == "percent" else 1) if value is not None else None
-
-
-def qualify(data: BasketInput) -> BasketResult:
-    """Retain partial evidence, emitting weights only for complete stipulated inputs.
-
-    Source validity intervals are explicit synthetic inputs, not adopted freshness
-    settings. Duplicate positions/weights are blocked instead of implicitly added.
-    """
-    if data.scope != "explicitly-stipulated-synthetic" or not _text(data.benchmark_name):
-        raise BasketUnavailable("named explicitly stipulated synthetic basket required")
-    cutoff = _day(data.as_of)
-    known_at = _day(data.known_at)
-    if known_at < cutoff:
-        raise BasketUnavailable("knowledge cutoff cannot precede valuation cutoff")
-    for rows in (data.universe, data.positions, data.benchmark, data.candidates):
-        if type(rows) is not tuple or len(rows) > MAX_ROWS:
-            raise BasketUnavailable("bounded immutable input rows required")
-    if (
-        not data.universe
-        or any(not _text(s) for s in data.universe)
-        or len(set(data.universe)) != len(data.universe)
-    ):
-        raise BasketUnavailable("explicit nonempty unique ordered universe required")
-    if any(not isinstance(r, Position) for r in data.positions) or any(
-        not isinstance(r, BenchmarkRow) for r in data.benchmark
-    ):
-        raise BasketUnavailable("immutable typed source rows required")
-    issues: list[Issue] = []
-    values = []
-    unique_positions = True
-    positions: dict[str, Fraction] = {}
-    benchmark: dict[str, Fraction] = {}
-    seen_securities: set[str] = set()
-    seen_rows: set[str] = set()
-    members: set[str] = set()
-    for row in data.positions:
-        loc = "position:" + row.row_id
-        if not _text(row.row_id) or row.row_id in seen_rows:
-            raise BasketUnavailable("unique bounded position row IDs required")
-        seen_rows.add(row.row_id)
-        ok = _security(row.security, cutoff, known_at, loc, issues)
-        sid = row.security.security_id
-        if sid is not None:
-            members.add(sid)
-            if sid in seen_securities:
-                issues.append(Issue(loc, "duplicate_position_security"))
-                unique_positions = False
-            seen_securities.add(sid)
-        qty = _fact(row.quantity, cutoff, known_at, loc + ":quantity", issues)
-        mark = _fact(row.reference_mark, cutoff, known_at, loc + ":mark", issues, positive=True)
-        value = qty * mark if ok and qty is not None and mark is not None else None
-        values.append(PositionValue(row.row_id, str(value) if value is not None else None))
-        if value is not None and sid is not None:
-            positions[sid] = value
-    seen_securities.clear()
-    seen_rows.clear()
-    source_weights: list[Fraction | None] = []
-    for benchmark_row in data.benchmark:
-        loc = "benchmark:" + benchmark_row.row_id
-        if not _text(benchmark_row.row_id) or benchmark_row.row_id in seen_rows:
-            raise BasketUnavailable("unique bounded benchmark row IDs required")
-        seen_rows.add(benchmark_row.row_id)
-        _security(benchmark_row.security, cutoff, known_at, loc, issues)
-        weight = _weight(
-            benchmark_row.weight, benchmark_row.unit, cutoff, known_at, loc + ":weight", issues
-        )
-        source_weights.append(weight)
-        sid = benchmark_row.security.security_id
-        if sid is not None:
-            members.add(sid)
-            if sid in seen_securities:
-                issues.append(Issue(loc, "duplicate_benchmark_security"))
-            seen_securities.add(sid)
-            if weight is not None:
-                benchmark[sid] = weight
-    seen_securities.clear()
-    for index, security in enumerate(data.candidates):
-        loc = f"candidate:{index}"
-        _security(security, cutoff, known_at, loc, issues)
-        if security.security_id is not None:
-            members.add(security.security_id)
-            if security.security_id in seen_securities:
-                issues.append(Issue(loc, "duplicate_candidate_security"))
-            seen_securities.add(security.security_id)
-    for sid in sorted(members - set(data.universe)):
-        issues.append(Issue("universe:" + sid, "required_security_missing_from_order"))
-    for sid in sorted(set(data.universe) - members):
-        issues.append(Issue("universe:" + sid, "unattributed_universe_member"))
-    cash = _fact(data.portfolio_cash, cutoff, known_at, "portfolio_cash", issues)
-    benchmark_cash = _weight(
-        data.benchmark_cash, data.benchmark_cash_unit, cutoff, known_at, "benchmark_cash", issues
-    )
-    nav = None
-    if cash is not None and unique_positions and all(v.value_usd is not None for v in values):
-        nav = sum((Fraction(v.value_usd) for v in values if v.value_usd is not None), cash)
-        if nav == 0:
-            issues.append(Issue("portfolio_nav", "zero_nav"))
-        elif nav == cash:
-            issues.append(Issue("portfolio_nav", "unsupported_cash_only_sleeve"))
-    total = None
-    if benchmark_cash is not None and all(w is not None for w in source_weights):
-        total = sum((w for w in source_weights if w is not None), benchmark_cash)
-        if total != 1:
-            issues.append(Issue("benchmark", "non_unit_weight_sum"))
-    inputs = fingerprint(asdict(data))
-    weights = None
-    if (
-        not issues
-        and nav is not None
-        and nav > 0
-        and cash is not None
-        and benchmark_cash is not None
-    ):
-        weights = industry.Weights(
-            data.universe,
-            tuple(
-                industry.ExactWeight.from_fraction(positions.get(s, Fraction()) / nav)
-                for s in data.universe
-            ),
-            tuple(
-                industry.ExactWeight.from_fraction(benchmark.get(s, Fraction()))
-                for s in data.universe
-            ),
-            industry.ExactWeight.from_fraction(cash / nav),
-            industry.ExactWeight.from_fraction(benchmark_cash),
-            fingerprint(
-                [asdict(r) for r in data.positions]
-                + [asdict(data.portfolio_cash), data.as_of, data.known_at]
-            ),
-            fingerprint(
-                [
-                    data.benchmark_name,
-                    [asdict(r) for r in data.benchmark],
-                    asdict(data.benchmark_cash),
-                    data.benchmark_cash_unit,
-                    data.as_of,
-                    data.known_at,
-                ]
-            ),
-            data.as_of,
-        )
-    canonical = fingerprint(
-        [
-            data.benchmark_name,
-            data.universe,
-            data.as_of,
-            data.known_at,
-            [
-                (
-                    p.row_id,
-                    p.security.security_id,
-                    p.security.currency,
-                    p.security.asset_type,
-                    v.value_usd,
-                )
-                for p, v in zip(data.positions, values, strict=True)
-            ],
-            [
-                (
-                    r.row_id,
-                    r.security.security_id,
-                    r.security.currency,
-                    r.security.asset_type,
-                    str(w) if w is not None else None,
-                )
-                for r, w in zip(data.benchmark, source_weights, strict=True)
-            ],
-            [(s.security_id, s.currency, s.asset_type) for s in data.candidates],
-            str(cash) if cash is not None else None,
-            str(benchmark_cash) if benchmark_cash is not None else None,
-            str(nav) if nav is not None else None,
-            str(total) if total is not None else None,
-            [_canonical_weight(w) for w in weights.portfolio] if weights else None,
-            [_canonical_weight(w) for w in weights.benchmark] if weights else None,
-            _canonical_weight(weights.portfolio_cash) if weights else None,
-            _canonical_weight(weights.benchmark_cash) if weights else None,
-            [asdict(issue) for issue in issues],
-        ]
-    )
-    status = "qualified-synthetic-input" if weights is not None else "incomplete"
-    identity = fingerprint(
-        [
-            VERSION,
-            IMPLEMENTATION_SHA256,
-            industry.IMPLEMENTATION_SHA256,
-            inputs,
-            canonical,
-            status,
-            [asdict(v) for v in issues],
-            asdict(weights) if weights else None,
-        ]
-    )
-    return BasketResult(
-        status,
-        tuple(issues),
-        data,
-        tuple(values),
-        str(nav) if nav is not None else None,
-        str(total) if total is not None else None,
-        str(1 - total) if total is not None else None,
-        weights,
-        inputs,
-        canonical,
-        identity,
-    )
-
-
-def to_industry(result: BasketResult) -> industry.Weights:
-    """Revalidate frozen evidence before passing complete ratios to the consumer."""
-    if qualify(result.data) != result or result.weights is None:
-        raise BasketUnavailable("complete replay-matching synthetic input required")
-    return result.weights
-
-
-def _canonical_weight(value: industry.Weight) -> str:
-    if isinstance(value, industry.ExactWeight):
-        return str(Fraction(int(value.numerator), int(value.denominator)))
-    raise BasketUnavailable("derived weights require an explicit exact ratio")
-
-
 def _estimated_fact(
     fact: Fact,
     cutoff: date,
@@ -514,13 +211,9 @@ def _estimated_fact(
 
 
 def estimate(data: BasketInput) -> BasketEstimate:
-    """Value/align current inputs with Polars; qualify is the legacy exact path.
-
-    Input records are reused until the T019.3 import bridge. No legacy result or
-    stored proof object is rewritten. Supplied decimal strings remain in data.
-    """
-    if data.scope != "explicitly-stipulated-synthetic" or not _text(data.benchmark_name):
-        raise BasketUnavailable("named stipulated synthetic inputs required")
+    """Value and align current inputs with Float64 and Polars."""
+    if not _text(data.benchmark_name):
+        raise BasketUnavailable("named benchmark inputs required")
     cutoff, known_at = _day(data.as_of), _day(data.known_at)
     if known_at < cutoff:
         raise BasketUnavailable("knowledge cutoff cannot precede valuation cutoff")

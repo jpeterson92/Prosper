@@ -1,4 +1,4 @@
-"""Frozen synthetic OHLC-to-IDR boundary (P22 4.7, 3.2-3.6; research R1).
+"""Frozen OHLC-to-IDR boundary (P22 4.7, 3.2-3.6; research R1).
 
 Metadata is caller-attested construction evidence, never provider qualification.
 Exact source lexemes survive the explicit Decimal-to-binary64 analytical cast.
@@ -15,7 +15,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Literal
 
-VERSION = "synthetic-ohlc-idr-r1-v1"
+VERSION = "ohlc-idr-r1-v1"
 SPECIFICATION_SHA256 = "9535aac0560aedc2d06d35d4201643d018500683f5f23910446dc52c3704e01b"
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
@@ -37,7 +37,6 @@ class InnovationContext:
     source_sha256: str
     construction: str
     return_convention: str = "simple-total-return-decimal"
-    fictional: bool = True
 
 
 @dataclass(frozen=True)
@@ -131,7 +130,7 @@ def transform_ohlc(
     variant: Literal["idr", "returns-only"] = "idr",
     units: Literal["decimal", "percent-experiment"] = "decimal",
 ) -> InnovationResult:
-    """Transform a complete fictional grid, with no fill, drop or variant fallback.
+    """Transform a complete declared grid, with no fill, drop or variant fallback.
 
     Inputs always contain decimal simple total returns. The explicitly selected
     percent experiment scales output x by 100, proxy by 10000 and kappa by 1/100.
@@ -160,8 +159,6 @@ def transform_ohlc(
     except ValueError as exc:
         issue("invalid_profile", str(exc))
         f = a3 = kappa = math.nan  # Unavailable; no calculation with invalid settings.
-    if context.fictional is not True:
-        issue("synthetic_only", "only explicitly fictional inputs are supported")
     if context.return_convention != "simple-total-return-decimal":
         issue("return_convention", "price-only/unknown/percent inputs are unsupported")
     if not all((context.calendar, context.vintage, context.construction)) or not _sha(
@@ -169,7 +166,7 @@ def transform_ohlc(
     ):
         issue("missing_provenance", "calendar/vintage/construction/source hash required")
     if context.timezone != "UTC":
-        issue("timezone", "this synthetic interface requires explicitly declared UTC sessions")
+        issue("timezone", "this interface requires explicitly declared UTC sessions")
     try:
         dates = tuple(date.fromisoformat(s) for s in context.sessions)
         if any(d.isoformat() != s for d, s in zip(dates, context.sessions, strict=True)):
@@ -200,7 +197,7 @@ def transform_ohlc(
         if (
             row.action not in ("none", "split", "dividend", "split-and-dividend")
             or not _sha(row.action_evidence_sha256)
-            or row.compatibility != "synthetic-compatible-total-return-and-raw-ohlc"
+            or row.compatibility != "compatible-total-return-and-raw-ohlc"
         ):
             issue("action_compatibility", "declared action evidence/compatibility required", row)
         if not context.vintage or any(
@@ -230,7 +227,7 @@ def transform_ohlc(
             try:
                 p = c / (1 + r)
                 if not math.isfinite(p) or p <= 0:
-                    raise ValueError("synthetic preceding close is unrepresentable")
+                    raise ValueError("derived preceding close is unrepresentable")
 
                 # Safe log ratios also handle extreme finite price rescalings.
                 def log_ratio(a: float, b: float) -> float:

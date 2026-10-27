@@ -1,13 +1,12 @@
-"""Explicit D045 fictional equity selection; no real identity resolver/activation.
+"""Explicit D045 equity selection; no real identity resolver/activation.
 
 Original full-response evidence and published observations remain separate from
-derived exact value weights. No source section or ticker implies eligibility.
+derived Float64 value weights. No source section or ticker implies eligibility.
 """
 
 import hashlib
 import math
 from dataclasses import dataclass, replace
-from fractions import Fraction
 from pathlib import Path
 from typing import Literal
 
@@ -20,7 +19,7 @@ from prosper import benchmark_tables as t
 from prosper import vanguard as v
 from prosper.innovations import fingerprint
 
-VERSION = "synthetic-equity-benchmark-v1"
+VERSION = "equity-benchmark-v1"
 IMPLEMENTATION_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
 
@@ -88,17 +87,6 @@ class Result:
         return False
 
 
-@dataclass(frozen=True)
-class Bridge:
-    selection: Result
-    portfolio: r.PortfolioContext
-    basket: b.BasketResult
-
-    @property
-    def benchmark_ready(self) -> Literal[False]:
-        return False
-
-
 def _kind(value: v.JsonValue) -> str:
     return (
         "number"
@@ -117,10 +105,10 @@ def _validate(policy: Policy, stipulation: r.Stipulation) -> None:
         policy.version != VERSION
         or type(policy.values) is not tuple
         or type(policy.decisions) is not tuple
-        or len(policy.values) > v.MAX_ROWS
-        or len(policy.decisions) > v.MAX_ROWS
-        or len({f.section for f in policy.values}) != len(policy.values)
-        or len({d.locator for d in policy.decisions}) != len(policy.decisions)
+        or (len(policy.values) > v.MAX_ROWS)
+        or (len(policy.decisions) > v.MAX_ROWS)
+        or (len({f.section for f in policy.values}) != len(policy.values))
+        or (len({d.locator for d in policy.decisions}) != len(policy.decisions))
     ):
         raise r.ReconciliationUnavailable("bounded unique versioned equity policy required")
     for value in policy.values:
@@ -131,8 +119,8 @@ def _validate(policy: Policy, stipulation: r.Stipulation) -> None:
             not r._text(decision.locator.section)
             or type(decision.locator.index) is not int
             or decision.locator.index < 0
-            or decision.action not in ("include", "exclude")
-            or not r._text(decision.reason)
+            or (decision.action not in ("include", "exclude"))
+            or (not r._text(decision.reason))
         ):
             raise r.ReconciliationUnavailable("located explicit equity decision/reason required")
 
@@ -142,14 +130,12 @@ def _select(
     stipulation: r.Stipulation,
     policy: Policy,
     *,
-    estimates: bool = False,
+    known_at: str | None = None,
 ) -> Result:
-    """Reprove the full source, then apply explicit synthetic row dispositions."""
+    """Reprove the full source, then apply explicit row dispositions."""
     _validate(policy, stipulation)
 
-    def parse(raw: v.JsonValue, unit: str) -> Fraction | float | None:
-        if not estimates:
-            return r._number(raw, unit)
+    def parse(raw: v.JsonValue, unit: str) -> float | None:
         if not isinstance(raw, str) or unit not in ("decimal", "percent"):
             return None
         try:
@@ -158,12 +144,12 @@ def _select(
         except ValueError:
             return None
 
-    def numeric(text: str) -> Fraction | float:
-        return float(text) if estimates else Fraction(text)
+    def numeric(text: str) -> float:
+        return float(text)
 
     issues: list[b.Issue] = []
     ledger: list[Row] = []
-    source, response = acquisition.snapshot, acquisition.response
+    source, response = (acquisition.snapshot, acquisition.response)
     source_ok = source is not None and response is not None
     if response is not None:
         replay = v.acquire(
@@ -178,12 +164,15 @@ def _select(
         issues.append(b.Issue("acquisition", "snapshot_unavailable", acquisition.issues))
     primary: list[Row] = []
     included: list[b.Security] = []
-    known_in: Fraction | float = 0.0 if estimates else Fraction()
-    known_out: Fraction | float = 0.0 if estimates else Fraction()
+    known_in: float = 0.0
+    known_out: float = 0.0
     unknown_in: list[r.Locator] = []
     unknown_out: list[r.Locator] = []
     if source_ok and source is not None:
-        effective, known = source.effective_date.isoformat(), source.collected_at.date().isoformat()
+        effective, known = (
+            source.effective_date.isoformat(),
+            known_at if known_at is not None else source.collected_at.date().isoformat(),
+        )
         expected = (
             source.raw_sha256,
             source.selection.fund,
@@ -210,18 +199,20 @@ def _select(
         if (
             cash.unknown_reasons
             or parse(cash.raw, stipulation.benchmark_cash_unit) != 0
-            or not r._evidence(cash.evidence, effective, known)
+            or (not r._evidence(cash.evidence, effective, known))
         ):
             issues.append(b.Issue("benchmark_cash", "explicit_zero_benchmark_cash_required"))
         holdings = source.document.get(effective)
         assert isinstance(holdings, v.JsonObject)
         matches = t.bind(
-            tuple(name for name, _ in holdings.fields),
+            tuple((name for name, _ in holdings.fields)),
             tuple(
-                (name, index)
-                for name, rows in holdings.fields
-                if isinstance(rows, tuple)
-                for index in range(len(rows))
+                (
+                    (name, index)
+                    for name, rows in holdings.fields
+                    if isinstance(rows, tuple)
+                    for index in range(len(rows))
+                )
             ),
             tuple(rule.section for rule in stipulation.sections),
             tuple((rule.locator.section, rule.locator.index) for rule in stipulation.rows),
@@ -232,7 +223,10 @@ def _select(
         )
         source_ordinal = 0
         for section_index, (name, raw_rows) in enumerate(holdings.fields):
-            rule_index, value_index = matches.sections[section_index], matches.values[section_index]
+            rule_index, value_index = (
+                matches.sections[section_index],
+                matches.values[section_index],
+            )
             rule = stipulation.sections[rule_index] if rule_index is not None else None
             value_field = policy.values[value_index] if value_index is not None else None
             role = rule.role if rule else "unresolved"
@@ -248,7 +242,11 @@ def _select(
                 sec_issues.append("nonempty_section_declared_empty")
             if raw_rows and value_field is None:
                 sec_issues.append("explicit_value_field_required")
-            if role == "primary" and value_field is not None and value_field.field != "marketValue":
+            if (
+                role == "primary"
+                and value_field is not None
+                and (value_field.field != "marketValue")
+            ):
                 sec_issues.append("primary_market_value_field_required")
             issues.extend(b.Issue(name, code) for code in sec_issues)
             for index, raw_row in enumerate(raw_rows):
@@ -271,13 +269,13 @@ def _select(
                     row_issues.append("row_link_or_evidence_stale")
                 raw_value = (
                     raw_row.get(value_field.field)
-                    if (isinstance(raw_row, v.JsonObject) and value_field)
+                    if isinstance(raw_row, v.JsonObject) and value_field
                     else None
                 )
                 value = parse(raw_value, "decimal")
                 raw_weight = (
                     raw_row.get(rule.weight_field)
-                    if (isinstance(raw_row, v.JsonObject) and rule)
+                    if isinstance(raw_row, v.JsonObject) and rule
                     else None
                 )
                 weight = parse(raw_weight, rule.unit) if rule else None
@@ -316,7 +314,7 @@ def _select(
                                 not security.security_id
                                 or not r._text(security.security_id)
                                 or security.unknown_reasons
-                                or not r._evidence(security.evidence, effective, known)
+                                or (not r._evidence(security.evidence, effective, known))
                             ):
                                 row_issues.append("included_equity_identity_unresolved")
                             if security.currency != "USD" or security.asset_type != "stock":
@@ -364,16 +362,14 @@ def _select(
         )
         issues.extend(
             b.Issue(
-                f"{stipulation.rows[index].locator.section}:"
-                f"{stipulation.rows[index].locator.index}",
+                f"{stipulation.rows[index].locator.section}:{stipulation.rows[index].locator.index}",
                 "row_stipulation_not_in_source",
             )
             for index in matches.extra_rows
         )
         issues.extend(
             b.Issue(
-                f"{policy.decisions[index].locator.section}:"
-                f"{policy.decisions[index].locator.index}",
+                f"{policy.decisions[index].locator.section}:{policy.decisions[index].locator.index}",
                 "decision_requires_primary_row",
             )
             for index in t.unmatched(
@@ -405,12 +401,14 @@ def _select(
                     target = primary[target_index]
                     if row.security_id not in (None, target.security_id):
                         row_issues.append("linked_security_mismatch")
-                    # Explicit links are attributable assertions, never inferred
-                    # by matching prices. Verify their numeric consequences too.
                     if row.value_currency != target.value_currency:
                         row_issues.append("linked_currency_mismatch")
                     values_match = row.value == target.value
-                    if row.role == "subset" and row.value is not None and target.value is not None:
+                    if (
+                        row.role == "subset"
+                        and row.value is not None
+                        and (target.value is not None)
+                    ):
                         values_match = 0 <= numeric(row.value) <= numeric(target.value)
                     if not values_match or (
                         row.value is None
@@ -425,16 +423,17 @@ def _select(
                             numeric(row.published_weight),
                             numeric(target.published_weight),
                         )
-                        close = estimates and math.isclose(
+                        close = True and math.isclose(
                             float(linked_weight),
                             float(primary_weight),
                             rel_tol=0,
                             abs_tol=advisory.WEIGHT_TOLERANCE,
                         )
                         if (
-                            linked_weight != primary_weight and not close
+                            linked_weight != primary_weight and (not close)
                             if row.role == "alternate"
-                            else linked_weight < 0 or (linked_weight > primary_weight and not close)
+                            else linked_weight < 0
+                            or (linked_weight > primary_weight and (not close))
                         ):
                             row_issues.append("linked_published_weight_mismatch")
             disposition = (
@@ -461,57 +460,41 @@ def _select(
             issues.append(b.Issue("equities", "positive_retained_equity_total_required"))
         if not issues:
             included_indices = t.included_ordinals(tuple(row.disposition for row in ledger))
-            if estimates:
-                values = []
-                for index in included_indices:
-                    text_value = ledger[index].value
-                    assert text_value is not None
-                    values.append(float(text_value))
-                frame = pl.DataFrame(
-                    {"value": values},
-                    schema={"value": pl.Float64},
-                )
-                known_in = float(frame.get_column("value").sum())
-                weight_frame = frame.select((pl.col("value") / known_in).alias("weight"))
-                ratios = weight_frame.get_column("weight").to_list()
-                if (
-                    not math.isfinite(known_in)
-                    or not advisory.unit_sum(tuple(ratios))
-                    or any(
+            values = []
+            for index in included_indices:
+                text_value = ledger[index].value
+                assert text_value is not None
+                values.append(float(text_value))
+            frame = pl.DataFrame({"value": values}, schema={"value": pl.Float64})
+            known_in = float(frame.get_column("value").sum())
+            weight_frame = frame.select((pl.col("value") / known_in).alias("weight"))
+            ratios = weight_frame.get_column("weight").to_list()
+            if (
+                not math.isfinite(known_in)
+                or not advisory.unit_sum(tuple(ratios))
+                or any(
+                    (
                         value > 0 and ratio == 0
                         for value, ratio in zip(frame.get_column("value"), ratios, strict=True)
                     )
-                ):
-                    issues.append(b.Issue("equities", "unrepresentable_equity_weights"))
-                else:
-                    by_index = dict(zip(included_indices, ratios, strict=True))
-                    ledger = [
-                        replace(row, derived_weight=str(by_index[index]))
-                        if index in by_index
-                        else row
-                        for index, row in enumerate(ledger)
-                    ]
+                )
+            ):
+                issues.append(b.Issue("equities", "unrepresentable_equity_weights"))
             else:
-                for index in included_indices:
-                    row = ledger[index]
-                    assert row.value is not None
-                    ratio = Fraction(row.value) / Fraction(known_in)
-                    if max(len(str(ratio.numerator)), len(str(ratio.denominator))) > 128:
-                        issues.append(b.Issue("equities", "exact_ratio_representation_limit"))
-                if not issues:
-                    ledger = [
-                        replace(row, derived_weight=str(Fraction(row.value) / Fraction(known_in)))
-                        if row.disposition == "included-equity" and row.value is not None
-                        else row
-                        for row in ledger
-                    ]
+                by_index = dict(zip(included_indices, ratios, strict=True))
+                ledger = [
+                    replace(row, derived_weight=str(by_index[index])) if index in by_index else row
+                    for index, row in enumerate(ledger)
+                ]
     inputs = fingerprint(r.encoded((acquisition, stipulation, policy)))
     status = (
-        ("estimated-equity-benchmark" if estimates else "qualified-synthetic-equity-benchmark")
-        if source_ok and not issues
-        else ("incomplete" if source_ok else "unavailable")
+        "estimated-equity-benchmark"
+        if source_ok and (not issues)
+        else "incomplete"
+        if source_ok
+        else "unavailable"
     )
-    total = str(known_in) if source_ok and not issues else None
+    total = str(known_in) if source_ok and (not issues) else None
     canonical = fingerprint(r.encoded((tuple(ledger), total, tuple(issues))))
     benchmark_rows = None
     if total is not None:
@@ -522,14 +505,8 @@ def _select(
                 assert rule_index is not None
                 row_rule = stipulation.rows[rule_index]
                 assert row_rule.security is not None
-                reported_ratio = (
-                    float(row.derived_weight) if estimates else Fraction(row.derived_weight)
-                )
-                if estimates:
-                    weight_text = str(reported_ratio)
-                else:
-                    legacy_ratio = Fraction(reported_ratio)
-                    weight_text = f"{legacy_ratio.numerator}/{legacy_ratio.denominator}"
+                reported_ratio = float(row.derived_weight)
+                weight_text = str(reported_ratio)
                 evidence = b.Evidence(
                     canonical,
                     f"derived-value-weight:{row.locator.section}:{row.locator.index}",
@@ -542,13 +519,13 @@ def _select(
                         f"{row.locator.section}:{row.locator.index}",
                         row_rule.security,
                         b.Fact(weight_text, evidence),
-                        "decimal" if estimates else "exact-ratio",
+                        "decimal",
                     )
                 )
         benchmark_rows = tuple(derived)
     identity = fingerprint(
         [
-            "advisory-equity-v1" if estimates else VERSION,
+            "advisory-equity-v1",
             IMPLEMENTATION_SHA256,
             t.IMPLEMENTATION_SHA256,
             t.RUNTIME_VERSION,
@@ -579,11 +556,6 @@ def _select(
     )
 
 
-def select(acquisition: v.Acquisition, stipulation: r.Stipulation, policy: Policy) -> Result:
-    """Legacy synthetic exact-format selection; retained until the storage bridge."""
-    return _select(acquisition, stipulation, policy)
-
-
 @dataclass(frozen=True)
 class EquityEstimate:
     status: str
@@ -603,7 +575,7 @@ def estimate(
     portfolio: r.PortfolioContext | None = None,
 ) -> EquityEstimate:
     """Apply existing source decisions, derive Float64 weights, optionally value a sleeve."""
-    selected = _select(acquisition, stipulation, policy, estimates=True)
+    selected = _select(acquisition, stipulation, policy)
     rows = selected.benchmark_rows
     basket = None
     if rows is not None and portfolio is not None:
@@ -642,31 +614,3 @@ def estimate(
         tuple(weights),
         basket,
     )
-
-
-def bridge(result: Result, portfolio: r.PortfolioContext) -> Bridge:
-    """Only replay-matching complete synthetic selection can reach consumers."""
-    if (
-        r.encoded(select(result.acquisition, result.stipulation, result.policy))
-        != r.encoded(result)
-        or result.benchmark_rows is None
-    ):
-        raise r.ReconciliationUnavailable("complete replay-matching equity selection required")
-    if (
-        portfolio.as_of != result.stipulation.effective_date
-        or portfolio.known_at < result.acquisition.collected_at.date().isoformat()
-    ):
-        raise r.ReconciliationUnavailable("matching valuation/knowledge context required")
-    data = b.BasketInput(
-        f"Stipulated {result.stipulation.fund.ticker} equity-only disclosed-holdings proxy",
-        portfolio.as_of,
-        portfolio.known_at,
-        portfolio.universe,
-        portfolio.positions,
-        result.benchmark_rows,
-        portfolio.candidates,
-        portfolio.portfolio_cash,
-        result.stipulation.benchmark_cash,
-        result.stipulation.benchmark_cash_unit,
-    )
-    return Bridge(result, portfolio, b.qualify(data))

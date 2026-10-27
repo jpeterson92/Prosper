@@ -1,40 +1,29 @@
-"""Real HTTP/SQLite contract expectations over the protected owning process."""
+"""Actual protected HTTP process over the current advisory SQLite authority."""
 
-import copy
-import hashlib
+import base64
 import http.client
 import json
 import os
 import queue
-import sqlite3
 import subprocess
 import sys
 import threading
 from collections.abc import Iterator
-from concurrent.futures import ThreadPoolExecutor
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 
-from prosper.api_contracts import API_VERSION, CommandResponse, CurrentResponse, PreviewResponse
-from prosper.evidence import RuntimeBoundary
-from prosper.imports import OUTCOMES
-from prosper.local_api import serve
-from prosper.persistence import DATABASE_NAME
-
 SOURCE = Path(__file__).resolve().parents[1]
 type Document = dict[str, Any]
 
 
 def document() -> Document:
-    return cast(Document, json.loads((SOURCE / "examples/synthetic/F001.json").read_bytes()))
-
-
-def encoded(data: Document) -> bytes:
-    return json.dumps(data, ensure_ascii=False).encode()
+    return cast(
+        Document, json.loads((SOURCE / "examples/synthetic/advisory-workspace.json").read_bytes())
+    )
 
 
 @dataclass(repr=False)
@@ -57,13 +46,11 @@ class API:
         request_headers = {"Origin": self.origin}
         if authorized:
             request_headers["Authorization"] = "Bearer " + self.token
-        body: bytes | None = None
-        if isinstance(data, dict):
-            body = encoded(data)
-            request_headers["Content-Type"] = "application/json"
-        elif isinstance(data, bytes):
-            body = data
-            request_headers["Content-Type"] = "application/octet-stream"
+        body = json.dumps(data).encode() if isinstance(data, dict) else data
+        if data is not None:
+            request_headers["Content-Type"] = (
+                "application/json" if isinstance(data, dict) else "application/octet-stream"
+            )
         for key, value in (headers or {}).items():
             if value is None:
                 request_headers.pop(key, None)
@@ -74,83 +61,47 @@ class API:
             connection.request(method, path, body=body, headers=request_headers)
             response = connection.getresponse()
             raw = response.read()
-            if response.status == 200:
-                assert response.getheader("cache-control") == "no-store"
-                assert response.getheader("content-type") == "application/json"
-                assert response.getheader("x-content-type-options") == "nosniff"
-            parsed = cast(Document, json.loads(raw))
-            if path == "/api/v1/previews" or path.startswith("/api/v1/previews/"):
-                if response.status == 200:
-                    PreviewResponse.model_validate_json(raw)
-            elif path == "/api/v1/commit" and response.status == 200:
-                CommandResponse.model_validate_json(raw)
-            elif path == "/api/v1/current" and response.status == 200:
-                CurrentResponse.model_validate_json(raw)
-            return response.status, parsed
+            assert response.getheader("cache-control") == "no-store"
+            assert response.getheader("x-content-type-options") == "nosniff"
+            return response.status, cast(Document, json.loads(raw))
         finally:
             connection.close()
 
-    def stage(self, data: Document | bytes | None = None) -> Document:
-        raw = (
-            encoded(document())
-            if data is None
-            else encoded(data)
-            if isinstance(data, dict)
-            else data
+    def stage(self, data: Document | None = None) -> Document:
+        status, result = self.request(
+            "/api/v1/previews", "POST", document() if data is None else data
         )
-        status, preview = self.request("/api/v1/previews", "POST", raw)
         assert status == 200
-        assert preview["receipt"]["raw_sha256"] == hashlib.sha256(raw).hexdigest()
-        assert preview["receipt"]["byte_length"] == len(raw)
-        assert not preview["planning_ready"]
-        return preview
+        return result
 
-    def commit(
-        self, identity: str, key: str = "command", generation: int = 0
-    ) -> tuple[int, Document]:
+    def select(self, identity: str, key: str = "first", revision: int = 0) -> tuple[int, Document]:
         return self.request(
-            "/api/v1/commit",
+            "/api/v1/select",
             "POST",
-            {
-                "schema_version": API_VERSION,
-                "preview_sha256": identity,
-                "command_key": key,
-                "expected_generation": generation,
-            },
+            {"snapshot_id": identity, "command_key": key, "expected_revision": revision},
         )
 
     def current(self) -> Document:
-        status, current = self.request("/api/v1/current")
+        status, result = self.request("/api/v1/current")
         assert status == 200
-        return current
-
-    def counts(self) -> tuple[int, ...]:
-        with closing(sqlite3.connect(self.root / DATABASE_NAME)) as connection:
-            return tuple(
-                connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
-                for table in (
-                    "import_previews",
-                    "checkpoints",
-                    "import_activations",
-                    "import_commands",
-                )
-            )
+        return result
 
 
 @contextmanager
 def running(root: Path, *, port: int = 0, fault: bool = False) -> Iterator[API]:
     if fault:
         code = (
-            "import sys; from pathlib import Path; import prosper.imports as module; "
-            "from prosper.persistence import PersistenceError; "
-            "from prosper.evidence import RuntimeBoundary; from prosper.local_api import serve; "
+            "import sys; from pathlib import Path; import prosper.advisory_store as module; "
+            "from prosper.storage import PersistenceError; "
+            "from prosper.storage import RuntimeBoundary; from prosper.local_api import serve; "
             "exec('def fail(connection):\\n "
             'raise PersistenceError("synthetic_transaction_failure")\'); '
-            "module._before_activation_commit=fail; "
-            "serve(runtime=RuntimeBoundary(Path(sys.argv[1]),Path(sys.argv[2]),'synthetic'))"
+            "module._before_commit=fail; "
+            "serve(runtime=RuntimeBoundary(Path(sys.argv[1])))"
         )
         command = [sys.executable, "-I", "-c", code, str(root), str(SOURCE)]
     else:
+        initialize = not root.exists()
         command = [
             sys.executable,
             "-I",
@@ -158,11 +109,11 @@ def running(root: Path, *, port: int = 0, fault: bool = False) -> Iterator[API]:
             "prosper.local_api",
             "--port",
             str(port),
-            "--synthetic-runtime",
+            "--runtime",
             str(root),
-            "--source-root",
-            str(SOURCE),
         ]
+        if initialize:
+            command.append("--initialize")
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -204,494 +155,368 @@ def api(tmp_path: Path) -> Iterator[API]:
         yield instance
 
 
-def test_f001_raw_source_exact_unknown_lifecycle_and_retry(api: API) -> None:
+def test_normalized_preview_selection_settings_diagnostics_restart(api: API) -> None:
     assert api.current() == {
-        "schema_version": API_VERSION,
-        "generation": 0,
-        "checkpoint": None,
-        "planning_ready": False,
+        "revision": 0,
+        "snapshot_id": None,
+        "settings": {},
+        "current_run_id": None,
     }
-    data = document()
-    data["positions"][0]["quantity"]["value"] = "00012.0000"
-    preview = api.stage(data)
-    identity = preview["receipt"]["raw_sha256"]
-    assert api.counts() == (1, 0, 0, 0)
-    assert preview["source"]["document"]["positions"][0]["quantity"]["value"] == "12"
-    source_value = next(
-        item["exact"]
-        for item in preview["source"]["source_values"]
-        if item["path"] == ["positions", 0, "quantity", "value"]
+    preview = api.stage()
+    identity = preview["id"]
+    assert api.current()["snapshot_id"] is None
+    assert preview["snapshot"]["lots"][0]["quantity"]["value"] == "12.5000"
+    assert preview["snapshot"]["lots"][0]["total_basis"] == {
+        "value": None,
+        "reason": "basis not supplied",
+    }
+    assert api.select(identity) == (200, {"outcome": "changed", "revision": 1})
+    # A response lost by the caller can be replayed without another selection.
+    assert api.select(identity) == (200, {"outcome": "changed", "revision": 1})
+    settings = {
+        "settings": {"additional_cash": "100.00", "risk_enabled": False},
+        "command_key": "settings",
+        "expected_revision": 1,
+    }
+    assert api.request("/api/v1/settings", "POST", settings) == (
+        200,
+        {"outcome": "changed", "revision": 2},
     )
-    assert source_value == {
-        "state": "known",
-        "value": "12",
-        "original_text": "00012.0000",
-        "source_quantum": "0.0001",
+    command = {
+        "run_id": "source-diagnostic",
+        "expected_revision": 2,
+        "as_of": "2026-10-25T20:00:00Z",
     }
-    inspection = preview["inspection"]
-    assert inspection["inspection_valid"]
-    assert not inspection["readiness"]["planning_ready"]
-    assert [p["quantity"]["value"] for p in inspection["positions"]] == ["12", "5"]
-    assert inspection["cash"][0]["settled"]["value"] == "319"
-    assert inspection["settled_cash_nav"]["value"] == "2399"
-    assert inspection["total_basis"]["value"] == "2181"
-    assert inspection["market_minus_basis"]["value"] == "-101"
-    assert "raw_bytes" not in json.dumps(preview) and "relative_reference" not in preview["receipt"]
-    assert api.stage(data) == preview
-    assert api.request("/api/v1/previews/" + identity) == (200, preview)
-    status, receipt = api.commit(identity, "first", 0)
-    assert status == 200 and receipt["outcome"] == "committed" and receipt["generation"] == 1
-    assert api.commit(identity, "first", 0) == (200, receipt)
-    assert api.counts() == (1, 1, 1, 1)
-    current = api.current()
-    assert current["generation"] == 1
-    assert current["checkpoint"]["inspection"] == inspection
-    assert api.stage(data)["state"] == "committed"
+    status, run = api.request("/api/v1/diagnostics", "POST", command)
+    assert status == 200 and run["status"] == "partial"
+    assert run["outputs"]["counts"] == {"securities": 1, "lots": 1, "positions": 1, "cash": 0}
+    assert run["outputs"]["financial_metrics"] is None
+    assert any(f["locator"] == "lots/lot-a/total_basis" for f in run["outputs"]["findings"])
+    assert run["exclusions"][0]["code"] == "unsupported_tax_class"
+    assert api.request("/api/v1/diagnostics", "POST", command) == (200, run)
+    assert api.request("/api/v1/runs/source-diagnostic") == (200, run)
+    assert api.current()["current_run_id"] == "source-diagnostic"
     assert (
         api.request(
-            "/api/v1/reject", "POST", {"schema_version": API_VERSION, "preview_sha256": identity}
+            "/api/v1/settings",
+            "POST",
+            {**settings, "command_key": "later", "expected_revision": 2, "settings": {}},
         )[0]
-        == 409
+        == 200
     )
-    assert api.commit(identity, "duplicate", 1)[1]["outcome"] == "duplicate"
-    assert api.commit(identity, "stale", 0)[1]["outcome"] == "stale_generation"
-    assert api.commit(identity, "first", 1)[0] == 409
-    assert api.current() == current
+    assert api.current()["current_run_id"] is None
+    assert api.request("/api/v1/runs/source-diagnostic") == (200, run)
+    with running(api.root) as reopened:
+        assert reopened.current() == api.current()
+        assert reopened.request("/api/v1/runs/source-diagnostic") == (200, run)
+
+
+def test_replacement_errors_unknowns_and_two_window_stale_commands(api: API) -> None:
+    identity = api.stage()["id"]
+    api.select(identity)
+    before = api.current()
+    wrong = document()
+    wrong["snapshot"]["source_sha256"] = "0" * 64
+    assert api.request("/api/v1/previews", "POST", wrong)[0] == 422
+    assert api.current() == before
+    assert api.select(identity, "stale-window", 0) == (
+        200,
+        {"outcome": "stale_revision", "revision": 1},
+    )
+    assert api.select(identity, "first", 1)[0] == 409
+    other = document()
+    other["snapshot"]["account_id"] = "other"
+    for group in ("lots", "positions"):
+        other["snapshot"][group][0]["account_id"] = "other"
+    second = api.stage(other)["id"]
+    assert api.select(second, "other-account", 1)[1]["outcome"] == "account_review_required"
+    assert api.current() == before
+    assert api.request("/api/v1/reject", "POST", {"snapshot_id": second})[0] == 200
+    assert api.select(second, "rejected", 1)[1]["outcome"] == "preview_rejected"
+    assert api.request("/api/v1/reject", "POST", {"snapshot_id": identity})[0] == 409
 
 
 @pytest.mark.parametrize(
-    "kind", ["F002", "F003", "F004", "F006", "F009", "unknown-schema", "float"]
-)
-def test_foundation_variants_preserve_unknowns_and_invalidity(api: API, kind: str) -> None:
-    data = document()
-    if kind == "F002":
-        data["metadata"]["inclusion"] = {"value": None, "reason": "not_proven"}
-    elif kind == "F003":
-        data["lots"][0]["quantity"]["value"] = "11"
-    elif kind == "F004":
-        data["lots"][1]["basis"] = {"value": None, "reason": "source_missing"}
-    elif kind == "F006":
-        data["quotes"][0]["price"]["value"] = "0.1000000000001"
-    elif kind == "F009":
-        data["coverage"][0]["status"] = "unknown"
-        data["coverage"][0]["evidence"] = {"value": None, "reason": "coverage_unknown"}
-    elif kind == "float":
-        data["positions"][0]["quantity"]["value"] = 12.0
-    else:
-        data["metadata"]["schema_version"] = "future-schema"
-    preview = api.stage(data)
-    identity = preview["receipt"]["raw_sha256"]
-    status, receipt = api.commit(identity)
-    assert status == 200
-    if kind in ("F004", "F009"):
-        assert receipt["outcome"] == "committed"
-        current = api.current()["checkpoint"]
-        assert not current["inspection"]["readiness"]["planning_ready"]
-        if kind == "F004":
-            assert current["inspection"]["total_basis"] == {
-                "state": "unknown",
-                "value": None,
-                "reasons": ["source_missing"],
-            }
-            assert current["source"]["document"]["lots"][1]["basis"] == {
-                "value": None,
-                "reason": "source_missing",
-            }
-        else:
-            assert current["inspection"]["readiness"]["coverage"] == "incomplete"
-    else:
-        assert receipt["outcome"] == "preview_invalid" and api.current()["generation"] == 0
-        assert api.counts() == (1, 0, 0, 1)
-        if kind in ("F006", "unknown-schema", "float"):
-            assert preview["source"] is None and preview["issues"]
-        else:
-            assert preview["inspection"]["findings"]
-
-
-@pytest.mark.parametrize(
-    "raw",
+    "path",
     [
-        b"",
-        b"{",
-        b"\xff",
-        b'{"metadata":{},"metadata":{}}',
-        b'{"unknown_field":"synthetic-payload-marker"}',
+        "/api/v1/current",
+        "/api/v1/catalog",
+        "/api/v1/backup",
+        "/api/v1/runs/x",
+        "/api/v1/input-records/x",
+        "/api/v1/benchmarks/observations/x",
+        "/api/v1/benchmarks/observations/x/source",
     ],
 )
-def test_malformed_bytes_are_durable_non_ready_evidence(api: API, raw: bytes) -> None:
-    preview = api.stage(raw)
-    assert preview["source"] is None and preview["issues"] and not preview["inspection"]
-    identity = preview["receipt"]["raw_sha256"]
-    assert api.stage(raw) == preview
-    status, rejected = api.request(
-        "/api/v1/reject", "POST", {"schema_version": API_VERSION, "preview_sha256": identity}
-    )
-    assert status == 200 and rejected["state"] == "rejected" and rejected["rejected_at"]
-    assert api.stage(raw) == rejected
-    assert api.commit(identity)[1]["outcome"] == "preview_rejected"
-    assert api.current()["generation"] == 0
+def test_current_routes_require_session(api: API, path: str) -> None:
+    assert api.request(path, authorized=False)[0] == 401
+    assert api.request(path, headers={"Origin": "https://foreign.invalid"})[0] == 403
 
 
-def test_f005_conflict_and_safe_imported_text(api: API) -> None:
-    base = document()
-    base["accounts"][0]["alias"] = "<script>synthetic-no-execution()</script>"
-    first = api.stage(base)
-    assert api.commit(first["receipt"]["raw_sha256"])[1]["outcome"] == "committed"
-    before = api.current()
-    changed = copy.deepcopy(base)
-    changed["metadata"]["source_version"] = "changed-source"
-    changed["activity"][0]["fees"]["value"] = "2"
-    changed["activity"][0]["cash_movement"]["value"] = "-182"
-    preview = api.stage(changed)
-    assert preview["inspection"]["inspection_valid"]
+def test_benchmark_review_selection_retries_and_safe_malformed_inputs(api: API) -> None:
+    folder = SOURCE / "examples/synthetic/benchmark"
+    observation = json.loads((folder / "current-observation.json").read_bytes())
+    review = json.loads((folder / "current-review.json").read_bytes())
+    preview = api.stage()
+    assert api.select(preview["id"])[0] == 200
+    assert api.request("/api/v1/benchmarks/import", "POST", observation)[0] == 200
     assert (
-        api.commit(preview["receipt"]["raw_sha256"], "conflict", 1)[1]["outcome"]
-        == "source_conflict"
+        api.request("/api/v1/benchmarks/review", "POST", review)[1]["status"]
+        == "estimated-equity-benchmark"
     )
-    assert api.current() == before
-    assert (
-        before["checkpoint"]["source"]["document"]["accounts"][0]["alias"]
-        == base["accounts"][0]["alias"]
-    )
-
-
-def test_oversized_error_field_location_reports_truncation_without_losing_evidence(
-    api: API,
-) -> None:
-    raw = b'{"' + b"synthetic-field-" * 30 + b'":1}'
-    preview = api.stage(raw)
-    assert any(issue["path_truncated"] for issue in preview["issues"])
-    assert all(
-        len(part) <= 128
-        for issue in preview["issues"]
-        for part in issue["path"]
-        if isinstance(part, str)
-    )
-    identity = preview["receipt"]["raw_sha256"]
-    assert (api.root / "evidence-bytes-v1" / "objects" / (identity + ".bin")).read_bytes() == raw
-
-
-@pytest.mark.parametrize(
-    "change",
-    ["extra", "version", "missing", "bool", "float", "negative", "huge", "key", "identity"],
-)
-def test_closed_control_requests_do_not_write(api: API, change: str) -> None:
-    identity = api.stage()["receipt"]["raw_sha256"]
-    command: Document = {
-        "schema_version": API_VERSION,
-        "preview_sha256": identity,
-        "command_key": "valid",
-        "expected_generation": 0,
+    command = {
+        "run_id": "proxy",
+        "expected_revision": 1,
+        "as_of": "2026-10-25T22:00:00Z",
+        "review": review,
     }
-    if change == "extra":
-        command["synthetic-secret-marker"] = "not-to-be-echoed"
-    elif change == "version":
-        command["schema_version"] = "future"
-    elif change == "missing":
-        del command["schema_version"]
-    elif change in ("bool", "float", "negative", "huge"):
-        command["expected_generation"] = {
-            "bool": True,
-            "float": 0.0,
-            "negative": -1,
-            "huge": 2**63,
-        }[change]
-    elif change == "key":
-        command["command_key"] = "../../synthetic-secret-marker"
-    else:
-        command["preview_sha256"] = "../../synthetic-secret-marker"
-    status, error = api.request("/api/v1/commit", "POST", command)
-    assert status == 422 and error["error"] == "request_invalid" and error["issues"]
-    assert "synthetic-secret-marker" not in json.dumps(error)
-    assert "not-to-be-echoed" not in json.dumps(error)
-    assert api.counts() == (1, 0, 0, 0)
-
-
-def test_control_json_media_depth_limits_and_missing_identity(api: API) -> None:
-    identity = api.stage()["receipt"]["raw_sha256"]
-    for raw in (
-        b'{"schema_version":"x","schema_version":"y"}',
-        b'{"x":NaN}',
-        b"{",
+    status, run = api.request("/api/v1/benchmarks/diagnostics", "POST", command)
+    assert status == 200 and run["outputs"]["source_row_count"] == 8
+    assert "metadata_base64" not in run["inputs"]["benchmark_request"]["review"]
+    assert api.request("/api/v1/benchmarks/diagnostics", "POST", command) == (status, run)
+    choose = {"run_id": "proxy", "command_key": "choose-proxy", "expected_revision": 1}
+    assert api.request("/api/v1/benchmarks/select", "POST", choose)[1] == {
+        "outcome": "changed",
+        "revision": 2,
+    }
+    assert api.request("/api/v1/benchmarks/select", "POST", choose)[1] == {
+        "outcome": "changed",
+        "revision": 2,
+    }
+    assert api.current()["settings"]["benchmark_run_id"] == "proxy"
+    for route in ("fetch", "import", "review", "diagnostics", "select"):
+        assert api.request(f"/api/v1/benchmarks/{route}", "POST", {}, authorized=False)[0] == 401
+    for route, body in (
+        ("import", {**observation, "source_base64": "!"}),
+        ("diagnostics", {**command, "review": {**review, "metadata_base64": "!"}}),
     ):
+        assert api.request(f"/api/v1/benchmarks/{route}", "POST", body)[0] == 422
+    status, error = api.request("/api/v1/benchmarks/review", "POST", {"PRIVATE-KEY": "DO-NOT-ECHO"})
+    assert (
+        status == 422
+        and "PRIVATE-KEY" not in json.dumps(error)
+        and "DO-NOT-ECHO" not in json.dumps(error)
+    )
+
+
+def test_modeled_inputs_protected_preview_saved_diagnostic_and_retry(api: API) -> None:
+    staged = api.stage()
+    assert api.select(staged["id"])[0] == 200
+    folder = SOURCE / "examples/synthetic/modeled-inputs"
+    upload = json.loads((folder / "current.json").read_bytes())
+    status, result = api.request("/api/v1/inputs/preview", "POST", upload)
+    assert status == 200 and result["software_inputs_complete"] is False
+    assert "selected_benchmark_required" in {i["code"] for i in result["issues"]}
+    request = {
+        **upload,
+        "run_id": "inputs",
+        "expected_revision": 1,
+        "as_of": "2026-10-25T22:00:00Z",
+    }
+    status, run = api.request("/api/v1/inputs/diagnostics", "POST", request)
+    assert status == 200 and run["outputs"]["risk_available"] is False
+    assert api.request("/api/v1/inputs/diagnostics", "POST", request) == (status, run)
+    for route in ("preview", "diagnostics"):
+        assert api.request(f"/api/v1/inputs/{route}", "POST", {}, authorized=False)[0] == 401
         status, error = api.request(
-            "/api/v1/commit", "POST", raw, {"Content-Type": "application/json"}
+            f"/api/v1/inputs/{route}", "POST", {"PRIVATE-KEY": "DO-NOT-ECHO"}
         )
-        assert status == 400, (raw[:24], error)
+        assert (
+            status == 422
+            and "PRIVATE-KEY" not in json.dumps(error)
+            and "DO-NOT-ECHO" not in json.dumps(error)
+        )
+    broken = json.loads(json.dumps(upload))
+    broken["sources"][0]["source_base64"] = "!"
+    assert api.request("/api/v1/inputs/preview", "POST", broken)[0] == 422
+
+
+def test_closed_request_size_duplicate_keys_and_safe_errors(api: API) -> None:
+    bad = document()
+    bad["secret-account-value"] = "DO-NOT-ECHO"
+    status, result = api.request("/api/v1/previews", "POST", bad)
     assert (
-        api.request(
-            "/api/v1/commit",
-            "POST",
-            b"[" * 1500 + b"]" * 1500,
-            {"Content-Type": "application/json"},
-        )[0]
-        == 422
-    )
-    assert (
-        api.request("/api/v1/commit", "POST", b"x" * 4097, {"Content-Type": "application/json"})[0]
-        == 413
-    )
-    assert (
-        api.request(
-            "/api/v1/previews", "POST", encoded(document()), {"Content-Type": "application/json"}
-        )[0]
-        == 415
+        status == 422
+        and "DO-NOT-ECHO" not in json.dumps(result)
+        and "secret-account-value" not in json.dumps(result)
     )
     assert (
         api.request(
             "/api/v1/previews",
             "POST",
-            headers={
-                "Content-Type": "application/octet-stream",
-                "Content-Length": str(2 * 1024 * 1024 + 1),
-            },
+            b'{"version":"a","version":"b"}',
+            {"Content-Type": "application/json"},
+        )[0]
+        == 400
+    )
+    assert (
+        api.request(
+            "/api/v1/settings",
+            "POST",
+            b'{"settings":{"x":NaN}}',
+            {"Content-Type": "application/json"},
+        )[0]
+        == 400
+    )
+    assert (
+        api.request(
+            "/api/v1/previews",
+            "POST",
+            b"",
+            {"Content-Type": "application/json", "Content-Length": str(2 * 1024 * 1024 + 1)},
         )[0]
         == 413
     )
-    # A sender continuing a full oversized upload after early rejection can observe a
-    # Windows TCP reset/abort instead of the already-sent 413; no evidence is stored.
-    try:
-        assert api.request("/api/v1/previews", "POST", b"x" * (2 * 1024 * 1024 + 1))[0] == 413
-    except (ConnectionResetError, BrokenPipeError):
-        pass
-    except ConnectionAbortedError as error:
-        assert getattr(error, "winerror", None) == 10053
-    assert api.request("/api/v1/previews/not-a-digest")[0] == 422
-    missing = "0" * 64
-    assert api.request("/api/v1/previews/" + missing)[0] == 404
-    assert api.commit(missing)[0] == 404
-    assert (
-        api.request(
-            "/api/v1/reject", "POST", {"schema_version": API_VERSION, "preview_sha256": missing}
-        )[0]
-        == 404
-    )
-    assert api.counts() == (1, 0, 0, 0)
-    assert api.commit(identity)[1]["outcome"] == "committed"
+    assert api.request("/api/v1/previews", "POST", b"wrong-media")[0] == 415
+    assert api.request("/api/v1/commit", "POST")[0] == 404
 
 
-@pytest.mark.parametrize(
-    "denial", ["origin", "host", "missing-origin", "missing-session", "wrong-session"]
-)
-def test_each_financial_route_and_schema_denies_before_read_or_mutation(
-    api: API, denial: str
-) -> None:
-    identity = api.stage()["receipt"]["raw_sha256"]
-    denial_headers: dict[str, dict[str, str | None]] = {
-        "origin": {"Origin": "https://evil.example"},
-        "host": {"Host": "evil.example"},
-        "missing-origin": {"Origin": None},
-        "missing-session": {"Authorization": None},
-        "wrong-session": {"Authorization": "Bearer synthetic-wrong"},
+def test_decimal_shape_error_retains_safe_row_locator(api: API) -> None:
+    wrong = document()
+    wrong["snapshot"]["lots"][0]["quantity"]["value"] = 12.5
+    code, result = api.request("/api/v1/previews", "POST", wrong)
+    assert code == 422
+    assert result["issues"][0]["path"] == ["body", "snapshot", "lots", 0, "quantity", "value"]
+    assert "12.5" not in json.dumps(result)
+
+
+def lots_seed(api: API) -> dict[str, Any]:
+    raw = (SOURCE / "examples/synthetic/fidelity/combined-stocks.csv").read_bytes()
+    body = {
+        "source_base64": base64.b64encode(raw).decode(),
+        "context": json.loads(
+            (SOURCE / "examples/synthetic/fidelity/current-context.json").read_bytes()
+        ),
     }
-    headers = denial_headers[denial]
+    status, staged = api.request("/api/v1/fidelity/previews", "POST", body)
+    assert status == 200 and staged["preview"]
+    preview: dict[str, Any] = staged["preview"]
+    assert api.select(preview["id"])[1]["revision"] == 1
+    cfg = {
+        "settings": json.loads(
+            (SOURCE / "examples/synthetic/fidelity/current-lot-settings.json").read_bytes()
+        ),
+        "command_key": "lot-settings",
+        "expected_revision": 1,
+    }
+    status, result = api.request("/api/v1/lots/settings", "POST", cfg)
+    assert status == 200 and result["revision"] == 2
+    assert api.request("/api/v1/lots/settings", "POST", cfg) == (status, result)
+    return preview
+
+
+def test_protected_lot_routes_empty_json_arrays_retries_and_stale_windows(api: API) -> None:
+    lots_seed(api)
     command = {
-        "schema_version": API_VERSION,
-        "preview_sha256": identity,
-        "command_key": "denied",
-        "expected_generation": 0,
+        "run_id": "first",
+        "expected_revision": 2,
+        "as_of": "2026-10-25T00:00:00Z",
+        "sale_quantities": {},
+        "replacement_security_ids": [],
     }
-    before = api.counts()
-    for path, method, data in (
-        ("/api/v1/current", "GET", None),
-        ("/api/v1/previews/" + identity, "GET", None),
-        ("/api/v1/previews", "POST", encoded(document())),
-        ("/api/v1/commit", "POST", command),
-        ("/api/v1/reject", "POST", {"schema_version": API_VERSION, "preview_sha256": identity}),
-        ("/openapi.json", "GET", None),
-    ):
-        status, response = api.request(path, method, data, headers)
-        assert status in (401, 403)
-        assert set(response) == {"error"}
-    assert api.counts() == before and api.current()["generation"] == 0
-
-
-def test_openapi_actual_closed_schema_and_decimal_string_contract(api: API) -> None:
-    status, schema = api.request("/openapi.json")
-    assert status == 200
-    expected = {
-        "/api/v1/previews",
-        "/api/v1/previews/{identity}",
-        "/api/v1/current",
-        "/api/v1/commit",
-        "/api/v1/reject",
+    status, saved = api.request("/api/v1/lots/diagnostics", "POST", command)
+    assert status == 200 and saved["outputs"]["conditional_price_loss_subtotal"]["value"] == 10
+    assert api.request("/api/v1/lots/diagnostics", "POST", command) == (200, saved)
+    assert api.request("/api/v1/lots/results/first") == (200, saved["outputs"])
+    assert api.request("/api/v1/lots/diagnostics", "POST", command, authorized=False)[0] == 401
+    changed = {
+        "settings": json.loads(
+            (SOURCE / "examples/synthetic/fidelity/current-lot-settings.json").read_bytes()
+        ),
+        "command_key": "change",
+        "expected_revision": 2,
     }
-    assert expected <= schema["paths"].keys()
-    for path in expected:
-        operation = next(iter(schema["paths"][path].values()))
-        assert operation["security"] == [{"HTTPBearer": []}]
-    models = schema["components"]["schemas"]
-    for name in (
-        "CommitRequest",
-        "RejectRequest",
-        "PreviewResponse",
-        "CurrentResponse",
-        "CommandResponse",
-        "KnownValue",
-        "UnknownValue",
-        "BundleDocument",
-        "Metadata",
-    ):
-        assert models[name]["additionalProperties"] is False
-    assert models["KnownValue"]["properties"]["value"]["type"] == "string"
-    assert models["UnknownValue"]["properties"]["value"]["type"] == "null"
-    assert set(models["CommandResponse"]["properties"]["outcome"]["enum"]) == OUTCOMES
-    assert "schema_version" in models["CommitRequest"]["required"]
-    request_body = schema["paths"]["/api/v1/previews"]["post"]["requestBody"]["content"]
-    assert set(request_body) == {"application/octet-stream"}
-    upload_schema = request_body["application/octet-stream"]["schema"]
-    assert upload_schema["type"] == "string"
-    assert upload_schema["contentMediaType"] == "application/octet-stream"
-    assert upload_schema.get("contentEncoding") != "base64"
+    changed["settings"]["cash_to_invest"] = "3"
+    assert api.request("/api/v1/lots/settings", "POST", changed)[1]["revision"] == 3
+    assert api.current()["current_run_id"] is None
+    assert api.request("/api/v1/lots/diagnostics", "POST", command) == (200, saved)
+    assert api.request("/api/v1/lots/diagnostics", "POST", {**command, "run_id": "stale"})[0] == 409
+    before_stale = api.current()
+    assert api.request(
+        "/api/v1/lots/settings",
+        "POST",
+        {
+            **changed,
+            "command_key": "stale",
+            "settings": {**changed["settings"], "cash_to_invest": "7"},
+        },
+    ) == (200, {"outcome": "stale_revision", "revision": 3})
+    assert api.current() == before_stale
+
+    assert (
+        api.request("/api/v1/lots/diagnostics", "POST", {**command, "sale_quantities": {"x": 1}})[0]
+        == 409
+    )
 
 
-def test_f008_two_http_windows_and_same_key_retry(api: API) -> None:
-    first = api.stage()["receipt"]["raw_sha256"]
-    data = document()
-    data["metadata"]["source_version"] = "second"
-    second = api.stage(data)["receipt"]["raw_sha256"]
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = [
-            executor.submit(api.commit, identity, key, 0)
-            for identity, key in ((first, "window-a"), (second, "window-b"))
-        ]
-        results = [future.result() for future in futures]
-    assert all(status == 200 for status, _ in results)
-    assert sorted(r["outcome"] for _, r in results) == ["committed", "stale_generation"]
-    assert api.counts() == (2, 1, 1, 2)
-    winning = next(r for _, r in results if r["outcome"] == "committed")
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        retries = list(
-            executor.map(
-                lambda _: api.commit(winning["preview_sha256"], winning["command_key"], 0), range(2)
-            )
-        )
-    assert retries == [(200, winning), (200, winning)]
-    assert api.counts() == (2, 1, 1, 2)
+@pytest.mark.parametrize("change", ["unknown-lot", "future", "fraction", "boolean", "id-type"])
+def test_invalid_lot_command_cannot_create_a_run_or_clear_work(api: API, change: str) -> None:
+    lots_seed(api)
+    command: dict[str, Any] = {
+        "run_id": "invalid",
+        "expected_revision": 2,
+        "as_of": "2026-10-25T00:00:00Z",
+    }
+    if change == "unknown-lot":
+        command["sale_quantities"] = {"not-held": 1}
+    elif change == "future":
+        command["as_of"] = "2020-01-01T00:00:00Z"
+    elif change in ("fraction", "boolean"):
+        command["sale_quantities"] = {"x": 1.5 if change == "fraction" else True}
+    else:
+        command["replacement_security_ids"] = [1]
+    before = api.current()
+    assert api.request("/api/v1/lots/diagnostics", "POST", command)[0] == 422
+    assert api.current() == before
+    assert api.request("/api/v1/catalog")[1]["runs"] == []
 
 
-def test_restart_preserves_receipt_and_current_but_not_token(tmp_path: Path) -> None:
-    root = tmp_path / "runtime"
-    with running(root) as api:
-        identity = api.stage()["receipt"]["raw_sha256"]
-        receipt = api.commit(identity, "restart", 0)
-        current = api.current()
-        token, port = api.token, api.port
-    with running(root, port=port) as api:
-        assert (
-            api.request("/api/v1/current", headers={"Authorization": "Bearer " + token})[0] == 401
-        )
-        assert api.current() == current
-        assert api.commit(identity, "restart", 0) == receipt
+def test_invalid_source_and_settings_are_sanitized_without_replacement(api: API) -> None:
+    lots_seed(api)
+    before = api.current()
+    bad = {
+        "settings": {
+            **json.loads(
+                (SOURCE / "examples/synthetic/fidelity/current-lot-settings.json").read_bytes()
+            ),
+            "cash_to_invest": -1,
+        },
+        "command_key": "invalid",
+        "expected_revision": 2,
+    }
+    status, refused = api.request("/api/v1/lots/settings", "POST", bad)
+    assert status == 422 and "-1" not in json.dumps(refused)
+    raw = (SOURCE / "examples/synthetic/fidelity/combined-stocks.csv").read_bytes()
+    bad_source = {
+        "source_base64": base64.b64encode(raw + b"\n").decode(),
+        "context": json.loads(
+            (SOURCE / "examples/synthetic/fidelity/current-context.json").read_bytes()
+        ),
+    }
+    assert api.request("/api/v1/fidelity/previews", "POST", bad_source)[0] == 422
+    duplicate = b'{"settings":{"private-key":"do-not-echo","private-key":2}}'
+    status, refused = api.request(
+        "/api/v1/lots/settings/preview", "POST", duplicate, {"Content-Type": "application/json"}
+    )
+    assert status == 400 and "do-not-echo" not in json.dumps(refused)
+    assert api.current() == before
 
 
-def test_historical_retry_and_raw_noop_never_restore_older_active_checkpoint(api: API) -> None:
-    first = api.stage()["receipt"]["raw_sha256"]
-    original = api.commit(first, "first", 0)
-    data = document()
-    data["metadata"]["source_version"] = "later-version"
-    second = api.stage(data)["receipt"]["raw_sha256"]
-    assert api.commit(second, "second", 1)[1]["outcome"] == "committed"
-    assert api.commit(second, "first", 0)[0] == 409
-    assert api.commit(first, "first", 0) == original
-    duplicate = api.commit(first, "historical-noop", 2)[1]
-    assert duplicate["outcome"] == "duplicate"
-    assert duplicate["activation_generation"] == 1 and duplicate["generation"] == 2
-    assert api.current()["checkpoint"]["receipt"]["raw_sha256"] == second
-    assert api.counts() == (2, 2, 2, 3)
+@pytest.mark.parametrize("reserved", ["screening", "lot_context"])
+def test_invalid_reserved_lot_facts_are_refused_before_staging(api: API, reserved: str) -> None:
+    before = api.current()
+    invalid = document()
+    invalid["snapshot"]["observations"][reserved] = {"private-key": "do-not-echo"}
+    status, refused = api.request("/api/v1/previews", "POST", invalid)
+    assert status == 422 and "do-not-echo" not in json.dumps(refused)
+    assert api.current() == before and api.request("/api/v1/catalog")[1]["snapshots"] == []
 
 
-def test_chunked_preview_preserves_bytes_and_stream_limit_prevents_publication(api: API) -> None:
-    raw = encoded(document())
-
-    def stream(chunks: Iterator[bytes]) -> tuple[int, Document]:
-        connection = http.client.HTTPConnection("127.0.0.1", api.port, timeout=12)
-        try:
-            connection.request(
-                "POST",
-                "/api/v1/previews",
-                body=chunks,
-                encode_chunked=True,
-                headers={
-                    "Origin": api.origin,
-                    "Authorization": "Bearer " + api.token,
-                    "Content-Type": "application/octet-stream",
-                },
-            )
-            response = connection.getresponse()
-            return response.status, cast(Document, json.loads(response.read()))
-        finally:
-            connection.close()
-
-    status, preview = stream(iter((raw[:71], raw[71:])))
-    assert status == 200 and preview["receipt"]["raw_sha256"] == hashlib.sha256(raw).hexdigest()
-    assert api.counts() == (1, 0, 0, 0)
-    try:
-        assert stream(b"x" * 65536 for _ in range(33))[0] == 413
-    except (ConnectionResetError, BrokenPipeError):
-        pass
-    except ConnectionAbortedError as error:
-        assert getattr(error, "winerror", None) == 10053
-    assert api.counts() == (1, 0, 0, 0) and api.current()["generation"] == 0
-
-
-def test_f007_http_failure_rolls_back_then_fresh_process_retries(tmp_path: Path) -> None:
-    root = tmp_path / "runtime"
-    with running(root) as api:
-        base = api.stage()["receipt"]["raw_sha256"]
-        api.commit(base, "base", 0)
-        current = api.current()
-    with running(root, fault=True) as api:
-        data = document()
-        data["metadata"]["source_version"] = "rollback"
-        identity = api.stage(data)["receipt"]["raw_sha256"]
-        assert api.commit(identity, "retry", 1) == (
-            503,
-            {"error": "synthetic_transaction_failure", "issues": [], "further_issues": False},
-        )
-        assert api.current() == current and api.counts() == (2, 1, 1, 1)
-    with running(root) as api:
-        assert api.commit(identity, "retry", 1)[1]["outcome"] == "committed"
-        assert api.current()["generation"] == 2
-
-
-def test_corrupt_required_evidence_is_safe_error_without_silent_repair(api: API) -> None:
-    identity = api.stage()["receipt"]["raw_sha256"]
-    api.commit(identity)
-    evidence = api.root / "evidence-bytes-v1" / "objects" / (identity + ".bin")
-    evidence.write_bytes(b"synthetic-corrupt-marker")
-    for path in ("/api/v1/current", "/api/v1/previews/" + identity):
-        status, error = api.request(path)
-        assert status == 503
-        assert "synthetic-corrupt-marker" not in json.dumps(error)
-        assert str(api.root) not in json.dumps(error)
-        assert api.request(path, authorized=False)[0] == 401
-    assert api.request("/api/v1/previews", "POST", encoded(document()))[0] == 503
-    assert evidence.read_bytes() == b"synthetic-corrupt-marker"
-    assert api.counts() == (1, 1, 1, 1)
-
-
-def test_launcher_requires_explicit_synthetic_boundary_and_no_runtime_from_http(
-    tmp_path: Path,
-) -> None:
-    for args in (
-        ("--synthetic-runtime", str(tmp_path / "one")),
-        ("--source-root", str(SOURCE)),
-        ("--synthetic-runtime", str(SOURCE / "forbidden-runtime"), "--source-root", str(SOURCE)),
-    ):
-        result = subprocess.run(
-            [sys.executable, "-I", "-m", "prosper.local_api", *args],
-            capture_output=True,
-            text=True,
-            timeout=12,
-        )
-        assert result.returncode == 2 and result.stdout == ""
-        assert result.stderr == "local_runtime_start_failed\n"
-    assert not (SOURCE / "forbidden-runtime").exists()
-    # Library-only private mode remains outside this synthetic HTTP launcher's scope.
-    other_source = tmp_path / "other-source"
-    other_source.mkdir()
-    private = RuntimeBoundary(tmp_path / "private", other_source, "private")
-    with pytest.raises(ValueError, match="synthetic_runtime_required"):
-        serve(runtime=private)
-    assert not private.root.exists()
+def test_removed_data_category_is_not_an_api_field(api: API) -> None:
+    value = document()
+    assert "fictional" not in value["snapshot"]
+    before = api.current()
+    value["snapshot"]["fictional"] = "do-not-echo"
+    status, error = api.request("/api/v1/previews", "POST", value)
+    assert status == 422 and "do-not-echo" not in json.dumps(error)
+    assert api.current() == before

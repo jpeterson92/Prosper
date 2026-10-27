@@ -1,0 +1,84 @@
+{
+  "version": "advisory-upload-v1",
+  "snapshot": {
+    "version": "advisory-import-v1",
+    "source_type": "fictional-normalized",
+    "source_name": "fictional-holdings.csv",
+    "source_sha256": "b370a5b8bd5b0a816dfc4cd83fae2418135778bd6e9161ea9f1493358830262d",
+    "account_id": "account-a",
+    "account_alias": "Fictional taxable account",
+    "account_scope": "one-taxable-account",
+    "source_as_of": "2026-10-23",
+    "securities": [
+      {
+        "id": "security-a",
+        "source_ref": "row:2",
+        "ticker": "ABC",
+        "identity": {
+          "value": "fictional-security-a",
+          "reason": null
+        },
+        "classification": {
+          "value": null,
+          "reason": "classification not supplied"
+        },
+        "currency": "USD"
+      }
+    ],
+    "lots": [
+      {
+        "id": "lot-a",
+        "account_id": "account-a",
+        "security_id": "security-a",
+        "source_ref": "row:2",
+        "quantity": {
+          "value": "12.5000",
+          "reason": null
+        },
+        "total_basis": {
+          "value": null,
+          "reason": "basis not supplied"
+        },
+        "acquired": {
+          "value": null,
+          "reason": "acquisition date not supplied"
+        },
+        "term": {
+          "value": null,
+          "reason": "term not supplied"
+        }
+      }
+    ],
+    "positions": [
+      {
+        "id": "position-a",
+        "account_id": "account-a",
+        "security_id": "security-a",
+        "source_ref": "row:2",
+        "quantity": {
+          "value": "12.5000",
+          "reason": null
+        }
+      }
+    ],
+    "cash": [],
+    "findings": [
+      {
+        "code": "fictional_source",
+        "locator": "source",
+        "reason": "Fictional records for local software verification only"
+      }
+    ],
+    "exclusions": [
+      {
+        "code": "unsupported_tax_class",
+        "locator": "fictional:excluded-row",
+        "reason": "Excluded fictional non-equity observation"
+      }
+    ],
+    "observations": {
+      "coverage": "Fictional source; account completeness is not established"
+    }
+  },
+  "source_base64": "c2VjdXJpdHkscXVhbnRpdHksdG90YWxfYmFzaXMKQUJDLDEyLjUwMDAsdW5rbm93bgo="
+}

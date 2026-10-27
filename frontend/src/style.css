@@ -8,9 +8,10 @@ h1 { font-size: clamp(32px, 5vw, 46px); letter-spacing: -.045em; line-height: 1.
 h2 { font-size: 23px; letter-spacing: -.025em; margin: 0 0 12px; }
 h3 { font-size: 17px; margin: 0 0 14px; }
 h4 { font-size: 14px; margin: 22px 0 10px; }
-p { line-height: 1.6; margin: 10px 0; }
+p { overflow-wrap: anywhere; line-height: 1.6; margin: 10px 0; }
 section { background: white; border: 1px solid #cbd7cf; border-radius: 12px; padding: 24px; margin: 18px 0; min-width: 0; }
 .badge { display: inline-block; border-radius: 20px; padding: 7px 11px; font-size: 12px; font-weight: 650; color: #28543f; background: #e5efe8; white-space: nowrap; }
+.page-header > .badge { white-space: normal; }
 .muted { color: #50605a; background: #edf0ee; }
 .blocked { background: #fbe9df; color: #853e20; }
 .notice { background: #e8eee8; border-left: 3px solid #527e62; border-radius: 3px; padding: 13px 18px; font-size: 14px; line-height: 1.6; }
@@ -97,3 +98,8 @@ tbody th { font-weight: 600; }
   .retrieval form { grid-template-columns: 1fr; }
   .identity code, dd { word-break: break-word; }
 }
+
+textarea, select { display: block; width: 100%; max-width: 100%; padding: 10px; margin: 8px 0 16px; border: 1px solid #a9bcae; border-radius: 5px; background: white; color: inherit; }
+textarea, pre { font-family: ui-monospace, monospace; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+section > button { margin: 8px 10px 8px 0; }

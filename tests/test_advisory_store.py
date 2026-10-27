@@ -1,7 +1,8 @@
-"""Advisory user-work preservation, safe retries and explicit legacy mapping."""
+"""Advisory user-work preservation, safe retries and current normalized records."""
 
 import hashlib
 import json
+import os
 import runpy
 import sqlite3
 import subprocess
@@ -18,7 +19,6 @@ from pydantic import JsonValue, ValidationError
 
 import prosper.advisory_store as module
 from prosper import basket
-from prosper.advisory_legacy import export_checkpoint, map_checkpoint
 from prosper.advisory_records import (
     DecimalFact,
     Fact,
@@ -26,13 +26,10 @@ from prosper.advisory_records import (
     ImportSnapshot,
     Lot,
     Position,
-    SavedSuggestion,
     Security,
 )
 from prosper.advisory_store import DATABASE_NAME, AdvisoryStore
-from prosper.evidence import EvidenceStore, RuntimeBoundary
-from prosper.imports import ImportService
-from prosper.persistence import CheckpointStore, PersistenceError
+from prosper.storage import PersistenceError, RuntimeBoundary
 
 ROOT = Path(__file__).resolve().parents[1]
 AS_OF = "2026-10-23T20:00:00Z"
@@ -84,7 +81,7 @@ def snapshot(raw: bytes = RAW) -> ImportSnapshot:
 
 @pytest.fixture
 def store(tmp_path: Path) -> AdvisoryStore:
-    return AdvisoryStore(RuntimeBoundary(tmp_path / "advisory", ROOT, "synthetic"))
+    return AdvisoryStore(RuntimeBoundary(tmp_path / "advisory"))
 
 
 def select(store: AdvisoryStore) -> str:
@@ -112,7 +109,7 @@ def counts(store: AdvisoryStore) -> tuple[int, ...]:
     with closing(sqlite3.connect(store.runtime.path(DATABASE_NAME))) as connection:
         return tuple(
             connection.execute(f"SELECT count(*) FROM {name}").fetchone()[0]
-            for name in ("sources", "snapshots", "commands", "runs", "suggestions")
+            for name in ("sources", "snapshots", "commands", "runs", "worksheets")
         )
 
 
@@ -264,33 +261,6 @@ def test_stale_input_and_out_of_order_results_cannot_publish(store: AdvisoryStor
         start(store, "run-a", 2)
 
 
-def test_unvalidated_suggestion_round_trip_and_edits_create_new_records(
-    store: AdvisoryStore,
-) -> None:
-    select(store)
-    start(store)
-    suggestion = SavedSuggestion(
-        id="worksheet-a",
-        run_id="run-a",
-        saved_at=AS_OF,
-        export_as_of=AS_OF,
-        worksheet={"lines": [], "estimated_cash": 0.0},
-        assumptions=("Synthetic diagnostic worksheet",),
-        warnings=("Not validated for trading",),
-    )
-    with pytest.raises(PersistenceError, match="completed_analysis_required"):
-        store.save_suggestion(suggestion)
-    store.complete_run("run-a", outputs={"nav": 125.0}, status="partial")
-    assert store.save_suggestion(suggestion) == suggestion
-    assert store.save_suggestion(suggestion) == suggestion
-    changed = suggestion.model_copy(update={"worksheet": {"lines": [], "estimated_cash": 1.0}})
-    with pytest.raises(PersistenceError, match="immutable"):
-        store.save_suggestion(changed)
-    store.save_suggestion(changed.model_copy(update={"id": "worksheet-b"}))
-    assert AdvisoryStore.existing(store.runtime).suggestion("worksheet-a") == suggestion
-    assert counts(store)[-1] == 2
-
-
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
 def test_nonfinite_settings_inputs_and_outputs_never_persist(
     store: AdvisoryStore, bad: float
@@ -339,43 +309,6 @@ def test_bad_source_and_nested_mutations_cannot_be_staged(store: AdvisoryStore) 
     with pytest.raises(PersistenceError, match="invalid_advisory_record"):
         store.stage(snapshot().model_copy(update={"lots": (unresolved,)}), RAW)
     assert counts(store) == (0, 0, 0, 0, 0)
-
-
-def test_legacy_export_mapping_preserves_old_selected_state(store: AdvisoryStore) -> None:
-    legacy = ImportService(CheckpointStore(EvidenceStore(store.runtime)))
-    raw = (ROOT / "examples/synthetic/F001.json").read_bytes()
-    preview = legacy.previews.stage(raw)
-    identity = preview.receipt.raw_sha256
-    legacy.commit(identity, "legacy-first", 0)
-    before = legacy.current()
-    mapped = map_checkpoint(legacy.store, identity)
-    assert export_checkpoint(legacy.store, identity) == raw
-    new = store.stage(mapped, raw)
-    store.select(new, "mapped-first", 0)
-    assert legacy.current() == before
-    assert store.source(new) == raw
-    assert [x.quantity.value for x in mapped.positions] == ["12", "5"]
-    assert mapped.lots[0].total_basis.value is not None
-    assert mapped.observations["activity"]  # Retained, never reapplied.
-    assert mapped.findings[0].code == "legacy_mapping"
-    with pytest.raises(PersistenceError):
-        map_checkpoint(legacy.store, "history-object-is-not-a-checkpoint")
-
-
-def test_legacy_maximum_length_cash_id_maps_without_truncation_collision(
-    store: AdvisoryStore,
-) -> None:
-    legacy = ImportService(CheckpointStore(EvidenceStore(store.runtime)))
-    document = json.loads((ROOT / "examples/synthetic/F001.json").read_bytes())
-    document["cash"][0]["id"] = "a" * 128
-    raw = json.dumps(document).encode()
-    identity = legacy.previews.stage(raw).receipt.raw_sha256
-    legacy.commit(identity, "legacy-first", 0)
-    mapped = map_checkpoint(legacy.store, identity)
-    assert len({cash.id for cash in mapped.cash}) == len(mapped.cash)
-    assert all(len(cash.id) <= 128 for cash in mapped.cash)
-    new = store.stage(mapped, raw)
-    assert store.source(new) == raw
 
 
 def test_new_estimate_inputs_outputs_and_code_independent_historical_view(
@@ -457,7 +390,7 @@ def test_date_only_source_has_no_invented_time_and_corrupt_source_cannot_be_reim
     identity = store.stage(imported, RAW)
     assert store.snapshot(identity).source_as_of == "2026-10-23"
     with closing(sqlite3.connect(store.runtime.path(DATABASE_NAME))) as connection:
-        connection.execute("UPDATE sources SET raw=?", (b"corrupt bytes",))
+        connection.execute("UPDATE sources SET zlib_bytes=?", (b"corrupt bytes",))
         connection.commit()
     with pytest.raises(PersistenceError, match="source_unavailable_or_corrupt"):
         store.stage(imported, RAW)
@@ -489,8 +422,8 @@ def test_process_death_during_pending_transaction_rolls_back(store: AdvisoryStor
 import os, sys
 from pathlib import Path
 import prosper.advisory_store as m
-from prosper.evidence import RuntimeBoundary
-store=m.AdvisoryStore.existing(RuntimeBoundary(Path(sys.argv[1]),Path(sys.argv[2]),'synthetic'))
+from prosper.storage import RuntimeBoundary
+store=m.AdvisoryStore.existing(RuntimeBoundary(Path(sys.argv[1])))
 def crash(connection):
     os._exit(23)
 m._before_commit=crash
@@ -515,8 +448,8 @@ def test_pending_transaction_serializes_another_process_before_revision_check(
 import json, sys
 from pathlib import Path
 from prosper.advisory_store import AdvisoryStore
-from prosper.evidence import RuntimeBoundary
-store=AdvisoryStore.existing(RuntimeBoundary(Path(sys.argv[1]),Path(sys.argv[2]),'synthetic'))
+from prosper.storage import RuntimeBoundary
+store=AdvisoryStore.existing(RuntimeBoundary(Path(sys.argv[1])))
 print('ready', flush=True)
 print(json.dumps(store.select(sys.argv[3], 'waiting-writer', 1)), flush=True)
 """
@@ -580,3 +513,65 @@ def test_restore_marker_and_hardlink_alias_block_reads(store: AdvisoryStore) -> 
             store.current()
     finally:
         alias.unlink()
+
+
+def test_concurrent_journal_churn_preserves_guarded_reads(store: AdvisoryStore) -> None:
+    """Reach real SQLite journal creation/deletion while other windows inspect it."""
+    select(store)
+
+    def write() -> None:
+        for i in range(100):
+            store.configure({"iteration": i}, f"churn-{i}", i + 1)
+
+    def read() -> None:
+        for _ in range(200):
+            try:
+                assert store.current()["snapshot_id"] is not None
+            except PersistenceError as error:
+                metadata: dict[str, tuple[int, int, int] | None] = {}
+                for suffix in ("", "-journal", "-wal", "-shm"):
+                    try:
+                        info = store.runtime.root.joinpath(DATABASE_NAME + suffix).lstat()
+                        metadata[suffix] = (info.st_mode, info.st_nlink, info.st_size)
+                    except FileNotFoundError:
+                        metadata[suffix] = None
+                pytest.fail(f"{error.code}: suffix mode/link/size={metadata}")
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = [pool.submit(write), *(pool.submit(read) for _ in range(3))]
+        for future in futures:
+            future.result()
+    assert store.current()["revision"] == 101
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows delete-pending sidecar metadata")
+@pytest.mark.parametrize("after", ["missing", "regular", "persistent", "hardlink", "main"])
+def test_zero_link_sidecar_requires_fresh_trusted_metadata(
+    store: AdvisoryStore, monkeypatch: pytest.MonkeyPatch, after: str
+) -> None:
+    original = Path.lstat
+    target = store.runtime.root / (DATABASE_NAME + ("" if after == "main" else "-journal"))
+    metadata = original(store.runtime.root / DATABASE_NAME)
+    calls = 0
+
+    def inspect(path: Path) -> os.stat_result:
+        nonlocal calls
+        if path != target:
+            return original(path)
+        calls += 1
+        if calls > 2 and after == "missing":
+            raise FileNotFoundError
+        fields = list(metadata)
+        # _chain and the guard each lstat the target. Never trust zero links;
+        # only a fresh regular file or disappearance may end the retry.
+        fields[3] = (
+            0 if calls <= 2 or after in ("persistent", "main") else 2 if after == "hardlink" else 1
+        )
+        return os.stat_result(fields, {"st_file_attributes": metadata.st_file_attributes})
+
+    monkeypatch.setattr(Path, "lstat", inspect)
+    if after in ("persistent", "hardlink", "main"):
+        with pytest.raises(PersistenceError, match="untrusted_database_file"):
+            store.current()
+    else:
+        assert store.current()["revision"] == 0

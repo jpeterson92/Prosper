@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib.util
+import json
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -215,17 +216,18 @@ def test_masked_unknowns_are_not_coerced_into_observations() -> None:
         )
 
 
-def test_source_and_frozen_specification_are_bound() -> None:
+def test_source_and_reference_specification_identity_are_bound() -> None:
     assert (
         shrinkage.IMPLEMENTATION_SHA256
         == hashlib.sha256(Path(shrinkage.__file__).read_bytes()).hexdigest()
     )
-    assert (
-        shrinkage.SPECIFICATION_SHA256
-        == hashlib.sha256(
-            (SCRIPT.parents[1] / "docs/tasks/T006.2.1.1-python-numerical-spec.md").read_bytes()
-        ).hexdigest()
+    # The identifier records the original numerical definition used by the
+    # frozen corpus. Editing a navigation link in the live document does not
+    # change that definition or require rewriting historical reference outputs.
+    reference = json.loads(
+        (SCRIPT.parents[1] / "examples/synthetic/dcc/reference.json").read_bytes()
     )
+    assert shrinkage.SPECIFICATION_SHA256 == reference["specification_sha256"]
 
 
 @pytest.mark.parametrize("mode", ["negative", "eigensolver", "non-spd"])

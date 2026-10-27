@@ -1,0 +1,89 @@
+{
+  "analysis_date": "2026-10-23",
+  "max_mark_age_days": 0,
+  "max_snapshot_age_days": 0,
+  "marks": [
+    {
+      "security_id": "security-faaa",
+      "identity": "fictional-identity:FAAA",
+      "price": {
+        "value": "100.00",
+        "reason": null
+      },
+      "day": {
+        "value": "2026-10-23",
+        "reason": null
+      },
+      "source_ref": "Fictional reference mark, not an execution quote",
+      "currency": "USD"
+    },
+    {
+      "security_id": "security-fbbb",
+      "identity": "fictional-identity:FBBB",
+      "price": {
+        "value": "30.00",
+        "reason": null
+      },
+      "day": {
+        "value": "2026-10-23",
+        "reason": null
+      },
+      "source_ref": "Fictional reference mark, not an execution quote",
+      "currency": "USD"
+    },
+    {
+      "security_id": "security-fccc",
+      "identity": "fictional-identity:FCCC",
+      "price": {
+        "value": "40.00",
+        "reason": null
+      },
+      "day": {
+        "value": "2026-10-23",
+        "reason": null
+      },
+      "source_ref": "Fictional reference mark, not an execution quote",
+      "currency": "USD"
+    },
+    {
+      "security_id": "security-fddd",
+      "identity": "fictional-identity:FDDD",
+      "price": {
+        "value": "40.00",
+        "reason": null
+      },
+      "day": {
+        "value": "2026-10-23",
+        "reason": null
+      },
+      "source_ref": "Fictional reference mark, not an execution quote",
+      "currency": "USD"
+    }
+  ],
+  "sell_fee_per_isolated_order": {
+    "value": "1.00",
+    "reason": null
+  },
+  "sell_discount_bps": {
+    "value": "10.0",
+    "reason": null
+  },
+  "cash_to_invest": "0",
+  "cash_budget_reviewed": true,
+  "final_cash_target": {
+    "enabled": false,
+    "amount": null,
+    "investor_tolerance": null
+  },
+  "funding_assumption": {
+    "value": "Fictional same-session sell proceeds may fund buys; broker availability remains unverified",
+    "reason": null
+  },
+  "history_coverage": {
+    "value": null,
+    "reason": "No complete household activity history was supplied"
+  },
+  "manual_restrictions": [],
+  "supplied_activity": [],
+  "relationships": []
+}

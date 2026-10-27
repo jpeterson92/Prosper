@@ -1,0 +1,106 @@
+{
+  "version": "fictional-fixed-forward-v1",
+  "scope": "synthetic harness evidence only; no model/financial acceptance",
+  "seed": 6242,
+  "training_sessions": 1260,
+  "evaluation_sessions": 252,
+  "origin_stride": 21,
+  "horizons": [
+    1,
+    21
+  ],
+  "stress": {
+    "start": 1260,
+    "stop": 1386,
+    "return_and_log_range_multiplier": 3
+  },
+  "benchmark": [
+    0.3333333333333333,
+    0.3333333333333333,
+    0.3333333333333333
+  ],
+  "portfolios": [
+    {
+      "name": "fixed-tilt",
+      "stock_weights": [
+        0.6,
+        0.3,
+        0.1
+      ],
+      "cash_weight": 0
+    },
+    {
+      "name": "fixed-replacement",
+      "stock_weights": [
+        0.2,
+        0.3,
+        0.5
+      ],
+      "cash_weight": 0
+    },
+    {
+      "name": "selected-cash",
+      "stock_weights": [
+        0.5,
+        0.25,
+        0.2
+      ],
+      "cash_weight": 0.05
+    },
+    {
+      "name": "zero-active",
+      "stock_weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      "cash_weight": 0
+    }
+  ],
+  "models": [
+    "idr",
+    "returns-only",
+    "static-zero-mean-sample"
+  ],
+  "conventions": {
+    "window": "rolling 1260; each fit uses only sessions strictly before its forecast origin",
+    "realized": "square of sum of constant-active-weight simple returns; zero selected-cash price shock",
+    "projection": "cumulative conditional variance; zero mean/cross-day covariance approximation",
+    "annualization": 252,
+    "loss": "log(predicted cumulative variance) + realized squared active return / predicted variance",
+    "zero_active": "exact zero variance/return; loss unavailable, never log(0) or a fake zero loss",
+    "simple_reference": "full zero-mean sample covariance from identical training returns, constant daily",
+    "no_tuning": "all portfolios, periods, references and diagnostics frozen before outcomes"
+  },
+  "uncertainty": {
+    "method": "paired circular moving-block bootstrap of chronological origin loss differences",
+    "block_origins": 2,
+    "draws": 2000,
+    "seed": 62420,
+    "quantiles": [
+      0.025,
+      0.975
+    ],
+    "interpretation": "exploratory synthetic uncertainty; 12 origins do not establish model superiority"
+  },
+  "sensitivity": [
+    "one-versus-21-session annualized equivalent",
+    "fixed-unconditional-versus-R1-weighted scalar seed",
+    "three-session refusal",
+    "non-R1 profile refusal"
+  ],
+  "workload_names": [
+    3,
+    8,
+    79,
+    603,
+    3542
+  ],
+  "workload_timeout_seconds": 60,
+  "acceptance": {
+    "software": "exact window/order preservation, finite valid scores or explicit refusal, attribution/units reconciliation and immutable recovery",
+    "model": "no synthetic loss threshold grants real calibration, production settings, capacity or financial acceptance",
+    "unsupported": "retain requested dimensions and first failed stage; no limit increase, truncated universe or fallback",
+    "actual_retained_union": "unavailable: no qualified actual full-union inputs supplied"
+  }
+}

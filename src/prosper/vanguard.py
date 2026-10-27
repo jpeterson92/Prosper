@@ -6,12 +6,12 @@ Request binding, structural inspection and financial qualification are distinct.
 
 import hashlib
 import json
+import math
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
-from fractions import Fraction
 from http.client import HTTPException, IncompleteRead
 from typing import Literal
 from urllib.error import HTTPError, URLError
@@ -106,7 +106,7 @@ class Section:
     name: str
     rows: tuple[JsonValue, ...] = field(repr=False)
     # Partial sum of explicitly numeric source percentages, never a normalized weight.
-    known_weight_percent_sum: Fraction | None
+    known_weight_percent_sum: float | None
     unknown_weight_rows: tuple[int, ...]
 
 
@@ -187,7 +187,7 @@ def _date(value: JsonValue) -> date:
         raise _Invalid("invalid_effective_date") from exc
 
 
-def _weight(value: JsonValue) -> Fraction | None:
+def _weight(value: JsonValue) -> float | None:
     if not isinstance(value, str) or not value or len(value) > 128:
         return None
     if not re.fullmatch(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", value):
@@ -197,7 +197,8 @@ def _weight(value: JsonValue) -> Fraction | None:
         exponent = decimal.as_tuple().exponent
         if not isinstance(exponent, int) or abs(exponent) > 40:
             return None
-        return Fraction(decimal)
+        result = float(decimal)
+        return result if math.isfinite(result) and (decimal == 0 or result != 0) else None
     except (InvalidOperation, ValueError):
         return None
 
@@ -262,7 +263,7 @@ def _inspect(selection: Selection, response: Response, collected_at: datetime) -
         count += len(rows)
         if count > MAX_ROWS:
             raise _Invalid("row_limit")
-        total = Fraction() if name in WEIGHT_SECTIONS else None
+        total = 0.0 if name in WEIGHT_SECTIONS else None
         unknown: list[int] = []
         for index, row in enumerate(rows):
             if not isinstance(row, JsonObject):
@@ -351,7 +352,7 @@ def acquire(
 ) -> Acquisition:
     """Retain source evidence and observations without publishing a benchmark.
 
-    Inject transport/time for deterministic synthetic verification. Network failure
+    Inject transport/time for deterministic verification. Network failure
     and unavailable dates never initiate another source/date request.
     """
     collected = datetime.now(UTC) if collected_at is None else collected_at

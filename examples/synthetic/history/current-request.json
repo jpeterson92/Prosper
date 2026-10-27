@@ -1,0 +1,67 @@
+{
+  "request": {
+    "series": [
+      {
+        "security_id": "security-b",
+        "provider": "fictional-provider",
+        "dataset": "fictional-ohlc",
+        "permission_scope": "fictional-test-data",
+        "provider_symbol": "security-b",
+        "mapping_start": "2000-01-01",
+        "mapping_end": "2030-01-01",
+        "currency": "USD",
+        "calendar": "fictional-declared-sessions",
+        "timezone": "UTC",
+        "interval": "1d",
+        "adjustment": "no-actions",
+        "action_convention": "compatible-total-return-and-raw-ohlc",
+        "repair": "none",
+        "source_schema": "fictional-ohlc-v1",
+        "transform_version": "none-v1",
+        "return_convention": "simple-total-return-decimal",
+        "vintage": "fictional-v1",
+        "coherence": "immutable-vintage",
+        "coherence_evidence": "Fictional immutable vintage assertion for software checks only"
+      },
+      {
+        "security_id": "security-a",
+        "provider": "fictional-provider",
+        "dataset": "fictional-ohlc",
+        "permission_scope": "fictional-test-data",
+        "provider_symbol": "security-a",
+        "mapping_start": "2000-01-01",
+        "mapping_end": "2030-01-01",
+        "currency": "USD",
+        "calendar": "fictional-declared-sessions",
+        "timezone": "UTC",
+        "interval": "1d",
+        "adjustment": "no-actions",
+        "action_convention": "compatible-total-return-and-raw-ohlc",
+        "repair": "none",
+        "source_schema": "fictional-ohlc-v1",
+        "transform_version": "none-v1",
+        "return_convention": "simple-total-return-decimal",
+        "vintage": "fictional-v1",
+        "coherence": "immutable-vintage",
+        "coherence_evidence": "Fictional immutable vintage assertion for software checks only"
+      }
+    ],
+    "sessions": [
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23"
+    ],
+    "predecessor": "2026-10-20",
+    "cutoff": "2026-10-23",
+    "known_at": "2026-10-25T00:00:00Z",
+    "calendar_evidence": "Fictional explicit ordered trading-session calendar",
+    "overlap_sessions": 1,
+    "manual_security_ids": [],
+    "profile": {
+      "identity": "R1",
+      "f": "0.25",
+      "a3": "0.17",
+      "kappa": "10000"
+    }
+  }
+}

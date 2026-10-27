@@ -170,7 +170,6 @@ def test_located_row_refusals_preserve_rejected_source(
         ("source_sha256", "", "missing_provenance"),
         ("vintage", "", "missing_provenance"),
         ("timezone", "", "timezone"),
-        ("fictional", False, "synthetic_only"),
         ("cutoff", "2099-01-01", "sessions"),
         ("sessions", (), "sessions"),
         ("security_ids", (), "security_identity"),

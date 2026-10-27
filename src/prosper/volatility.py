@@ -1,4 +1,4 @@
-"""Synthetic R1 scalar GARCH qualification, not investor/model acceptance.
+"""R1 scalar GARCH qualification, not investor/model acceptance.
 
 Zero mean, all observations scored, fixed weighted seed and observed second
 moment. All nine SLSQP starts retain their status; no penalty/fallback rescues a
@@ -16,7 +16,7 @@ from typing import Any, Literal
 import numpy as np
 import scipy  # type: ignore[import-untyped]
 from numpy.typing import NDArray
-from scipy import optimize
+from scipy import optimize, signal
 
 from prosper.innovations import SPECIFICATION_SHA256, InnovationResult, fingerprint
 
@@ -54,7 +54,6 @@ class VolatilityInput:
     innovation_identity_sha256: str
     purpose: str
     expected_observations: int
-    fictional: bool = True
 
 
 @dataclass(frozen=True)
@@ -141,7 +140,6 @@ def series_from_innovations(
         result.identity_sha256,
         purpose,
         expected_observations,
-        result.context.fictional,
     )
 
 
@@ -201,30 +199,45 @@ def evaluate_fixed(
     omega = u * s2
     if not math.isfinite(omega) or omega <= 0:
         raise VolatilityUnavailable("omega", "positive representable omega required")
-    variances, standardized, contributions = [], [], []
-    sensitivities: list[Theta] = []
-    derivatives: list[Theta] = []
-    variance = seed
-    dv: Theta = (0.0, 0.0, 0.0)
-    for t, value in enumerate(x):
-        if t:
-            dv = (s2 + b * dv[0], squares[t - 1] + b * dv[1], variance + b * dv[2])
-            variance = omega + g * squares[t - 1] + b * variance
-        if not math.isfinite(variance) or variance <= 0:
+    # h[t] = omega + g*x[t-1]^2 + b*h[t-1]. The same first-order
+    # filter evaluates each derivative with its own forcing and zero seed.
+    # Full scalar paths are already part of this primitive's returned record.
+    squared = np.asarray(squares, dtype=np.float64)
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore", under="ignore"):
+        forcing = np.empty(len(x), dtype=np.float64)
+        forcing[0], forcing[1:] = seed, omega + g * squared[:-1]
+        variance = signal.lfilter([1.0], [1.0, -b], forcing)
+        forcing_dv = np.zeros((3, len(x)), dtype=np.float64)
+        forcing_dv[0, 1:] = s2
+        forcing_dv[1, 1:] = squared[:-1]
+        forcing_dv[2, 1:] = variance[:-1]
+        dv = signal.lfilter([1.0], [1.0, -b], forcing_dv, axis=1)
+        invalid_variance = ~np.isfinite(variance) | (variance <= 0)
+        ratio = squared / variance
+        derivatives = (1 - ratio) / 2 * (dv / variance)
+        standardized = np.asarray(x, dtype=np.float64) / np.sqrt(variance)
+    # Retain the existing scalar log and math.fsum score conventions.
+    constant = math.log(2 * math.pi)
+    contributions = tuple(
+        (constant + math.log(value) + r) / 2 if valid else math.nan
+        for value, r, valid in zip(
+            variance.tolist(), ratio.tolist(), (~invalid_variance).tolist(), strict=True
+        )
+    )
+    invalid_path = (
+        ~np.isfinite(contributions)
+        | ~np.isfinite(standardized)
+        | ~np.isfinite(dv).all(axis=0)
+        | ~np.isfinite(derivatives).all(axis=0)
+    )
+    invalid = np.flatnonzero(invalid_variance | invalid_path)
+    if invalid.size:
+        t = int(invalid[0])
+        if invalid_variance[t]:
             raise VolatilityUnavailable("variance", f"observation {t}: nonpositive/nonfinite state")
-        ratio = squares[t] / variance
-        nll = (math.log(2 * math.pi) + math.log(variance) + ratio) / 2
-        gradient = tuple((1 - ratio) / 2 * (d / variance) for d in dv)
-        z = value / math.sqrt(variance)
-        if not all(math.isfinite(v) for v in (nll, z, *dv, *gradient)):
-            raise VolatilityUnavailable("path", f"observation {t}: nonfinite score/sensitivity")
-        variances.append(variance)
-        standardized.append(z)
-        contributions.append(nll)
-        sensitivities.append(dv)
-        derivatives.append((gradient[0], gradient[1], gradient[2]))
+        raise VolatilityUnavailable("path", f"observation {t}: nonfinite score/sensitivity")
     total = math.fsum(contributions)
-    grad: Theta = tuple(math.fsum(row[j] for row in derivatives) for j in range(3))  # type: ignore[assignment]
+    grad: Theta = tuple(math.fsum(row) for row in derivatives.tolist())  # type: ignore[assignment]
     if not all(math.isfinite(v) for v in (total, *grad)):
         raise VolatilityUnavailable("objective", "nonfinite summed objective/gradient")
     return VariancePath(
@@ -235,11 +248,11 @@ def evaluate_fixed(
         "R1-weighted" if initial_variance is None else "explicit-fixed-state",
         seed,
         omega,
-        tuple(variances),
-        tuple(standardized),
-        tuple(contributions),
+        tuple(variance.tolist()),
+        tuple(standardized.tolist()),
+        contributions,
         total,
-        tuple(sensitivities),
+        tuple(zip(*dv.tolist(), strict=True)),
         grad,
     )
 
@@ -281,10 +294,8 @@ def forecast_variance(path: VariancePath, horizon: int) -> tuple[float, ...]:
 
 
 def _validate_input(data: VolatilityInput) -> None:
-    if data.fictional is not True or data.timezone != "UTC":
-        raise VolatilityUnavailable(
-            "synthetic_only", f"{data.security_id}: fictional UTC inputs only"
-        )
+    if data.timezone != "UTC":
+        raise VolatilityUnavailable("timezone", f"{data.security_id}: UTC session dates required")
     if (
         not data.security_id.strip()
         or not data.calendar
@@ -439,7 +450,7 @@ def _run_start(data: VolatilityInput, index: int, initial: Theta) -> StartDiagno
 
 
 def fit_volatility(data: VolatilityInput, *, horizon: int = 21) -> VolatilityResult:
-    """One synthetic scalar R1 fit; unavailable fits retain all nine start records."""
+    """One scalar R1 fit; unavailable fits retain all nine start records."""
     _validate_input(data)
     if type(horizon) is not int or horizon not in (1, 21):
         raise VolatilityUnavailable("horizon", "R1 qualification supports 1 or 21 sessions")
@@ -500,7 +511,7 @@ def fit_volatility(data: VolatilityInput, *, horizon: int = 21) -> VolatilityRes
         )
     else:
         issues = ("no_eligible_start",)
-    status = "qualified-synthetic-fit" if path is not None else "unavailable"
+    status = "fit-complete" if path is not None else "unavailable"
     output_hash = fingerprint(
         {
             "status": status,

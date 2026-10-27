@@ -1,124 +1,38 @@
 # Product specification
 
-Status: adopted product-planning baseline, October 22, 2026, amended by the owner's October 23 [holdings-first and selected-cash direction](../architecture/decisions/0004-adopt-holdings-first-inputs.md) (D038-D039). See [decisions](../DECISIONS.md) and [ADR-0001](../architecture/decisions/0001-adopt-project-architecture.md). Requirements are accepted direction, not evidence of implemented or qualified behavior.
+Current v1 requirements, October 25, 2026. [STATUS](../STATUS.md) records implementation evidence; [delivery plan](../PROJECT_PLAN.md) and [remaining tasks](../tasks/REMAINING_WORK_PLAN.md) own execution. Product rules are incorporated here and in the linked domain contracts; ADR history is not required intake.
 
-Current first-release contract: [D046/ADR-0012](../architecture/decisions/0012-adopt-proportional-advisory-scope.md). Estimated suggestions end at save/manual export; execution tracking, reconciliation and monitoring are deferred. See [numeric](../engineering/ADVISORY_NUMERICS.md) and [record](../architecture/DATA_CONTRACTS.md) contracts. T019 changes requirements before runtime remediation; implemented behavior remains in STATUS.
+## Current MVP milestone
+
+The owner adopted a personal local research MVP on October 27. Deliver useful actual-input diagnostics first, then exploratory use of the existing model/candidate/worksheet path, then observed improvements. Mathematical input sufficiency and all enabled hard limits remain mandatory. Independent review/calibration gates govern financial reliance and accepted quality claims, rather than basic import or clearly labeled exploration. Public installer/support/release work is later. One local workspace and one set of input/calculation contracts serve every input; the app has no synthetic-versus-real category. The [delivery route](../tasks/REMAINING_WORK_PLAN.md#mvp-delivery-route) owns sequencing.
 
 ## User and job
 
-The application has never been released. [D047](../architecture/decisions/0013-adopt-unreleased-clean-break-development.md) removes backward compatibility with previous implementations from every future feature's scope. Current-format saved results, financial correctness, privacy and recovery retain their user purpose; old schemas/APIs/readers/backups need not be supported or migrated.
+The first user already owns a supported individual-stock/direct-indexing sleeve, understands a benchmark/risk budget and can place specific-lot trades manually. Prosper estimates harvest opportunities and resulting sleeve risk; the user owns financial settings, account activity and broker execution. The project also serves a FinTech learning/showcase goal, without making experiments prerequisites to a useful application.
 
-The primary user is a sophisticated individual investor who understands taxable investing, chooses a benchmark and risk budget, and can place specific-lot stock trades. The product should let that investor operate a repeatable process without programming or hiring a portfolio manager. An accountant may review exported evidence but is not assumed to operate the software.
-
-The first job is maintaining an existing direct-indexing sleeve. The investor already owns individual stocks, wants to realize selected losses, and wants to understand the cost and risk of the resulting holdings relative to their benchmark. The product does not choose their financial goals or determine suitability.
-
-D031 adopts an initial pilot who already owns a qualified stock sleeve and can provide supported lot and household evidence. Demand, acceptable manual burden and usability remain unvalidated; ETF/cash onboarding is deferred. Before a broad workflow build, walk through representative synthetic broker/lot/confirmation evidence and record setup, review, execution and recovery effort.
-
-## First-release scope
-
-| Area | Included in adopted initial-release scope | Deferred or blocked |
-| --- | --- | --- |
-| Traded assets | Long-only USD U.S.-listed ordinary domestic-corporation common equity with qualified tax evidence, plus explicit cash | Options, shorts, margin borrowing, funds as replacement holdings, ADR/foreign tax issues, crypto, preferred/convertible securities |
-| Accounts | One taxable account for orders; relevant other-account facts supplied for conflict screening | Coordinated multi-account trade optimization; uncertain ownership relationships require review |
-| Lots | Distinguishable open lots with source-reported total basis as a disclosed starting assumption; preserve supplied holding-period evidence | Unknown/disputed basis, ambiguous sale lots, unresolved transfers, average-cost ambiguity, unsupported corporate actions; unknown term stays unknown |
-| Quantities | Decimal ingestion preserves all shares; whole-share proposed orders initially, with fractional residuals retained | Fractional order generation until a selected broker workflow is qualified |
-| Portfolio | Existing equity sleeve with an equity-only benchmark, explicit exclusions/restrictions/risk limits, initial cash budget and optional final cash target | ETFs, bonds and other unsupported instruments as modeled holdings; ETF liquidation/transitions, leverage and complex funding/withdrawal optimization |
-| Connectivity | Generic files, one qualified broker-specific workflow when selected | Credentials, scraping, order APIs, unattended trading |
-| Taxes | Estimated federal loss economics and conservative conflict screening for supported cases | Tax filing, complete household tax return, state calculations, legal clearance of every security relationship |
-| Access | Local single-user review and reports | Multi-user hosted service, advisor platform, remote sharing |
-
-Unsupported assets in other accounts may still affect the traded sleeve. The product must capture their existence and block affected recommendations when their relevance cannot be assessed. Excluding options from order generation does not make their wash-sale implications disappear.
-
-D034 adopts qualified ordinary domestic-corporation common equity cases. REIT/RIC/BDC, partnership, ADR/foreign and uncertain classifications are excluded from actionable generation initially; unsupported distributions, corporate actions or holding-period events block affected recommendations. Preserve their quantities and diagnostic observations; D045 excludes unsupported/unmapped rows from the modeled sleeve. Unbounded dependency impact blocks the account-level plan. See the [tax policy](../domain/TAX_POLICY.md); a ticker or acquisition date cannot replace required classification, adjusted basis or holding-period evidence.
+V1 supports U.S. federal taxable investing, ordinary domestic-corporation common equity, USD, one traded account and relevant supplied household restrictions. Unsupported tax classifications/events or ambiguous identity remain visible and block affected suggestions. ETF units, bonds, derivatives, cash-only onboarding and appreciated-ETF transitions are outside the initial modeled portfolio. Full source observations remain available for diagnostics/restrictions.
 
 ## Investor workflow
 
-### 1. Establish a portfolio profile
-
-Choose the traded account, benchmark, candidate universe, restricted names, cash floor, security/sector limits, tracking-error budget, trade-count limit, turnover and transaction-cost assumptions. Record federal jurisdiction/tax-year assumptions and the scope of supplied household screening facts. The default realized-gain budget is zero; enabling gains is an explicit change with separate acceptance.
-
-The standard benchmark flow selects a supported Vanguard ETF and its actual reported full-portfolio date through the local backend. Preserve all source rows/unknowns and reconcile duplicate/alternate representations, then show retained mapped equities and explicit unsupported/unmapped exclusions with counts, reasons and known values/unknowns. Under [D045/ADR-0011](../architecture/decisions/0011-adopt-equity-only-scope-and-final-cash-target.md), the modeled benchmark is the retained equity subset rescaled by retained market values to approximately 100% under the numerical contract. Label it an equity-only disclosed-holdings proxy. No fund is preselected; creation/redemption baskets and silent source/date fallback are forbidden. Preview/review precedes frozen activation; refresh preserves old versions. Manual/custom files remain explicit secondary routes. Source-controlled demonstrations/tests remain invented and offline; selector/activation qualification is still pending.
-
-D045 retains E, the sum of supported mapped primary equity values, as the marketValue/E denominator. D046 uses Float64 derived weights with tested tolerances, preserving original source/exclusion information without universal rational/token proofs. Missing/contradictory included facts or nonpositive E block the dependent result. Excluded instruments require no modeled returns and create no inferred cash. Existing [synthetic exact-ratio evidence](../tasks/T006.1.8.2-source-qualification.md#october-25-synthetic-equity-only-transformation-execution) remains evidence of that older implementation, not the new numeric acceptance criterion.
-
-The application displays what information it requires and why. It distinguishes a real imported portfolio from the synthetic demonstration portfolio. It does not prefill unverified tax rates or present tax estimates as personalized liabilities.
-
-### 2. Import and reconcile
-
-Accept a lot-level holdings file as the normal entry point. Preview supplied holdings, lots, activity and cash, with source/import dates, rejected rows and duplicate/correction handling. Form a derived holdings view from lots when no separate position export exists; label it as derived. Compare independent snapshots when supplied and preserve genuine disagreements. Supplement the broker file with account/currency/as-of confirmation, supported security resolution, permitted application market/benchmark/risk data and user settings. Full transaction history, a separate position file, durable broker lot IDs and account cash are not mandatory broker-file fields.
-
-Show separate readiness for financial/risk feasibility, wash-sale verification and execution funding. Missing basis, unresolved identity, contradictory holdings or invalid risk inputs block their affected scope. Missing history permits conditional optimization with a persistent unverified-wash-sale warning; it does not prove a clean household. Offer an optional list of recently traded/restricted names. Names alone conservatively exclude that resolved security from both sales and replacement buys for the run; dates, direction and account details are optional refinements. Preserve known conflicts even when omitted from the list. An empty list never validates history. Show gaps in automatic and household activity, including reinvestments. A repeated snapshot cannot add another copy of the same holdings or trades.
-
-Before every optimization, show the optional imported cash fact and a separate editable **additional cash to invest** field. Start an unset selection visibly at zero; let the user select none, part or another supported amount regardless of the imported balance. Preserve the original balance and label manually supplied funding assumptions. The selection is a spending cap, so costs/whole shares may leave a residual. Zero selected cash still permits replacements funded by net sale proceeds. Risk and benchmark comparisons cover the **stock sleeve plus selected cash**, with untouched account cash outside that scope. Report expected deployment, residual cash, costs and funding uncertainty before approval; do not promise that unverified or unsettled funds are available.
-
-Also offer an optional **final cash balance target**, separately from the initial additional-cash budget and imported balance. It can request raising cash from eligible sales or reinvesting selected available cash. Review/freeze target enabled state, exact amount/currency and explicit tolerance/constraint treatment; show expected final cash and any mismatch. Costs, whole shares, zero-positive-gain, risk and funding constraints still apply; an unattainable target does not authorize relaxed caps or gain sales. No implicit final target or instruction to spend the entire account balance is adopted. Unsupported/unmapped holdings remain visible as excluded observations and retain applicable tax/conflict effects; D034 actionable eligibility remains separate. These are future controls, not existing UI behavior.
-
-### 3. Inspect opportunities and baseline risk
-
-Use the [D041 enhanced DCC-NL direction](../architecture/decisions/0007-adopt-enhanced-dcc-nl-industry-risk.md), with qualified OHLC enhancement and an integrated sector/industry framework. Show the model variant, data cutoff, forecast horizon and quality; missing/failed fits remain unavailable. Display portfolio/benchmark/active sector and industry weights, selected limit breaches and signed contributions to total tracking error from that same risk estimate. Explain risk-reducing contributions and distinguish standalone group risk from additive contributions. Sector/industry names and dates retain their source/version; unknown classifications cannot silently disappear. Investors choose explicit limits; no default risk caps or automatic relaxation are adopted. These are accepted requirements, not implemented controls.
-
-Reuse previously downloaded market history across portfolio reviews and application restarts. When the user returns later or changes portfolios, download the missing dates/new securities needed for the requested risk window, with the qualified source-revision checks, and recompute risk from the combined frozen history. Display last usable history date, last successful refresh and unresolved coverage. Complete eligible cached inputs can be used offline with their cutoff visible; stale or missing required inputs retain their risk/freshness blockers. History refresh does not replace current reference-quote qualification. [ADR-0006](../architecture/decisions/0006-adopt-persistent-market-history-cache.md) records this adopted engineering feature; the persistent cache and UI are future implementation.
-
-Offer manual refresh of selected/all required securities and reuse compatible history with gap/overlap/revision checks. Show last usable date, last refresh and unresolved quality issues. Background validation scheduling and persistent scheduling/dispatch controls are deferred under D046; manual refresh never implies that unfetched past revisions have been detected.
-
-Show loss opportunities by exact lot, short/long-term status or unknown, economic amount, tax screening status and reason. Display the no-trade portfolio's active security and sector weights, modeled tracking error and existing limit breaches. Distinguish negative unrealized P&L from a loss currently eligible for a proposed harvest.
-
-Show household coverage by account and time range. User attestations can document activity in an unconnected account but are dated assumptions with a defined scope, not permanent declarations that the household is clear.
-
-### 4. Compare plans
-
-Present the no-trade baseline and a small set of harvest candidates on the same stock-sleeve scope. Each candidate shows exact lots sold, purchases, selected/used/residual cash after costs, ST/LT or unknown-term losses, history-verification status, estimated cost, trade count and before/after risk. Only label modeled allowable losses where evidence supports that calculation; conditional history results remain unverified and never become confirmed deductible losses. Show which restrictions bind and why a higher-loss plan was rejected. Unknown term need not prevent the unweighted loss-dollar objective when ordinary supported basis/identity facts are sufficient; do not invent holding classification.
-
-A replacement can be a basket of stocks. A sector peer is a portfolio choice subject to risk validation and tax-identity review; the software must not invent a universally safe one-for-one replacement. The optimizer cannot clear its own output without an independent deterministic validator.
-
-The headline is a loss/risk/cost tradeoff. A tax-dollar scenario is optional and visibly conditional. It does not imply an immediate refund, permanent savings or validated tax alpha.
-
-D033 adopts eligible price/basis loss at frozen reference marks as the objective; costs cannot increase the reward. Report indicative net-proceeds P&L, modeled costs and cash separately. Require explicit cost/turnover/order/notional budgets and explicit enabled/disabled choices for optional minimum-loss, cost-to-loss and illustrative utilization screens; no invented investor defaults. The [portfolio contract](../domain/PORTFOLIO_CONSTRUCTION.md) defines the equations. D032 retains strict risk caps and zero positive gains for the first pilot; explain unavailable candidates and existing breaches. Do not silently relax constraints to make the demo produce trades.
-
-### 5. Review and execute manually
-
-Review and save/export a dated suggestion, with account alias, security/lot identifiers, whole-share quantities, indicative prices/costs/loss/risk/cash, restrictions, data dates and assumptions. Independently validate final orders before calling the suggestion valid. Editing quantities produces a new checked result. Label it a manual execution worksheet; no executable broker orders or execution status are produced.
-
-A saved/exported result does not reserve shares/cash or imply submission/fills. Changed inputs/settings or stale reference data require fresh analysis for reuse; saved historical outputs remain readable. The investor checks current prices, lot selection and funding at the broker. No claim is made that modeled estimates will hold at fill time.
-
-### 6. Reconcile and monitor
-
-Deferred from the first release: fill/order reconciliation, account/basis reconstruction and forward monitoring. V1 does not infer execution from a worksheet, maintain reservations or certify future wash-window completion. User-facing reminders can describe required external review without claiming to perform it.
-
-After external trading or other account changes, import a fresh holdings/lot snapshot and relevant screening facts before another suggestion. This is a new starting snapshot, not replay of intended trades. Imported source facts and old suggestions remain available for explanation; no authoritative tax ledger is maintained.
+1. **Import current holdings/lots.** Preserve original bytes, account/security/lot references, remaining decimal quantity, reported total adjusted basis, as-of/import dates and available term/classification facts. Durable broker lot IDs, separate positions/cash and complete transaction history are useful optional evidence, not universal prerequisites. File-local row IDs do not claim stable identity across downloads. If independent positions exist, compare them; contradictions are material. Never replay optional activity into holdings already represented by the snapshot.
+2. **Resolve scoped facts.** Supply account/tax scope, missing identity/classification/as-of facts and restrictions through attributable user/reference input. Source-reported basis is a disclosed ordinary-case opening assumption, not a reconstructed tax ledger. Missing basis blocks that lot's loss/sale estimate; unknown term cannot support ST/LT or tax-dollar claims. Keep other holdings/diagnostics useful.
+3. **Review screening and cash.** Missing history permits conditional results with a persistent unverified-wash-sale warning. Optional names-only restrictions exclude both sale and replacement buys; known imported conflicts cannot be cleared by omission. Display optional imported cash separately from the editable additional-cash budget, initially visible zero when unset. Positive manual funding is an assumption, not verified buying power. The optional final cash target is separate, explicitly enabled and constrained. No hidden investor thresholds or automatic use of all account cash.
+4. **Select benchmark and market inputs.** Explicitly choose a supported Vanguard fund and actual reported full-portfolio date. Review the equity-only proxy, complete source/exclusions, selected modeled union, dates and unresolved coverage. No default fund, basket, neighboring-date or source fallback. Manual history refresh reuses compatible data. Current marks, history and classification are distinct required inputs for their metrics.
+5. **Inspect baseline and opportunities.** Display estimated eligible lot losses, unsupported/unknown reasons, modeled sleeve value, baseline risk/exposure breaches and optional scenario inputs. The modeled sleeve is retained equities plus selected cash; untouched cash/excluded holdings do not enter its risk denominator. Missing required risk blocks validated risk/candidates, not the holdings view. Scope warnings are carried into saved/exported results.
+6. **Compare suggestions.** Show no-trade plus a bounded set of independently checked whole-share candidates with estimated loss, costs, cash, TE/group risk, constraints, data dates and search limits. Strict caps, zero positive gains and known-conflict exclusions are not relaxed automatically. A limited search finding no candidate is not a proof of mathematical infeasibility.
+7. **Save/export a dated worksheet.** Save immutable inputs/settings/results and export unambiguous lot/security references, sides/whole shares, indicative prices/costs, assumptions and warnings. Editable settings produce a new checked result. A saved worksheet is an advisory estimate, with no broker order, reservation, fill, funding or deductible-loss guarantee. The user verifies current broker lot selection/funding before manual trades.
+8. **Return with refreshed holdings.** Reopen current-format historical output without recalculation; create a new analysis from new imports/settings/data. After external trading or material changes, refresh holdings before another suggestion. Current-format backup/restore protects saved work; development-breaking schema changes need no compatibility/migration support.
 
 ## Readiness and failure behavior
 
-| Condition | User-visible result |
-| --- | --- |
-| Missing basis or ambiguous lot identity | Affected lot cannot be proposed for sale |
-| Position/lots disagree | Explain the discrepancy; block dependent suggestions if its impact cannot be bounded, while retaining available diagnostics |
-| Missing relevant household activity/history | Persistent unverified-wash-sale warning; allow conditional optimization under disclosed assumptions and optional manual restrictions; never claim clearance |
-| Unknown holding period without a known unsupported event | Preserve unknown term; allow supported loss-dollar calculation without ST/LT or tax-dollar claims |
-| No account cash supplied | Keep observed cash unknown; review selected additional cash budget, including zero, separately |
-| Recent known conflicting acquisition | Explain conflict; conservative initial policy excludes affected security from harvest |
-| Unknown tax identity relation | Block affected replacement/candidate relationship pending review |
-| Missing/invalid risk model or benchmark | Show available diagnostics; block risk-constrained actionable plans |
-| No feasible plan | Explain binding constraints and return no action; no silent relaxation |
-| Limited search found no candidate | State that no qualified candidate was found under that search; do not claim proof of infeasibility |
-| Stale/late analysis result | Retain the historical estimate, require fresh analysis before reuse, and do not let a late result replace newer inputs |
-| Existing portfolio outside risk limits | Show the breach; only propose a candidate satisfying the strict caps and zero-gain policy; otherwise return an honest no-action/search outcome |
-| Partial fills, new trades or revised data | Require a refreshed snapshot and analysis; keep old suggestions historical |
+Undated manual restricted names do not automatically expire into a clean result; reconfirm them on later runs. User omissions cannot clear actual known conflicts or invent complete household/history visibility.
 
-## Concrete success case
+Track input completeness, tax/screening scope, market/model quality, candidate validation and freshness separately. A generic warning cannot override missing basis/identity, a known conflict, contradictory included facts, invalid required risk, unavailable shares or inadequate funding. Unknown is not zero. Exclusions cannot erase a known household conflict or unbounded effect on included holdings.
 
-Use synthetic stocks SAAA, SBBB and SCCC and a synthetic benchmark. An old lot of 100 SAAA shares has total adjusted basis $10,000 and price $80, giving $2,000 unrealized loss before costs. Its recent activity is clear under declared coverage. A valid candidate sells this lot and allocates proceeds to permitted SBBB/SCCC quantities while meeting all risk, cash and trade constraints. The report preserves the actual lot identity, records the conditional loss, and compares the resulting risk with no action.
+Staging is separate from transactional selection/replacement. Failed/repeated imports preserve selected work; duplicate UI retries cannot duplicate mutations. Late calculations cannot overwrite newer relevant input/settings. One bounded calculation/writer policy and visible running/failure/cancel status suffice; a background orchestration platform is not required. Imported text is data, including formulas/HTML-looking content. Preserve private local handling and safe worksheet export.
 
-Changing one fact must change the result: a recent SAAA reinvestment blocks that harvest under the initial conservative policy; a stale quote invalidates the worksheet; a new holdings snapshot requires a new analysis rather than treating an old worksheet as executed state. These outcomes are required even if the apparent headline loss becomes less attractive.
+## Boundaries and acceptance
 
-## User acceptance questions
+Execution/account reconstruction, basis maintenance, order/fill tracking, reservations, forward monitoring and background validation scheduling are deferred. Future trading can change tax outcomes; v1 reports that limitation rather than operating a monitoring service. Cross-year facts remain relevant to screening even without such a service.
 
-- Can a new user establish data readiness and understand every unresolved item?
-- Can the user explain why each sale/replacement was selected and how benchmark risk changed?
-- Can the user execute the small worksheet in the selected broker's paper/manual workflow and confirm the intended lots?
-- Can the user refresh holdings and relevant screening facts after activity without replaying a previous worksheet?
-- Can the user recover local state and produce useful diagnostics without exposing holdings?
-
-Observed paper sessions and independent case review are required before claims of usability or financial reliability. No such acceptance has occurred.
-
-Record input-assembly time, unresolved-data count, blocked-candidate causes, order/lot-selection burden, review/refresh time and recovery of saved results. Windows x64 is the first release target under D035. Qualify exact supported OS/browser/runtime versions and document installation/recovery. Use the provisional targets in the [measurement charter](../engineering/VALIDATION.md) during early paper qualification, then revise them from evidence; none have been measured. A five-minute synthetic interview demo is distinct from an investor completing the workflow. See the [critical review](../reviews/2026-10-22-pre-implementation-review.md) for staged readiness checkpoints and open decisions.
+The adopted objective and hard checks are in [PORTFOLIO_CONSTRUCTION](../domain/PORTFOLIO_CONSTRUCTION.md), tax policy in [TAX_POLICY](../domain/TAX_POLICY.md), market inputs in [BENCHMARK_INPUTS](../domain/BENCHMARK_INPUTS.md), and the selected method in [RISK_MODEL](../domain/RISK_MODEL.md). [VALIDATION](../engineering/VALIDATION.md) separates local software evidence from independent review, paper acceptance, real-use and public release. Windows x64 is the first investor platform; supported versions/install/scale require observed evidence. No account access, real portfolio disclosure, trade placement or publication is authorized by this specification.

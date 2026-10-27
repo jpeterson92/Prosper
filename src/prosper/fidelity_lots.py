@@ -1,4 +1,4 @@
-"""Synthetic combined-file observations, never an authoritative checkpoint or tax model."""
+"""Declared combined-file observations, never an authoritative checkpoint or tax model."""
 
 import csv
 import hashlib
@@ -157,10 +157,9 @@ def _acquired(raw: str) -> tuple[Observed[str], str | None]:
     return Observed(raw, None, "unsupported_acquired_date"), "unsupported_acquired_date"
 
 
-def inspect_combined_lots(raw: bytes, *, fictional: Literal[True]) -> LotInspection:
-    """Inspect caller-declared fictional bytes, with no file access or state mutation.
+def inspect_combined_lots(raw: bytes) -> LotInspection:
+    """Inspect source bytes, with no file access or state mutation.
 
-    The fictional assertion is a caller boundary, not a detector of investor data.
     Percentage values are display percentage points; dollar signs do not prove USD.
     Original bytes stay with the caller; bounded raw records remain in the result.
     """
@@ -181,12 +180,15 @@ def inspect_combined_lots(raw: bytes, *, fictional: Literal[True]) -> LotInspect
 
     def result() -> LotInspection:
         return LotInspection(
-            digest, header, tuple(records), tuple(observations), tuple(issues), more, truncated
+            digest,
+            header,
+            tuple(records),
+            tuple(observations),
+            tuple(issues),
+            more,
+            truncated,
         )
 
-    if fictional is not True:
-        issue("fictional_assertion_required")
-        return result()
     if len(raw) > MAX_BYTES:
         issue("byte_limit_exceeded")
         return result()

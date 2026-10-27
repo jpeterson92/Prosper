@@ -1,4 +1,4 @@
-"""Synthetic R1 covariance composition and normalized-correlation projection.
+"""R1 covariance composition and normalized-correlation projection.
 
 Frozen scalar/target/DCC identities are consumed without refitting or repairing
 failed components. These are approximate proxy-model forecasts, not calibrated
@@ -215,7 +215,7 @@ def project_fixed(
 
 
 def _scalar(result: volatility.VolatilityResult) -> volatility.VariancePath:
-    if result.status != "qualified-synthetic-fit" or result.issues or result.path is None:
+    if result.status != "fit-complete" or result.issues or result.path is None:
         raise CovarianceUnavailable(
             "scalar_unavailable", f"{result.data.security_id}: {result.issues}"
         )
@@ -345,7 +345,6 @@ def prepare_dcc(scalars: tuple[volatility.VolatilityResult, ...]) -> dcc.DCCInpu
                 "units",
                 "purpose",
                 "expected_observations",
-                "fictional",
             )
         ):
             raise CovarianceUnavailable(
@@ -362,7 +361,6 @@ def prepare_dcc(scalars: tuple[volatility.VolatilityResult, ...]) -> dcc.DCCInpu
         tuple(s.identity_sha256 for s in scalars),
         first.purpose,
         first.expected_observations,
-        first.fictional,
     )
     z = tuple(tuple(p.standardized[t] for p in paths) for t in range(len(first.x)))
     target = analytical_target(
@@ -396,7 +394,7 @@ def replay_full(z: Matrix, target: Matrix, parameters: dcc.Theta) -> tuple[Matri
 
 
 def _dcc_result(fit: dcc.DCCResult, data: dcc.DCCInput) -> dcc.PairEvaluation:
-    if fit.status != "qualified-synthetic-fit" or fit.issues or fit.evaluation is None:
+    if fit.status != "fit-complete" or fit.issues or fit.evaluation is None:
         raise CovarianceUnavailable("dcc_unavailable", str(fit.issues))
     if (
         fit.version != dcc.VERSION
@@ -491,7 +489,7 @@ def compose_covariance(
     ) as exc:
         issues = (str(exc),)
         terminal = next_q = None
-    status = "qualified-synthetic-forecast" if projection is not None else "unavailable"
+    status = "forecast-complete" if projection is not None else "unavailable"
     configuration = fingerprint(
         [
             VERSION,
@@ -532,7 +530,7 @@ def compose_covariance(
 def fit_covariance(
     inputs: tuple[volatility.VolatilityInput, ...], *, horizon: int = 21
 ) -> CovarianceResult:
-    """Convenience synthetic orchestration; each fitter retains every start diagnostic."""
+    """Covariance orchestration; each fitter retains every start diagnostic."""
     _horizon(horizon)
     scalars = tuple(volatility.fit_volatility(data, horizon=horizon) for data in inputs)
     try:

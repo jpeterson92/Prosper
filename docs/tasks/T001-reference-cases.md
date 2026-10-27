@@ -4,11 +4,11 @@ Stage: **written planning deliverables complete, October 22, 2026**. The owner a
 
 ## Delivered outcome
 
-The [foundation specification](../engineering/FOUNDATION_SPEC.md) defines the bounded T003/T004 slice: a complete fictional checkpoint and earlier comparison state, explicit event inclusion, exact decimal storage/transport, partial-basis allocation and residual examples, unknown/conflict semantics, and nine failure/retry variants. The slice previews, reconciles and commits a synthetic import through a minimal typed API/UI. It contains no optimizer, tax recommendation or brokerage integration.
+The [foundation specification](T019-advisory-remediation.md#existing-evidence-and-limitations) defines the bounded T003/T004 slice: a complete fictional checkpoint and earlier comparison state, explicit event inclusion, exact decimal storage/transport, partial-basis allocation and residual examples, unknown/conflict semantics, and nine failure/retry variants. The slice previews, reconciles and commits a synthetic import through a minimal typed API/UI. It contains no optimizer, tax recommendation or brokerage integration.
 
 The [reference portfolio](../domain/REFERENCE_PORTFOLIO.md) supplies separately hand-checkable no-trade, integer-feasible, blocked, cost and partial-fill cases. The [validation inventory](../engineering/VALIDATION.md) maps wider cases to independent evidence rather than representing written examples as runnable tests.
 
-[ADR-0001](../architecture/decisions/0001-adopt-project-architecture.md) preserves architecture adoption. [ADR-0002](../architecture/decisions/0002-adopt-critical-review-actions.md) records the owner-approved existing-sleeve pilot, strict limits, price/basis-loss objective with explicit costs, qualified ordinary domestic equity cases, and Windows x64 target. No repeated approval of those policies is needed.
+[ADR-0001](../architecture/ARCHITECTURE.md#shape-and-boundaries) preserves architecture adoption. [ADR-0002](../engineering/VALIDATION.md#reference-scenario-pack) records the owner-approved existing-sleeve pilot, strict limits, price/basis-loss objective with explicit costs, qualified ordinary domestic equity cases, and Windows x64 target. No repeated approval of those policies is needed.
 
 ## Done conditions and evidence limits
 
@@ -22,7 +22,7 @@ The [reference portfolio](../domain/REFERENCE_PORTFOLIO.md) supplies separately 
 
 ## Next handoff
 
-The October 22 direct `/next` assessment decomposed the oversized foundation parent in the [T003/T004 child plan](T003-T004-foundation-plan.md) and stopped before child implementation under the [next-step protocol](../engineering/NEXT_STEP.md). A subsequent invocation locally verified [T003.1 development baseline](T003.1-development-baseline.md), including Python tooling and bootstrap checks only. STATUS owns the single next-candidate pointer. Other compatible stack versions and Windows/browser/runtime assumptions qualify in the children that use them. Do not expand into the full harvesting product. T018 state/recovery scenarios enter the slices that use those capabilities; the foundation does not require a compute worker or trading lifecycle.
+The October 22 direct `/next` assessment decomposed the oversized foundation parent in the [T003/T004 child plan](T019-advisory-remediation.md#existing-evidence-and-limitations) and stopped before child implementation under the [next-step protocol](../engineering/NEXT_STEP.md). A subsequent invocation locally verified [T003.1 development baseline](T019-advisory-remediation.md#existing-evidence-and-limitations), including Python tooling and bootstrap checks only. STATUS owns the single next-candidate pointer. Other compatible stack versions and Windows/browser/runtime assumptions qualify in the children that use them. Do not expand into the full harvesting product. T018 state/recovery scenarios enter the slices that use those capabilities; the foundation does not require a compute worker or trading lifecycle.
 
 Before substantial broker-facing or quantitative build-out, T002/T017 must produce G1 evidence: one supported lot/activity/cash/manual-confirmation mapping, data usage rights/refresh plan and an early exception walkthrough. G2 requires reviewed tax/risk cases, risk-data settings, discrete formulation and independent final-state validation. G3 requires independent review, observed paper use, installation/recovery evidence and named financial-use authorization. None has passed.
 

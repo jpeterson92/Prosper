@@ -1,0 +1,573 @@
+{
+  "bundle": {
+    "version": "modeled-inputs-v1",
+    "analysis_date": "2026-10-23",
+    "candidate_security_ids": [
+      "security-c",
+      "security-b"
+    ],
+    "securities": [
+      {
+        "security_id": "FICTIONAL-0",
+        "identity": {
+          "value": "fictional-FICTIONAL-0"
+        },
+        "classification": {
+          "value": "us-domestic-common-equity"
+        },
+        "currency": "USD",
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/FICTIONAL-0",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "FICTIONAL-1",
+        "identity": {
+          "value": "fictional-FICTIONAL-1"
+        },
+        "classification": {
+          "value": "us-domestic-common-equity"
+        },
+        "currency": "USD",
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/FICTIONAL-1",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "security-a",
+        "identity": {
+          "value": "fictional-security-a"
+        },
+        "classification": {
+          "value": "us-domestic-common-equity"
+        },
+        "currency": "USD",
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-a",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "security-b",
+        "identity": {
+          "value": "fictional-security-b"
+        },
+        "classification": {
+          "value": "us-domestic-common-equity"
+        },
+        "currency": "USD",
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-b",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "security-c",
+        "identity": {
+          "value": "fictional-security-c"
+        },
+        "classification": {
+          "value": "us-domestic-common-equity"
+        },
+        "currency": "USD",
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-c",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      }
+    ],
+    "marks": [
+      {
+        "mark": {
+          "security_id": "FICTIONAL-0",
+          "identity": "fictional-FICTIONAL-0",
+          "price": {
+            "value": "10"
+          },
+          "day": {
+            "value": "2026-10-23"
+          },
+          "source_ref": "facts/FICTIONAL-0",
+          "currency": "USD"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/FICTIONAL-0",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "mark": {
+          "security_id": "FICTIONAL-1",
+          "identity": "fictional-FICTIONAL-1",
+          "price": {
+            "value": "11"
+          },
+          "day": {
+            "value": "2026-10-23"
+          },
+          "source_ref": "facts/FICTIONAL-1",
+          "currency": "USD"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/FICTIONAL-1",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "mark": {
+          "security_id": "security-a",
+          "identity": "fictional-security-a",
+          "price": {
+            "value": "12"
+          },
+          "day": {
+            "value": "2026-10-23"
+          },
+          "source_ref": "facts/security-a",
+          "currency": "USD"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-a",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "mark": {
+          "security_id": "security-b",
+          "identity": "fictional-security-b",
+          "price": {
+            "value": "13"
+          },
+          "day": {
+            "value": "2026-10-23"
+          },
+          "source_ref": "facts/security-b",
+          "currency": "USD"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-b",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "mark": {
+          "security_id": "security-c",
+          "identity": "fictional-security-c",
+          "price": {
+            "value": "14"
+          },
+          "day": {
+            "value": "2026-10-23"
+          },
+          "source_ref": "facts/security-c",
+          "currency": "USD"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-c",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      }
+    ],
+    "taxonomy_name": "Fictional hierarchy",
+    "taxonomy_version": "fictional-v1",
+    "classifications": [
+      {
+        "security_id": "FICTIONAL-0",
+        "sector": {
+          "value": "Fictional sector"
+        },
+        "industry": {
+          "value": "Fictional industry"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/FICTIONAL-0",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "FICTIONAL-1",
+        "sector": {
+          "value": "Fictional sector"
+        },
+        "industry": {
+          "value": "Fictional industry"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/FICTIONAL-1",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "security-a",
+        "sector": {
+          "value": "Fictional sector"
+        },
+        "industry": {
+          "value": "Fictional industry"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-a",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "security-b",
+        "sector": {
+          "value": "Fictional sector"
+        },
+        "industry": {
+          "value": "Fictional industry"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-b",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      },
+      {
+        "security_id": "security-c",
+        "sector": {
+          "value": "Fictional sector"
+        },
+        "industry": {
+          "value": "Fictional industry"
+        },
+        "evidence": {
+          "source_sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+          "source_ref": "facts/security-c",
+          "provider": "fictional-reviewed-inputs",
+          "dataset": "fictional-marks-identity-taxonomy-v1",
+          "permission_scope": "fictional-test-data",
+          "effective": "2026-10-23",
+          "valid_through": "2026-10-23",
+          "recorded_at": "2026-10-24T00:00:00Z"
+        }
+      }
+    ],
+    "history": {
+      "series": [
+        {
+          "security_id": "security-c",
+          "provider": "fictional-provider",
+          "dataset": "fictional-ohlc",
+          "permission_scope": "fictional-test-data",
+          "provider_symbol": "DEMO-security-c",
+          "mapping_start": "2000-01-01",
+          "mapping_end": "2030-01-01",
+          "currency": "USD",
+          "calendar": "fictional-declared-sessions",
+          "timezone": "UTC",
+          "interval": "1d",
+          "adjustment": "no-actions",
+          "action_convention": "compatible-total-return-and-raw-ohlc",
+          "repair": "none",
+          "source_schema": "fictional-ohlc-v1",
+          "transform_version": "none-v1",
+          "return_convention": "simple-total-return-decimal",
+          "vintage": "fictional-v1",
+          "coherence": "immutable-vintage",
+          "coherence_evidence": "Fictional immutable vintage assertion for software checks only"
+        },
+        {
+          "security_id": "security-b",
+          "provider": "fictional-provider",
+          "dataset": "fictional-ohlc",
+          "permission_scope": "fictional-test-data",
+          "provider_symbol": "DEMO-security-b",
+          "mapping_start": "2000-01-01",
+          "mapping_end": "2030-01-01",
+          "currency": "USD",
+          "calendar": "fictional-declared-sessions",
+          "timezone": "UTC",
+          "interval": "1d",
+          "adjustment": "no-actions",
+          "action_convention": "compatible-total-return-and-raw-ohlc",
+          "repair": "none",
+          "source_schema": "fictional-ohlc-v1",
+          "transform_version": "none-v1",
+          "return_convention": "simple-total-return-decimal",
+          "vintage": "fictional-v1",
+          "coherence": "immutable-vintage",
+          "coherence_evidence": "Fictional immutable vintage assertion for software checks only"
+        },
+        {
+          "security_id": "security-a",
+          "provider": "fictional-provider",
+          "dataset": "fictional-ohlc",
+          "permission_scope": "fictional-test-data",
+          "provider_symbol": "DEMO-security-a",
+          "mapping_start": "2000-01-01",
+          "mapping_end": "2030-01-01",
+          "currency": "USD",
+          "calendar": "fictional-declared-sessions",
+          "timezone": "UTC",
+          "interval": "1d",
+          "adjustment": "no-actions",
+          "action_convention": "compatible-total-return-and-raw-ohlc",
+          "repair": "none",
+          "source_schema": "fictional-ohlc-v1",
+          "transform_version": "none-v1",
+          "return_convention": "simple-total-return-decimal",
+          "vintage": "fictional-v1",
+          "coherence": "immutable-vintage",
+          "coherence_evidence": "Fictional immutable vintage assertion for software checks only"
+        },
+        {
+          "security_id": "FICTIONAL-1",
+          "provider": "fictional-provider",
+          "dataset": "fictional-ohlc",
+          "permission_scope": "fictional-test-data",
+          "provider_symbol": "DEMO-FICTIONAL-1",
+          "mapping_start": "2000-01-01",
+          "mapping_end": "2030-01-01",
+          "currency": "USD",
+          "calendar": "fictional-declared-sessions",
+          "timezone": "UTC",
+          "interval": "1d",
+          "adjustment": "no-actions",
+          "action_convention": "compatible-total-return-and-raw-ohlc",
+          "repair": "none",
+          "source_schema": "fictional-ohlc-v1",
+          "transform_version": "none-v1",
+          "return_convention": "simple-total-return-decimal",
+          "vintage": "fictional-v1",
+          "coherence": "immutable-vintage",
+          "coherence_evidence": "Fictional immutable vintage assertion for software checks only"
+        },
+        {
+          "security_id": "FICTIONAL-0",
+          "provider": "fictional-provider",
+          "dataset": "fictional-ohlc",
+          "permission_scope": "fictional-test-data",
+          "provider_symbol": "DEMO-FICTIONAL-0",
+          "mapping_start": "2000-01-01",
+          "mapping_end": "2030-01-01",
+          "currency": "USD",
+          "calendar": "fictional-declared-sessions",
+          "timezone": "UTC",
+          "interval": "1d",
+          "adjustment": "no-actions",
+          "action_convention": "compatible-total-return-and-raw-ohlc",
+          "repair": "none",
+          "source_schema": "fictional-ohlc-v1",
+          "transform_version": "none-v1",
+          "return_convention": "simple-total-return-decimal",
+          "vintage": "fictional-v1",
+          "coherence": "immutable-vintage",
+          "coherence_evidence": "Fictional immutable vintage assertion for software checks only"
+        }
+      ],
+      "sessions": [
+        "2026-10-21",
+        "2026-10-22",
+        "2026-10-23"
+      ],
+      "predecessor": "2026-10-20",
+      "cutoff": "2026-10-23",
+      "known_at": "2026-10-25T00:00:00Z",
+      "calendar_evidence": "Fictional explicit ordered trading-session calendar",
+      "overlap_sessions": 1,
+      "manual_security_ids": [],
+      "profile": {
+        "identity": "R1",
+        "f": "0.25",
+        "a3": "0.17",
+        "kappa": "10000"
+      }
+    },
+    "profile": {
+      "variant": "idr-dcc-nl",
+      "model": {
+        "identity": "R1",
+        "f": "0.25",
+        "a3": "0.17",
+        "kappa": "10000"
+      },
+      "model_reference": "R1 synthetic software profile; 3 sessions cannot qualify fitted risk",
+      "lookback_sessions": 3,
+      "minimum_history_sessions": 3,
+      "horizon_sessions": 21,
+      "annualization_sessions": 252,
+      "max_mark_age_days": 3,
+      "max_snapshot_age_days": 3,
+      "max_benchmark_age_days": 36500,
+      "max_history_age_days": 3,
+      "require_full_window_validation": true,
+      "maximum_universe_size": 1000,
+      "short_history_policy": "block"
+    },
+    "investor_controls": [
+      {
+        "name": "tracking_error",
+        "enabled": true,
+        "value": {
+          "value": "0.03",
+          "reason": null
+        },
+        "unit": "annualized-decimal-volatility",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      },
+      {
+        "name": "max_orders",
+        "enabled": true,
+        "value": {
+          "value": "4",
+          "reason": null
+        },
+        "unit": "orders",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      },
+      {
+        "name": "turnover",
+        "enabled": false,
+        "value": {
+          "value": null,
+          "reason": "Explicitly disabled in fictional example"
+        },
+        "unit": "decimal-weight",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      },
+      {
+        "name": "min_trade_notional",
+        "enabled": false,
+        "value": {
+          "value": null,
+          "reason": "Explicitly disabled in fictional example"
+        },
+        "unit": "USD",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      },
+      {
+        "name": "max_trade_notional",
+        "enabled": false,
+        "value": {
+          "value": null,
+          "reason": "Explicitly disabled in fictional example"
+        },
+        "unit": "USD",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      },
+      {
+        "name": "max_position_weight",
+        "enabled": false,
+        "value": {
+          "value": null,
+          "reason": "Explicitly disabled in fictional example"
+        },
+        "unit": "decimal-weight",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      },
+      {
+        "name": "sector_exposure",
+        "enabled": false,
+        "value": {
+          "value": null,
+          "reason": "Explicitly disabled in fictional example"
+        },
+        "unit": "decimal-weight",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      },
+      {
+        "name": "industry_exposure",
+        "enabled": false,
+        "value": {
+          "value": null,
+          "reason": "Explicitly disabled in fictional example"
+        },
+        "unit": "decimal-weight",
+        "reference": "Fictional illustrative investor setting, not a recommendation"
+      }
+    ]
+  },
+  "sources": [
+    {
+      "sha256": "8131679d7c7331e4132b3b024a60a8283d01a9857a75b410d0bc6bcf93635676",
+      "source_base64": "eyJmYWN0cyI6IFt7ImNsYXNzaWZpY2F0aW9uIjogInVzLWRvbWVzdGljLWNvbW1vbi1lcXVpdHkiLCAiaWRlbnRpdHkiOiAiZmljdGlvbmFsLUZJQ1RJT05BTC0wIiwgImluZHVzdHJ5IjogIkZpY3Rpb25hbCBpbmR1c3RyeSIsICJwcmljZSI6ICIxMCIsICJzZWN0b3IiOiAiRmljdGlvbmFsIHNlY3RvciIsICJzZWN1cml0eV9pZCI6ICJGSUNUSU9OQUwtMCJ9LCB7ImNsYXNzaWZpY2F0aW9uIjogInVzLWRvbWVzdGljLWNvbW1vbi1lcXVpdHkiLCAiaWRlbnRpdHkiOiAiZmljdGlvbmFsLUZJQ1RJT05BTC0xIiwgImluZHVzdHJ5IjogIkZpY3Rpb25hbCBpbmR1c3RyeSIsICJwcmljZSI6ICIxMSIsICJzZWN0b3IiOiAiRmljdGlvbmFsIHNlY3RvciIsICJzZWN1cml0eV9pZCI6ICJGSUNUSU9OQUwtMSJ9LCB7ImNsYXNzaWZpY2F0aW9uIjogInVzLWRvbWVzdGljLWNvbW1vbi1lcXVpdHkiLCAiaWRlbnRpdHkiOiAiZmljdGlvbmFsLXNlY3VyaXR5LWEiLCAiaW5kdXN0cnkiOiAiRmljdGlvbmFsIGluZHVzdHJ5IiwgInByaWNlIjogIjEyIiwgInNlY3RvciI6ICJGaWN0aW9uYWwgc2VjdG9yIiwgInNlY3VyaXR5X2lkIjogInNlY3VyaXR5LWEifSwgeyJjbGFzc2lmaWNhdGlvbiI6ICJ1cy1kb21lc3RpYy1jb21tb24tZXF1aXR5IiwgImlkZW50aXR5IjogImZpY3Rpb25hbC1zZWN1cml0eS1iIiwgImluZHVzdHJ5IjogIkZpY3Rpb25hbCBpbmR1c3RyeSIsICJwcmljZSI6ICIxMyIsICJzZWN0b3IiOiAiRmljdGlvbmFsIHNlY3RvciIsICJzZWN1cml0eV9pZCI6ICJzZWN1cml0eS1iIn0sIHsiY2xhc3NpZmljYXRpb24iOiAidXMtZG9tZXN0aWMtY29tbW9uLWVxdWl0eSIsICJpZGVudGl0eSI6ICJmaWN0aW9uYWwtc2VjdXJpdHktYyIsICJpbmR1c3RyeSI6ICJGaWN0aW9uYWwgaW5kdXN0cnkiLCAicHJpY2UiOiAiMTQiLCAic2VjdG9yIjogIkZpY3Rpb25hbCBzZWN0b3IiLCAic2VjdXJpdHlfaWQiOiAic2VjdXJpdHktYyJ9XSwgImZpY3Rpb25hbCI6IHRydWV9"
+    }
+  ]
+}

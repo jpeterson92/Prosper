@@ -1,411 +1,231 @@
-"""Closed fictional history records and immutable publication, without acquisition.
+"""Current market observations and explicit ordered-window requirements."""
 
-Coverage is stipulated-calendar engineering evidence, never financial readiness.
-The separate child runtime has no foundation database, cleanup or recovery API.
-EvidenceStore's local-filesystem/no-hostile-path-replacement limitations apply.
-"""
-
-import hashlib
-import json
-from collections import Counter
-from dataclasses import dataclass
-from datetime import date, datetime
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import Field, model_validator
 
-from prosper.bundle import MAX_BYTES
-from prosper.evidence import EvidenceError, EvidenceReceipt, EvidenceStore, RuntimeBoundary
-from prosper.exact import ExactValue, ExactValueError, Sign
-from prosper.history_coordination import history_writer
-
-VERSION: Literal["synthetic-history-v1"] = "synthetic-history-v1"
-Text = Annotated[str, Field(min_length=1, max_length=1024)]
+from prosper.advisory_records import Digest, Fact, Record
+from prosper.history_table import HistoryTable, SessionGrid
+from prosper.record_types import DateText, Identifier, Text, Timestamp
 
 
-class HistoryError(ValueError):
-    """Stable code without paths, source payloads or validation input echoes."""
+class NumberFact(Fact[float]):
+    pass
 
 
-class Closed(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
-
-
-def _day(value: str) -> str:
-    if date.fromisoformat(value).isoformat() != value:
-        raise ValueError("iso_date_required")
-    return value
-
-
-def _instant(value: str) -> str:
-    parsed = datetime.fromisoformat(value)
-    if not value.endswith("Z") or parsed.utcoffset() is None:
-        raise ValueError("utc_instant_required")
-    # One spelling makes chronological string comparisons unambiguous.
-    if parsed.strftime("%Y-%m-%dT%H:%M:%SZ") != value:
-        raise ValueError("utc_second_precision_required")
-    return value
-
-
-class SeriesContext(Closed):
-    security_id: Text
+class SeriesContext(Record):
+    security_id: Identifier
     provider: Text
     dataset: Text
     permission_scope: Text
     provider_symbol: Text
-    mapping_start: Text
-    mapping_end: Text
+    mapping_start: DateText
+    mapping_end: DateText
     currency: Text
     calendar: Text
     timezone: Text
     interval: Text
     adjustment: Text
+    action_convention: Text
     repair: Text
     source_schema: Text
     transform_version: Text
-    library_version: Text
     return_convention: Text
-    return_transform_version: Text
     vintage: Text
-    captured_at: Text
+    coherence: Literal["immutable-vintage", "unverified"]
+    coherence_evidence: Text
 
     @model_validator(mode="after")
-    def dates(self) -> Self:
-        _day(self.mapping_start)
-        _day(self.mapping_end)
-        _instant(self.captured_at)
+    def mapping(self) -> Self:
         if self.mapping_start > self.mapping_end:
             raise ValueError("invalid_mapping_window")
         return self
 
 
-class Selection(Closed):
-    series: Annotated[tuple[SeriesContext, ...], Field(min_length=1, max_length=1000)]
-    sessions: Annotated[tuple[Text, ...], Field(min_length=1, max_length=10000)]
-    cutoff: Text
-    known_at: Text
-    calendar_evidence: Text
-
-    @model_validator(mode="after")
-    def grid(self) -> Self:
-        _day(self.cutoff)
-        _instant(self.known_at)
-        if len({s.security_id for s in self.series}) != len(self.series):
-            raise ValueError("duplicate_series")
-        if tuple(sorted(set(self.sessions))) != self.sessions:
-            raise ValueError("ordered_unique_sessions_required")
-        for session in self.sessions:
-            _day(session)
-        if self.sessions[-1] > self.cutoff or self.cutoff > self.known_at[:10]:
-            raise ValueError("invalid_cutoff")
-        if len(self.sessions) * len(self.series) > 10000:
-            raise ValueError("grid_size_exceeded")
-        for series in self.series:
-            if series.captured_at > self.known_at:
-                raise ValueError("future_capture")
-            if (
-                not series.mapping_start
-                <= self.sessions[0]
-                <= self.sessions[-1]
-                <= series.mapping_end
-            ):
-                raise ValueError("mapping_does_not_cover_selection")
-        return self
+class Observation(Record):
+    security_id: Identifier
+    session: DateText
+    source_ref: Text
+    open: NumberFact
+    high: NumberFact
+    low: NumberFact
+    close: NumberFact
+    adjusted_close: NumberFact
+    action: Fact[str]
 
 
-class RawReference(Closed):
-    sha256: Text
-    byte_length: int
-    reference: Text
-    storage_version: Text
+class HistoryBatch(Record):
+    version: Literal["advisory-history-v2"] = "advisory-history-v2"
+    source_name: Text
+    source_sha256: Digest
+    collected_at: Timestamp
+    validated_at: Timestamp
+    contexts: Annotated[tuple[SeriesContext, ...], Field(min_length=1, max_length=5000)]
+    sessions: SessionGrid
 
-    @classmethod
-    def from_receipt(cls, receipt: EvidenceReceipt) -> Self:
-        return cls(
-            sha256=receipt.raw_sha256,
-            byte_length=receipt.byte_length,
-            reference=receipt.relative_reference,
-            storage_version=receipt.storage_version,
-        )
+    @property
+    def requested_sessions(self) -> tuple[str, ...]:
+        return self.sessions.values
 
-    def receipt(self) -> EvidenceReceipt:
-        return EvidenceReceipt(self.sha256, self.byte_length, self.reference, self.storage_version)
+    validation_scope: Literal["requested-interval", "full-window"]
+    rows: HistoryTable
 
-    @model_validator(mode="after")
-    def identity(self) -> Self:
-        self.receipt()
-        return self
+    @property
+    def observations(self) -> tuple[Observation, ...]:
+        """Typed view for small analytical/inspection boundaries; storage is columnar."""
+        return tuple(_observation(row) for row in self.rows.frame.iter_rows(named=True))
 
-
-class Source(Closed):
-    source_id: Text
-    context: SeriesContext
-    raw: RawReference
-    validated_at: Text
-    outcome: Literal["complete", "partial", "empty", "failed"]
-    reason: Text | None = None
-
-    @model_validator(mode="after")
-    def outcome_reason(self) -> Self:
-        _instant(self.validated_at)
-        if self.validated_at < self.context.captured_at:
-            raise ValueError("validation_precedes_capture")
-        if self.outcome != "complete" and self.reason is None:
-            raise ValueError("source_reason_required")
-        return self
-
-
-class Fact(Closed):
-    text: Text | None = None
-    unknown_reason: Text | None = None
-
-    @model_validator(mode="after")
-    def knowledge(self) -> Self:
-        if (self.text is None) == (self.unknown_reason is None):
-            raise ValueError("exact_text_or_unknown_reason_required")
-        return self
-
-
-class Observation(Closed):
-    security_id: Text
-    session: Text
-    source_id: Text
-    source_row: Text
-    open: Fact
-    high: Fact
-    low: Fact
-    close: Fact
-    adjusted_close: Fact
-    dividend: Fact
-    split_ratio: Fact
-    total_return: Fact
-    return_from_session: Text | None
-
-    @model_validator(mode="after")
-    def dates(self) -> Self:
-        _day(self.session)
-        if self.return_from_session is not None:
-            _day(self.return_from_session)
-        return self
-
-
-class Envelope(Closed):
-    selection: Selection
-    sources: Annotated[tuple[Source, ...], Field(max_length=10000)]
-    observations: Annotated[tuple[Observation, ...], Field(max_length=10000)]
-    diagnostics: Annotated[tuple[Text, ...], Field(max_length=1000)] = ()
+    findings: tuple[Text, ...] = ()
 
     @model_validator(mode="after")
     def references(self) -> Self:
-        sources = {s.source_id: s for s in self.sources}
-        if len(sources) != len(self.sources):
-            raise ValueError("duplicate_source_id")
-        contexts = {s.security_id: s for s in self.selection.series}
-        for source in self.sources:
-            if contexts.get(source.context.security_id) != source.context:
-                raise ValueError("incompatible_source_context")
-            if source.validated_at > self.selection.known_at:
-                raise ValueError("future_validation")
-        for row in self.observations:
-            if row.source_id not in sources:
-                raise ValueError("missing_source_reference")
+        from datetime import UTC, datetime
+
+        if datetime.fromisoformat(self.collected_at) > datetime.fromisoformat(self.validated_at):
+            raise ValueError("validation_precedes_collection")
+        ids = {s.security_id for s in self.contexts}
+        if len(ids) != len(self.contexts):
+            raise ValueError("duplicate_series")
+        if tuple(sorted(set(self.requested_sessions))) != self.requested_sessions:
+            raise ValueError("ordered_unique_sessions_required")
+        if (
+            self.requested_sessions[-1]
+            > datetime.fromisoformat(self.collected_at).astimezone(UTC).date().isoformat()
+        ):
+            raise ValueError("future_source_session")
+        if self.rows.kind != "observations":
+            raise ValueError("observation_table_required")
+        if any(
+            s.mapping_start > self.requested_sessions[0]
+            or s.mapping_end < self.requested_sessions[-1]
+            for s in self.contexts
+        ):
+            raise ValueError("mapping_does_not_cover_request")
+        if not set(self.rows.frame["security_id"]) <= ids or not set(
+            self.rows.frame["session"]
+        ) <= set(self.requested_sessions):
+            raise ValueError("unexpected_observation")
         return self
 
 
-class Cell(Closed):
-    security_id: Text
-    session: Text
+class Profile(Record):
+    identity: Text
+    f: Text
+    a3: Text
+    kappa: Text
 
 
-class Issue(Closed):
-    location: Text
-    code: Text
-    reason: Text | None = None
-
-
-class Coverage(Closed):
-    requested: tuple[Cell, ...]
-    received: tuple[Cell, ...]
-    usable: tuple[Cell, ...]
-    issues: tuple[Issue, ...]
-    complete: bool
-
-
-def coverage(data: Envelope) -> Coverage:
-    """Account for every row; no sorting/merging/filling of source observations."""
-    requested = tuple(
-        Cell(security_id=s.security_id, session=d)
-        for s in data.selection.series
-        for d in data.selection.sessions
-    )
-    expected = {(c.security_id, c.session) for c in requested}
-    counts = Counter((r.security_id, r.session) for r in data.observations)
-    sources = {s.source_id: s for s in data.sources}
-    issues: list[Issue] = []
-    received: set[tuple[str, str]] = set()
-    usable: set[tuple[str, str]] = set()
-
-    def issue(location: str, code: str, reason: str | None = None) -> None:
-        issues.append(Issue(location=location, code=code, reason=reason))
-
-    for j, source in enumerate(data.sources):
-        if source.outcome != "complete" or source.reason is not None:
-            issue(f"sources/{j}", f"source_{source.outcome}", source.reason)
-    for j, diagnostic in enumerate(data.diagnostics):
-        issue(f"diagnostics/{j}", "retained_diagnostic", diagnostic)
-    for j, row in enumerate(data.observations):
-        key = (row.security_id, row.session)
-        location = f"observations/{j}"
-        before = len(issues)
-        if key not in expected:
-            issue(location, "outside_selected_grid")
-        else:
-            received.add(key)
-        if counts[key] > 1:
-            issue(location, "duplicate_observation")
-        source = sources[row.source_id]
-        if source.context.security_id != row.security_id:
-            issue(location, "source_security_mismatch")
-        if source.outcome in ("failed", "empty"):
-            issue(location, "unusable_source_outcome", source.reason)
-        values: dict[str, ExactValue] = {}
-        for name, sign in (
-            ("open", Sign.POSITIVE),
-            ("high", Sign.POSITIVE),
-            ("low", Sign.POSITIVE),
-            ("close", Sign.POSITIVE),
-            ("adjusted_close", Sign.POSITIVE),
-            ("dividend", Sign.NONNEGATIVE),
-            ("split_ratio", Sign.POSITIVE),
-            ("total_return", Sign.SIGNED),
-        ):
-            fact: Fact = getattr(row, name)
-            if fact.text is None:
-                issue(f"{location}/{name}", "unknown_fact", fact.unknown_reason)
-            else:
-                try:
-                    values[name] = ExactValue(fact.text, sign)
-                except ExactValueError as exc:
-                    issue(f"{location}/{name}", "unsupported_decimal", exc.code)
-        if all(n in values for n in ("open", "high", "low", "close")):
-            if not (
-                values["low"].value
-                <= min(values["open"].value, values["close"].value)
-                <= max(values["open"].value, values["close"].value)
-                <= values["high"].value
-            ):
-                issue(location, "contradictory_ohlc")
-        if row.return_from_session is None or row.return_from_session >= row.session:
-            issue(location, "invalid_return_boundary")
-        if "total_return" in values and values["total_return"].value < -1:
-            issue(location, "return_below_minus_one")
-        if len(issues) == before:
-            usable.add(key)
-    for cell in requested:
-        if (cell.security_id, cell.session) not in received:
-            issue(f"grid/{cell.security_id}/{cell.session}", "missing_observation")
-    return Coverage(
-        requested=requested,
-        received=tuple(c for c in requested if (c.security_id, c.session) in received),
-        usable=tuple(c for c in requested if (c.security_id, c.session) in usable),
-        issues=tuple(issues),
-        complete=not issues and usable == expected,
-    )
-
-
-class Manifest(Closed):
-    schema_version: Literal["synthetic-history-v1"] = VERSION
-    envelope: Envelope
-    coverage: Coverage
+class HistoryRequest(Record):
+    series: Annotated[tuple[SeriesContext, ...], Field(min_length=1, max_length=5000)]
+    sessions: Annotated[tuple[DateText, ...], Field(min_length=1, max_length=10000)]
+    predecessor: DateText
+    cutoff: DateText
+    known_at: Timestamp
+    calendar_evidence: Text
+    overlap_sessions: Annotated[int, Field(ge=1, le=100)]
+    manual_security_ids: tuple[Identifier, ...] = ()
+    profile: Profile | None = None
 
     @model_validator(mode="after")
-    def derived_coverage(self) -> Self:
-        if self.coverage != coverage(self.envelope):
-            raise ValueError("coverage_mismatch")
+    def grid(self) -> Self:
+        ids = {s.security_id for s in self.series}
+        if len(ids) != len(self.series) or tuple(sorted(set(self.sessions))) != self.sessions:
+            raise ValueError("unique_series_and_ordered_sessions_required")
+        if not self.predecessor < self.sessions[0] <= self.sessions[-1] == self.cutoff:
+            raise ValueError("invalid_window")
+        if self.cutoff > self.known_at[:10] or (len(self.sessions) + 1) * len(ids) > 650000:
+            raise ValueError("future_or_oversized_window")
+        if (
+            len(set(self.manual_security_ids)) != len(self.manual_security_ids)
+            or not set(self.manual_security_ids) <= ids
+        ):
+            raise ValueError("manual_names_must_be_unique_required_names")
+        if any(
+            s.mapping_start > self.predecessor or s.mapping_end < self.cutoff for s in self.series
+        ):
+            raise ValueError("mapping_does_not_cover_request")
         return self
 
 
-def canonical_bytes(manifest: Manifest) -> bytes:
-    return json.dumps(
-        manifest.model_dump(mode="json"),
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=True,
-        allow_nan=False,
-    ).encode("ascii")
+class Interval(Record):
+    security_id: Identifier
+    sessions: tuple[DateText, ...]
+    reason: Literal["new-name", "leading", "interior", "tail", "manual", "coherence"]
 
 
-@dataclass(frozen=True)
-class FrozenHistory:
-    receipt: EvidenceReceipt
-    manifest: Manifest
+class HistoryIssue(Record):
+    security_id: Identifier
+    session: DateText | None
+    code: Text
+    reason: Text
+
+
+class Cell(Record):
+    security_id: Identifier
+    session: DateText
+    source_sha256: Digest | None
+    source_ref: Text | None
+    observation: Observation | None
+    total_return: float | None
+
+
+class Alignment(Record):
+    request: HistoryRequest
+    rows: HistoryTable
+    issues: tuple[HistoryIssue, ...]
+    intervals: tuple[Interval, ...]
+    complete: bool
+    required_sources: tuple[Digest, ...]
+    validated_at: dict[str, str]
+
+    @model_validator(mode="after")
+    def dimensions(self) -> Self:
+        import polars as pl
+
+        frame = self.rows.frame
+        expected = (
+            pl.DataFrame({"session": self.request.sessions})
+            .join(
+                pl.DataFrame({"security_id": [s.security_id for s in self.request.series]}),
+                how="cross",
+            )
+            .select("security_id", "session")
+        )
+        if self.rows.kind != "alignment" or not frame.select("security_id", "session").equals(
+            expected
+        ):
+            raise ValueError("alignment_grid_order_or_cardinality_invalid")
+        if self.complete != (not self.issues and frame["total_return"].null_count() == 0):
+            raise ValueError("alignment_status_invalid")
+        if not set(frame["source_sha256"].drop_nulls()) <= set(self.required_sources):
+            raise ValueError("alignment_sources_missing")
+        return self
 
     @property
-    def snapshot_sha256(self) -> str:
-        return self.receipt.raw_sha256
+    def cells(self) -> tuple[Cell, ...]:
+        """Materialize only when a consumer needs typed individual observations."""
+        return tuple(
+            Cell(
+                security_id=row["security_id"],
+                session=row["session"],
+                source_sha256=row["source_sha256"],
+                source_ref=row["source_ref"],
+                observation=_observation(row) if row["source_ref"] is not None else None,
+                total_return=row["total_return"],
+            )
+            for row in self.rows.frame.iter_rows(named=True)
+        )
 
 
-class HistoryStore:
-    """Explicit synthetic-only runtime, with all objects beneath a child namespace.
-
-    Receipt return is the publication boundary; raw orphan/staging objects are
-    never snapshots. No catalog, activation pointer, automatic repair or pruning.
-    Readers require the externally retained receipt, verifying all dependencies.
-    """
-
-    def __init__(self, runtime: RuntimeBoundary, *, existing: bool = False) -> None:
-        runtime.check()
-        if runtime.mode != "synthetic":
-            raise HistoryError("synthetic_history_only")
-        self.runtime = runtime
-        self._check_ready()
-        isolated = RuntimeBoundary(runtime.path(VERSION), runtime.source_root, runtime.mode)
-        self.evidence = EvidenceStore.existing(isolated) if existing else EvidenceStore(isolated)
-
-    def _check_ready(self) -> None:
-        if self.runtime.path("history-restore-in-progress").exists():
-            raise HistoryError("history_restore_in_progress")
-
-    def retain(self, raw: bytes) -> RawReference:
-        self._check_ready()
-        with history_writer(self.evidence.runtime, create=True):
-            return RawReference.from_receipt(self.evidence.publish(raw))
-
-    def publish(self, data: Envelope) -> FrozenHistory:
-        self._check_ready()
-        with history_writer(self.evidence.runtime, create=True):
-            return self._publish(data)
-
-    def _publish(self, data: Envelope) -> FrozenHistory:
-        if not isinstance(data, Envelope):
-            raise HistoryError("history_envelope_required")
-        # Revalidate even instances built through Pydantic's unchecked copy APIs.
-        try:
-            data = Envelope.model_validate_json(data.model_dump_json())
-        except (ValidationError, EvidenceError, ValueError):
-            raise HistoryError("invalid_history_envelope") from None
-        for source in data.sources:
-            self.evidence.read(source.raw.receipt())
-        manifest = Manifest(envelope=data, coverage=coverage(data))
-        raw = canonical_bytes(manifest)
-        receipt = self.evidence.publish(raw)
-        return self.read(receipt)
-
-    def read(self, receipt: EvidenceReceipt, *, expected: Selection | None = None) -> FrozenHistory:
-        self._check_ready()
-        raw = self.evidence.read(receipt)
-        if len(raw) > MAX_BYTES:
-            raise HistoryError("manifest_size_exceeded")
-        try:
-            manifest = Manifest.model_validate_json(raw)
-        except (ValidationError, EvidenceError, ValueError, RecursionError):
-            raise HistoryError("invalid_history_manifest") from None
-        if canonical_bytes(manifest) != raw:
-            raise HistoryError("noncanonical_history_manifest")
-        if expected is not None and manifest.envelope.selection != expected:
-            raise HistoryError("incompatible_history_selection")
-        for source in manifest.envelope.sources:
-            self.evidence.read(source.raw.receipt())
-        if hashlib.sha256(raw).hexdigest() != receipt.raw_sha256:
-            raise HistoryError("manifest_identity_mismatch")
-        return FrozenHistory(receipt, manifest)
+def _observation(row: dict[str, object]) -> Observation:
+    return Observation.model_validate_json(
+        __import__("json").dumps(
+            {
+                **{name: row[name] for name in ("security_id", "session", "source_ref")},
+                **{
+                    name: {"value": row[name], "reason": row[name + "_reason"]}
+                    for name in ("open", "high", "low", "close", "adjusted_close", "action")
+                },
+            }
+        )
+    )

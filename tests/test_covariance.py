@@ -15,6 +15,7 @@ import pytest
 from prosper import covariance as c
 from prosper import dcc
 from prosper import volatility as v
+from prosper.candidate_fit import CandidateFit, compact
 from prosper.innovations import fingerprint
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,6 +63,56 @@ def primitive(**changes: Any) -> c.Projection:
     )
     args.update(changes)
     return c.project_fixed(**args)
+
+
+def test_compact_application_record_preserves_decisions_without_paths(
+    composed: c.CovarianceResult,
+) -> None:
+    saved = compact(composed)
+    assert saved.projection is not None and composed.projection is not None
+    assert saved.projection.annual_covariance_sha256 == fingerprint(composed.projection.annualized)
+    assert saved.security_ids == composed.security_ids and saved.horizon == composed.horizon
+    for source, scalar in zip(composed.scalars, saved.scalars, strict=True):
+        assert [s.model_dump() for s in scalar.starts] == [asdict(s) for s in source.starts]
+        assert scalar.selected_start == source.selected_start
+        assert scalar.forecast == source.forecast
+        assert source.path and scalar.parameters == source.path.parameters_u_g_b
+        assert scalar.terminal_variance == source.path.variance[-1]
+        assert not {"data", "path", "x", "variance", "standardized", "sensitivities"} & set(
+            scalar.model_dump()
+        )
+    assert saved.dcc_fit and composed.dcc_fit
+    assert [s.model_dump() for s in saved.dcc_fit.starts] == [
+        asdict(s) for s in composed.dcc_fit.starts
+    ]
+    assert CandidateFit.model_validate_json(saved.model_dump_json()) == saved
+    with pytest.raises(ValueError, match="fit_scalar_order_invalid"):
+        CandidateFit.model_validate_json(
+            saved.model_copy(update={"scalars": tuple(reversed(saved.scalars))}).model_dump_json()
+        )
+    # Failed/unselected starts with their original messages/None facts survive too.
+    failed = replace(
+        composed.scalars[0],
+        status="unavailable",
+        issues=("failure",),
+        selected_start=None,
+        path=None,
+        forecast=(),
+    )
+    unavailable = compact(
+        replace(
+            composed,
+            status="unavailable",
+            issues=("scalar failed",),
+            scalars=(failed, *composed.scalars[1:]),
+            dcc_fit=None,
+            projection=None,
+        )
+    )
+    assert unavailable.scalars[0].issues == ("failure",)
+    assert unavailable.scalars[0].starts == saved.scalars[0].starts
+    assert unavailable.scalars[0].seed is None
+    assert unavailable.projection is None and unavailable.dcc_fit is None
 
 
 @pytest.mark.parametrize("index", range(8))
@@ -124,7 +175,7 @@ def test_e03_full_replay_uses_last_observation_only_for_forecast() -> None:
 
 
 def test_compose_exact_component_binding_and_forecast_origin(composed: c.CovarianceResult) -> None:
-    assert composed.status == "qualified-synthetic-forecast" and not composed.issues
+    assert composed.status == "forecast-complete" and not composed.issues
     fit, projection = composed.dcc_fit, composed.projection
     assert fit and fit.evaluation and projection
     assert composed.terminal_q is not None and composed.next_q is not None
@@ -467,5 +518,5 @@ def test_fresh_process_reference_and_idr_replay(tmp_path: Path) -> None:
         assert run.returncode == 0, run.stdout + run.stderr
     assert outputs[0].read_bytes() == outputs[1].read_bytes()
     result = json.loads(outputs[0].read_text())["idr_primitive"]
-    assert result["status"] == "qualified-synthetic-forecast"
+    assert result["status"] == "forecast-complete"
     assert all(s["data"]["variant"] == "idr" for s in result["scalars"])

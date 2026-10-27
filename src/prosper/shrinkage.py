@@ -1,4 +1,4 @@
-"""Identified analytical nonlinear-shrinkage component, synthetic-qualified only.
+"""Identified analytical nonlinear-shrinkage component, requiring explicit numerical checks.
 
 P18 Appendix C/D, P20 equations 4.3-4.9 and A20, frozen R1 thresholds.
 Derived float64 values never replace exact source/ledger facts. This component

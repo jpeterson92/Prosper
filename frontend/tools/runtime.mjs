@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -7,14 +7,31 @@ import path from "node:path";
 export const root = fileURLToPath(new URL("../../", import.meta.url));
 export const python = process.env.PROSPER_BROWSER_PYTHON ?? path.join(root, ".venv", "Scripts", "python.exe");
 
-export async function runtime({ dist, port, developmentPort, directory } = {}) {
+export async function refreshHistory(server, document) {
+  const token=await server.session();
+  async function post(route,body) {
+    const response=await fetch(server.origin+route,{method:"POST",headers:{Origin:server.origin,Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!response.ok)throw new Error("history_fixture_request_failed");
+    return response.json();
+  }
+  const ids=[];
+  for(const part of document.parts)ids.push((await post("/api/v1/history/parts",part)).id);
+  const manifest={version:"advisory-history-manifest-v1",part_count:document.part_count,part_ids:ids,command_key:document.command_key,expected_revision:document.expected_revision};
+  await post("/api/v1/history/preview",manifest);
+  return post("/api/v1/history/refresh",manifest);
+}
+
+export async function runtime({ dist, port, developmentPort, directory, artifact } = {}) {
   directory ??= path.join(root, ".local", "browser", randomUUID());
   await mkdir(path.dirname(directory), { recursive: true });
-  const args = ["-I", "-m", "prosper.local_api", "--source-root", root, "--synthetic-runtime", directory];
+  const args = ["-I", "-m", "prosper.local_api", "--runtime", directory];
+  if (!artifact) { try { await import("node:fs/promises").then(fs=>fs.access(path.join(directory,"advisory-v1.sqlite3"))); } catch { args.push("--initialize"); } }
   if (dist) args.push("--ui-dist", dist);
   if (port) args.push("--port", String(port));
   if (developmentPort) args.push("--development-port", String(developmentPort));
-  const child = spawn(python, args, { cwd: root, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+  const executable = artifact ? "powershell.exe" : python;
+  const launchArgs = artifact ? ["-NoProfile", "-File", path.join(artifact,"Launch.ps1"), "-Command", "start", "-Workspace", directory] : args;
+  const child = spawn(executable, launchArgs, { cwd: artifact ?? root, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
   let output = "";
   let errors = "";
   let first = true;
@@ -62,5 +79,12 @@ export async function runtime({ dist, port, developmentPort, directory } = {}) {
     }
     if (child.exitCode !== 0 || output || errors) throw new Error("runtime_output_or_exit_failure");
   }
-  return { origin, directory, session, stop };
+  async function interrupt() {
+    if (child.exitCode !== null) throw new Error("runtime_already_stopped");
+    const exited = new Promise(resolve => child.once("exit",resolve));
+    const killed=spawnSync("taskkill.exe",["/PID",String(child.pid),"/T","/F"],{windowsHide:true,stdio:"ignore"});
+    if(killed.status!==0)throw new Error("runtime_interrupt_failed");
+    await exited;
+  }
+  return { origin, directory, session, stop, interrupt };
 }

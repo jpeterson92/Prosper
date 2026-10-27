@@ -1,1 +1,1 @@
-"""Prosper's synthetic development core; no investor application or tax engine."""
+"""Prosper's deterministic local advisory core; no execution or tax-return engine."""

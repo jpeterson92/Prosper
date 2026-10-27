@@ -24,8 +24,7 @@
     "vintage": "fictional-v1",
     "source_sha256": "3f1fcdb671b39e993e2046b73991affc355d53fa1c912424dd18a3c6fabfb4a8",
     "construction": "Fictional daily UTC grid, consecutive synthetic sessions, no real exchange calendar. ALPHA rows 0/1 split/dividend all-flat at 50/99 with total return zero; row 2 range-only; row 3 overnight-only; remaining returns and raw OHLC are stipulated decimals, not market observations. BETA has independent signed returns and ranges. Action evidence is an explicit construction attestation, not externally qualified data.",
-    "return_convention": "simple-total-return-decimal",
-    "fictional": true
+    "return_convention": "simple-total-return-decimal"
   },
   "rows": [
     {
@@ -41,7 +40,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-01",
@@ -56,7 +55,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-02",
@@ -71,7 +70,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-02",
@@ -86,7 +85,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-03",
@@ -101,7 +100,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-03",
@@ -116,7 +115,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-04",
@@ -131,7 +130,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-04",
@@ -146,7 +145,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-05",
@@ -161,7 +160,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-05",
@@ -176,7 +175,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-06",
@@ -191,7 +190,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-06",
@@ -206,7 +205,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-07",
@@ -221,7 +220,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-07",
@@ -236,7 +235,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-08",
@@ -251,7 +250,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-08",
@@ -266,7 +265,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-09",
@@ -281,7 +280,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-09",
@@ -296,7 +295,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-10",
@@ -311,7 +310,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-10",
@@ -326,7 +325,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-11",
@@ -341,7 +340,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-11",
@@ -356,7 +355,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-12",
@@ -371,7 +370,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     },
     {
       "session": "2000-01-12",
@@ -386,7 +385,7 @@
       "return_vintage": "fictional-v1",
       "ohlc_vintage": "fictional-v1",
       "action_vintage": "fictional-v1",
-      "compatibility": "synthetic-compatible-total-return-and-raw-ohlc"
+      "compatibility": "compatible-total-return-and-raw-ohlc"
     }
   ],
   "action_construction": {

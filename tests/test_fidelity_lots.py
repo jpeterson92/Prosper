@@ -8,7 +8,6 @@ from dataclasses import FrozenInstanceError
 from decimal import localcontext
 from fractions import Fraction
 from pathlib import Path
-from typing import Literal, cast
 
 import pytest
 
@@ -31,7 +30,7 @@ def fixture(name: str = "combined-stocks") -> bytes:
 
 
 def inspect(raw: bytes | None = None) -> LotInspection:
-    return inspect_combined_lots(fixture() if raw is None else raw, fictional=True)
+    return inspect_combined_lots(fixture() if raw is None else raw)
 
 
 def rows() -> list[list[str]]:
@@ -217,9 +216,7 @@ def test_work_limits_and_truncation_are_explicit() -> None:
     assert repeated.further_issues and len(repeated.issues) == MAX_ISSUES
 
 
-def test_fictional_boundary_immutability_and_decimal_context_independence() -> None:
-    refused = inspect_combined_lots(fixture(), fictional=cast(Literal[True], False))
-    assert codes(refused) == {"fictional_assertion_required"} and not refused.records
+def test_inspection_immutability_and_decimal_context_independence() -> None:
     result = inspect()
     attribute = "records"
     with pytest.raises(FrozenInstanceError):

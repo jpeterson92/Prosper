@@ -80,6 +80,47 @@ def test_e01_e02_and_written_sensitivity() -> None:
     assert constant.gradient == (0, 0, 0)
 
 
+@pytest.mark.parametrize("length", [1, 2, 65, 1260])
+@pytest.mark.parametrize("theta", [(0.1, 0.2, 0.7), (1.0, 0.0, 0.0), (1e-5, 0.0, 0.99997)])
+def test_filter_paths_against_direct_polynomial_and_derivative(length: int, theta: v.Theta) -> None:
+    # Expand h[t] as a polynomial in b, rather than using a state recurrence
+    # or the production filter. Differentiate those powers directly for dh/db.
+    values = np.asarray([0.01 * math.sin(t + 0.5) for t in range(length)])
+    squares = values**2
+    s2 = math.fsum(squares) / length
+    seed = 0.0002
+    u, g, b = theta
+    powers = np.asarray([b**t for t in range(length)])
+    derivative_powers = np.asarray([0.0, *[t * b ** (t - 1) for t in range(1, length)]])
+    h = seed * powers
+    dv = np.zeros((3, length))
+    dv[2] = seed * derivative_powers
+    if length > 1:
+        forcing = u * s2 + g * squares[:-1]
+        h[1:] += np.convolve(forcing, powers)[: length - 1]
+        dv[0, 1:] = s2 * np.cumsum(powers)[: length - 1]
+        dv[1, 1:] = np.convolve(squares[:-1], powers)[: length - 1]
+        dv[2, 1:] += np.convolve(forcing, derivative_powers)[: length - 1]
+    path = v.evaluate_fixed(tuple(values), theta, initial_variance=seed)
+    np.testing.assert_allclose(path.variance, h, rtol=1e-8, atol=1e-12 * s2)
+    np.testing.assert_allclose(path.sensitivities, dv.T, rtol=1e-8, atol=1e-12 * s2)
+    expected = math.fsum(
+        (math.log(2 * math.pi * h[t]) + squares[t] / h[t]) / 2 for t in range(length)
+    )
+    assert path.nll_sum == pytest.approx(expected, abs=1e-8)
+    gradient = tuple(math.fsum(((1 - squares / h) / 2 * row / h).tolist()) for row in dv)
+    assert path.gradient == pytest.approx(gradient, rel=1e-8, abs=1e-8)
+
+
+def test_filter_refuses_the_first_invalid_observation_without_clipping() -> None:
+    # A finite positive seed can still produce an unrepresentable score before
+    # a later overflowing state; preserve the first refusal and its location.
+    with pytest.raises(v.VolatilityUnavailable, match="path: observation 0"):
+        v.evaluate_fixed((1e150, 1e150), (10.0, 0.1, 0.8), initial_variance=5e-324)
+    with pytest.raises(v.VolatilityUnavailable, match="variance: observation 1"):
+        v.evaluate_fixed((1e154, 0.0), (3.0, 0.5, 0.4), initial_variance=1.0)
+
+
 @pytest.mark.parametrize("scale", [1e-6, 100.0, 1e6])
 def test_consistent_units_without_automatic_rescale(scale: float) -> None:
     x = (1.0, -2.0, 0.0, 3.0, -1.0)
@@ -174,8 +215,7 @@ def test_unsupported_horizons(horizon: int) -> None:
 @pytest.mark.parametrize(
     "field,value,code",
     [
-        ("fictional", False, "synthetic_only"),
-        ("timezone", "", "synthetic_only"),
+        ("timezone", "", "timezone"),
         ("security_id", "", "identity"),
         ("calendar", "", "identity"),
         ("innovation_identity_sha256", "", "identity"),
@@ -197,7 +237,7 @@ def test_identified_input_refusals(field: str, value: Any, code: str) -> None:
 def test_real_nine_start_fit_against_independent_constant_variance_bound() -> None:
     data = data_for((2.0, -2.0) * 12)
     fitted = v.fit_volatility(data)
-    assert fitted.status == "qualified-synthetic-fit" and fitted.path is not None
+    assert fitted.status == "fit-complete" and fitted.path is not None
     # Each Gaussian term for |x|=2 is minimized at v=4. This is a nonunique
     # global objective bound, independent of a fitted-parameter expectation.
     lower_bound = len(data.x) * (math.log(2 * math.pi) + math.log(4) + 1) / 2

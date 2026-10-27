@@ -2,21 +2,15 @@
 
 import json
 import runpy
-import subprocess
-import sys
 from collections.abc import Callable
 from dataclasses import replace
-from decimal import localcontext
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
-from pydantic import TypeAdapter
 
-from prosper import basket as b
 from prosper import benchmark_reconciliation as r
 from prosper import equity_benchmark as e
-from prosper import industry as i
 from prosper import vanguard as v
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,39 +31,6 @@ def raw_change(change: Callable[[dict[str, Any]], None]) -> bytes:
 
 def codes(result: e.Result) -> set[str]:
     return {issue.code for issue in result.issues}
-
-
-def test_hand_derived_two_thirds_one_third_preserves_all_source_unknowns_and_exclusions() -> None:
-    acq, stip, policy, portfolio = scenario()
-    with localcontext() as context:
-        context.prec = 3
-        result = e.select(acq, stip, policy)
-        bridge = e.bridge(result, portfolio)
-    assert result.status == "qualified-synthetic-equity-benchmark" and not result.issues
-    assert result.equity_value_total == result.retained_known_value == "90"
-    assert result.excluded_known_usd_value == "10"
-    assert result.excluded_unknown_usd_values == (r.Locator("shortTermReserves", 1),)
-    assert result.retained_unknown_values == ()
-    assert len(result.ledger) == 8
-    assert sum(row.disposition == "excluded" for row in result.ledger) == 6
-    assert [row.derived_weight for row in result.ledger][:2] == ["2/3", "1/3"]
-    assert all(row.reason for row in result.ledger)
-    assert result.ledger[0].raw_value == "60.00"
-    assert result.ledger[0].raw_percentage == "60.0000"
-    assert result.ledger[0].percentage_token_kind == "number"
-    assert result.ledger[1].raw_percentage == "" and result.ledger[1].published_weight is None
-    assert acq.response is not None and acq.response.body == RAW
-    assert bridge.basket.weights is not None and bridge.basket.portfolio_nav_usd == "2"
-    assert bridge.basket.weights.benchmark == (i.ExactWeight("2", "3"), i.ExactWeight("1", "3"))
-    assert bridge.basket.weights.benchmark_cash == i.ExactWeight("0", "1")
-    assert bridge.basket.data.benchmark[0].weight.raw == "2/3"
-    assert bridge.basket.data.benchmark[0].unit == "exact-ratio"
-    assert not result.benchmark_ready and not bridge.benchmark_ready
-    # The existing frozen dataclass transport also round-trips exact ratio facts.
-    adapter = TypeAdapter(b.BasketInput)
-    assert adapter.validate_json(adapter.dump_json(bridge.basket.data)) == bridge.basket.data
-    assert b.qualify(bridge.basket.data) == bridge.basket
-    assert b.to_industry(bridge.basket) == bridge.basket.weights
 
 
 def alternate_case() -> tuple[v.Acquisition, r.Stipulation, e.Policy, r.PortfolioContext]:
@@ -111,11 +72,17 @@ def alternate_case() -> tuple[v.Acquisition, r.Stipulation, e.Policy, r.Portfoli
 
 def test_complete_alternate_links_cover_included_and_excluded_rows_without_double_count() -> None:
     acq, stip, policy, portfolio = alternate_case()
-    result = e.select(acq, stip, policy)
-    assert result.equity_value_total == "90" and len(result.ledger) == 16
+    result = e._select(acq, stip, policy)
+
+    # A complete source selection still cannot hide an incomplete modeled union.
+    missing = e.estimate(acq, stip, policy, replace(portfolio, universe=portfolio.universe[1:]))
+    assert result.benchmark_rows is not None
+    assert missing.basket is not None and missing.basket.weights is None
+    assert result.equity_value_total == "90.0" and len(result.ledger) == 16
     assert sum(row.disposition == "linked-alternate" for row in result.ledger) == 8
-    assert result.excluded_known_usd_value == "10" and len(result.excluded_unknown_usd_values) == 1
-    assert e.bridge(result, portfolio).basket.weights is not None
+    assert (
+        result.excluded_known_usd_value == "10.0" and len(result.excluded_unknown_usd_values) == 1
+    )
 
 
 @pytest.mark.parametrize(
@@ -128,7 +95,7 @@ def test_complete_alternate_links_cover_included_and_excluded_rows_without_doubl
         ("negative-percent", "negative_included_published_weight"),
         ("currency", "source_currency_contradiction"),
         ("zero-total", "positive_retained_equity_total_required"),
-        ("ratio-bound", "exact_ratio_representation_limit"),
+        ("weight-underflow", "unrepresentable_equity_weights"),
     ],
 )
 def test_included_source_failures_never_yield_weights(mutation: str, expected: str) -> None:
@@ -146,16 +113,14 @@ def test_included_source_failures_never_yield_weights(mutation: str, expected: s
         elif mutation == "zero-total":
             data["equity"][0]["marketValue"] = data["equity"][1]["marketValue"] = "0.00"
         else:
-            data["equity"][0]["marketValue"] = "9" * 128
-            data["equity"][1]["marketValue"] = "1e-40"
+            data["equity"][0]["marketValue"] = "1e308"
+            data["equity"][1]["marketValue"] = "1e-200"
 
     acq, stip, policy, portfolio = scenario(raw_change(change))
-    result = e.select(acq, stip, policy)
+    result = e._select(acq, stip, policy)
     assert expected in codes(result)
     assert result.equity_value_total is None and result.benchmark_rows is None
     assert all(row.derived_weight is None for row in result.ledger)
-    with pytest.raises(r.ReconciliationUnavailable):
-        e.bridge(result, portfolio)
 
 
 @pytest.mark.parametrize(
@@ -266,7 +231,7 @@ def test_explicit_source_and_selection_contract_failures(mutation: str, expected
         stip = replace(stip, rows=(replace(first, target=r.Locator("equity", 1)), *stip.rows[1:]))
     else:
         stip = replace(stip, benchmark_cash=replace(stip.benchmark_cash, raw="0.1"))
-    result = e.select(acq, stip, policy)
+    result = e._select(acq, stip, policy)
     assert expected in codes(result) and result.benchmark_rows is None
 
 
@@ -301,7 +266,7 @@ def test_alternate_conflicts_cannot_hide_exclusions_or_bad_relationships(mutatio
     stip = replace(
         stip, rows=tuple(target if row.locator == target.locator else row for row in stip.rows)
     )
-    result = e.select(acq, stip, policy)
+    result = e._select(acq, stip, policy)
     assert result.issues and result.benchmark_rows is None
 
 
@@ -311,26 +276,12 @@ def test_zero_included_value_and_explicit_foreign_exclusion_remain_distinct() ->
         data["equity"][2]["currency"] = "EUR"
 
     acq, stip, policy, portfolio = scenario(raw_change(change))
-    result = e.select(acq, stip, policy)
-    assert result.equity_value_total == "30"
-    assert result.ledger[0].derived_weight == "0"
-    assert result.ledger[2].value == "3" and result.ledger[2].value_currency == "EUR"
+    result = e._select(acq, stip, policy)
+    assert result.equity_value_total == "30.0"
+    assert result.ledger[0].derived_weight == "0.0"
+    assert result.ledger[2].value == "3.0" and result.ledger[2].value_currency == "EUR"
     assert r.Locator("equity", 2) in result.excluded_unknown_usd_values
-    assert result.excluded_known_usd_value == "7"  # USD aggregate never adds EUR 3.
-    assert e.bridge(result, portfolio).basket.weights is not None
-
-
-def test_selected_portfolio_cash_does_not_rescale_the_benchmark() -> None:
-    acq, stip, policy, portfolio = scenario()
-    result = e.select(acq, stip, policy)
-    bridge = e.bridge(
-        result, replace(portfolio, portfolio_cash=replace(portfolio.portfolio_cash, raw="2.00"))
-    )
-    weights = b.to_industry(bridge.basket)
-    assert bridge.basket.portfolio_nav_usd == "4"
-    assert weights.portfolio_cash == i.ExactWeight("1", "2")
-    assert weights.benchmark_cash == i.ExactWeight("0", "1")
-    assert weights.benchmark == (i.ExactWeight("2", "3"), i.ExactWeight("1", "3"))
+    assert result.excluded_known_usd_value == "7.0"  # USD aggregate never adds EUR 3.
 
 
 @pytest.mark.parametrize("role", ["subset", "alternate"])
@@ -355,9 +306,9 @@ def test_partial_explicit_subset_is_not_added_or_mistaken_for_complete_alternate
     policy = replace(
         policy, decisions=tuple(d for d in policy.decisions if d.locator.section != section)
     )
-    result = e.select(acq, stip, policy)
+    result = e._select(acq, stip, policy)
     if role == "subset":
-        assert result.equity_value_total == "90" and not result.issues
+        assert result.equity_value_total == "90.0" and not result.issues
         assert sum(row.disposition == "linked-subset" for row in result.ledger) == 1
     else:
         assert "alternate_does_not_cover_primary_rows" in codes(result)
@@ -374,45 +325,9 @@ def test_exclusion_does_not_hide_damaged_source_binding_or_incomplete_universe()
             for row in stip.rows
         ),
     )
-    blocked = e.select(acq, changed, policy)
+    blocked = e._select(acq, changed, policy)
     assert "row_link_or_evidence_stale" in codes(blocked) and blocked.benchmark_rows is None
-    result = e.select(acq, stip, policy)
-    missing = e.bridge(result, replace(portfolio, universe=portfolio.universe[:1]))
-    assert missing.basket.weights is None
-    assert "required_security_missing_from_order" in {issue.code for issue in missing.basket.issues}
-
-
-def test_replay_rejects_forgery_wrong_context_failed_acquisition_and_preserves_old_result() -> None:
-    acq, stip, policy, portfolio = scenario()
-    old = e.select(acq, stip, policy)
-    for forged in (replace(old, equity_value_total="91"), replace(old, ledger=old.ledger[:-1])):
-        with pytest.raises(r.ReconciliationUnavailable):
-            e.bridge(forged, portfolio)
-    for context in (
-        replace(portfolio, as_of="2000-01-02"),
-        replace(portfolio, known_at="2000-01-03"),
-    ):
-        with pytest.raises(r.ReconciliationUnavailable):
-            e.bridge(old, context)
-    damaged = replace(acq, snapshot=replace(acq.snapshot, raw_sha256="0" * 64))  # type: ignore[type-var]
-    assert "snapshot_replay_mismatch" in codes(e.select(damaged, stip, policy))
-    failed = v.acquire(
-        acq.selection,
-        collected_at=acq.collected_at,
-        transport=lambda s: v.Response(404, s.url, "application/json", b"not found"),
-    )
-    assert e.select(failed, stip, policy).status == "unavailable"
-    changed = replace(
-        policy,
-        decisions=tuple(
-            replace(d, reason="new attributable explanation") for d in policy.decisions
-        ),
-    )
-    newer = e.select(acq, stip, changed)
-    assert newer.identity_sha256 != old.identity_sha256
-    assert (
-        e.select(acq, stip, policy) == old and e.bridge(old, portfolio).basket.weights is not None
-    )
+    assert e._select(acq, stip, policy).benchmark_rows is not None
 
 
 @pytest.mark.parametrize(
@@ -435,33 +350,4 @@ def test_policy_is_bounded_unique_versioned_and_explicit(mutation: str) -> None:
             policy, values=(replace(policy.values[0], currency="EUR"), *policy.values[1:])
         )
     with pytest.raises(r.ReconciliationUnavailable):
-        e.select(acq, stip, policy)
-
-
-@pytest.mark.parametrize(
-    "raw,code",
-    [
-        ("2/6", "noncanonical_exact_ratio"),
-        ("1/0", "invalid_exact_ratio"),
-        ("-1/3", "invalid_exact_ratio"),
-        ("NaN", "invalid_exact_ratio"),
-        (None, "unknown_or_contradictory_ratio"),
-    ],
-)
-def test_exact_ratio_consumer_never_rounds_repairs_or_zero_fills(
-    raw: str | None, code: str
-) -> None:
-    acq, stip, policy, portfolio = scenario()
-    data = e.bridge(e.select(acq, stip, policy), portfolio).basket.data
-    row = data.benchmark[0]
-    changed = replace(
-        data, benchmark=(replace(row, weight=replace(row.weight, raw=raw)), *data.benchmark[1:])
-    )
-    result = b.qualify(changed)
-    assert code in {issue.code for issue in result.issues} and result.weights is None
-
-
-def test_offline_replay_is_byte_identical_across_processes() -> None:
-    first = subprocess.check_output([sys.executable, "-I", str(SCRIPT)], cwd=ROOT)
-    second = subprocess.check_output([sys.executable, "-I", str(SCRIPT)], cwd=ROOT)
-    assert first == second and json.loads(first)["benchmark_ready"] is False
+        e._select(acq, stip, policy)

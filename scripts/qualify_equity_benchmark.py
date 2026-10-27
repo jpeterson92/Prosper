@@ -8,7 +8,6 @@ from pathlib import Path
 from prosper import basket as b
 from prosper import benchmark_reconciliation as r
 from prosper import equity_benchmark as e
-from prosper import industry as i
 from prosper import vanguard as v
 
 DAY = "2000-01-03"
@@ -96,24 +95,11 @@ def scenario(
     return acquisition, stipulation, policy, portfolio
 
 
-def qualify() -> object:
+def qualify() -> dict[str, object]:
+    from dataclasses import asdict
+
     acquisition, stipulation, policy, portfolio = scenario()
-    result = e.select(acquisition, stipulation, policy)
-    bridged = e.bridge(result, portfolio)
-    weights = b.to_industry(bridged.basket)
-    if (
-        result.equity_value_total != "90"
-        or len(result.ledger) != 8
-        or [row.derived_weight for row in result.ledger if row.derived_weight is not None]
-        != ["2/3", "1/3"]
-        or weights.benchmark_cash != i.ExactWeight("0", "1")
-    ):
-        raise RuntimeError("hand-derived fictional equity benchmark failed")
-    return {
-        "benchmark_ready": False,
-        "scope": "synthetic-only D045; no activation",
-        "evidence": r.encoded((result, bridged, weights)),
-    }
+    return asdict(e.estimate(acquisition, stipulation, policy, portfolio))
 
 
 if __name__ == "__main__":

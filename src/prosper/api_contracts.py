@@ -1,299 +1,258 @@
-"""Closed synthetic HTTP projections. No financial arithmetic or raw-byte export."""
+"""Current advisory HTTP shapes. No checkpoint transport or financial authority."""
 
-from typing import Annotated, Literal
+import json
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field, JsonValue, field_validator, model_validator
 
-from prosper.bundle import Location, ParsedBundle
-from prosper.bundle_schema import BundleDocument, Identifier
-from prosper.checkpoint import Inspection
-from prosper.evidence import EvidenceReceipt
-from prosper.exact import BookValue, ExactValue
-from prosper.persistence import StoredCheckpoint
-from prosper.previews import ImportPreview
-
-API_VERSION = "synthetic-import-api-v1"
-type Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-type Generation = Annotated[int, Field(ge=0, lt=2**63 - 1)]
-type ReadinessState = Literal["complete", "incomplete", "contradictory"]
+from prosper.advisory_records import Digest, ImportSnapshot, Record, Revision
+from prosper.benchmark import BenchmarkObservation
+from prosper.history import HistoryBatch, HistoryRequest
+from prosper.history_table import HistoryTable
+from prosper.lot_records import FidelityContext, LotSettings
+from prosper.record_types import DateText, Identifier, Text, Timestamp
 
 
-class ClosedAPI(BaseModel):
-    model_config = ConfigDict(strict=True, extra="forbid", frozen=True)
-
-
-class RejectRequest(ClosedAPI):
-    schema_version: Literal["synthetic-import-api-v1"]
-    preview_sha256: Digest
-
-
-class CommitRequest(RejectRequest):
-    command_key: Identifier
-    expected_generation: Generation
-
-
-class APIIssue(ClosedAPI):
+class APIIssue(Record):
     code: str
-    path: Location = ()
-    offset: int | None = None
-    path_truncated: bool = False
+    path: tuple[str | int, ...]
 
 
-class APIError(ClosedAPI):
+class APIError(Record):
     error: str
     issues: tuple[APIIssue, ...] = ()
-    further_issues: bool = False
 
 
-class KnownValue(ClosedAPI):
-    state: Literal["known"] = "known"
-    value: str
-    original_text: str
-    source_quantum: str
+class HistoryRowsRequest(Record):
+    table: HistoryTable
+    offset: int = Field(default=0, ge=0, le=650000)
+    limit: int = Field(default=20, ge=1, le=100)
 
 
-class UnknownValue(ClosedAPI):
-    state: Literal["unknown"] = "unknown"
-    value: None = None
-    reasons: tuple[str, ...]
+class HistoryRowsPage(Record):
+    row_count: int
+    offset: int
+    columns: tuple[str, ...]
+    rows: tuple[tuple[str | float | None, ...], ...]
 
 
-type ValueResponse = Annotated[KnownValue | UnknownValue, Field(discriminator="state")]
+class Upload(Record):
+    version: Literal["advisory-upload-v1"]
+    snapshot: ImportSnapshot
+    source_base64: str = Field(max_length=2800000)
+
+    @field_validator("snapshot", mode="before")
+    @classmethod
+    def json_snapshot(cls, value: object) -> object:
+        # FastAPI decodes JSON before Pydantic; validate collections with JSON
+        # semantics while retaining strict decimal strings and scalar types.
+        if isinstance(value, dict):
+            return ImportSnapshot.model_validate_json(json.dumps(value, allow_nan=False))
+        return value
 
 
-def book_value(value: BookValue) -> KnownValue | UnknownValue:
-    if isinstance(value, ExactValue):
-        return KnownValue(
-            value=value.canonical,
-            original_text=value.original_text,
-            source_quantum=format(value.source_quantum, "f"),
-        )
-    return UnknownValue(reasons=value.reasons)
+class PreviewResponse(Record):
+    id: Digest
+    snapshot: ImportSnapshot
 
 
-class SourceValue(ClosedAPI):
-    path: Location
-    exact: KnownValue
+class FidelityUpload(Record):
+    context: FidelityContext
+    source_base64: str = Field(max_length=2800000)
 
-
-def _source_values(value: object, path: Location = ()) -> tuple[SourceValue, ...]:
-    if isinstance(value, ExactValue):
+    @field_validator("context", mode="before")
+    @classmethod
+    def json_context(cls, value: object) -> object:
         return (
-            SourceValue(
-                path=path,
-                exact=KnownValue(
-                    value=value.canonical,
-                    original_text=value.original_text,
-                    source_quantum=format(value.source_quantum, "f"),
-                ),
-            ),
+            FidelityContext.model_validate_json(json.dumps(value, allow_nan=False))
+            if isinstance(value, dict)
+            else value
         )
-    result: list[SourceValue] = []
-    if isinstance(value, BaseModel):
-        for name in type(value).model_fields:
-            result.extend(_source_values(getattr(value, name), (*path, name)))
-    elif isinstance(value, tuple):
-        for index, item in enumerate(value):
-            result.extend(_source_values(item, (*path, index)))
-    return tuple(result)
 
 
-class SourceResponse(ClosedAPI):
-    status: Literal["parsed_unvalidated"] = "parsed_unvalidated"
-    canonicalization_version: Literal["canonical-json-v1"] = "canonical-json-v1"
-    canonical_sha256: Digest
-    document: BundleDocument
-    source_values: tuple[SourceValue, ...]
+class FidelityOpening(Record):
+    """Minimal user-supplied opening facts; unresolved identity stays unresolved."""
+
+    source_base64: str = Field(max_length=2800000)
+    source_account: Text
+    source_as_of: DateText
+    account_alias: Text
+    currency: Literal["USD"]
+    recorded_at: Timestamp
 
 
-def source_response(parsed: ParsedBundle) -> SourceResponse:
-    return SourceResponse(
-        canonical_sha256=parsed.canonical_sha256,
-        document=parsed.document,
-        source_values=_source_values(parsed.document),
-    )
-
-
-class ReceiptResponse(ClosedAPI):
-    raw_sha256: Digest
-    byte_length: int
-    storage_version: Literal["evidence-bytes-v1"] = "evidence-bytes-v1"
-
-
-def receipt_response(receipt: EvidenceReceipt) -> ReceiptResponse:
-    # Storage paths are adapter details, never HTTP selection/response authority.
-    return ReceiptResponse(raw_sha256=receipt.raw_sha256, byte_length=receipt.byte_length)
-
-
-class PositionResponse(ClosedAPI):
-    account_id: str
-    security_id: str
-    quantity: ValueResponse
-    lot_quantity: ValueResponse
-    price: ValueResponse
-    market_value: ValueResponse
-    basis: ValueResponse
-    market_minus_basis: ValueResponse
-
-
-class CashResponse(ClosedAPI):
-    account_id: str
-    settled: ValueResponse
-    available: ValueResponse
-    unsettled: ValueResponse
-
-
-class ReadinessResponse(ClosedAPI):
-    inspection: ReadinessState
-    basis: ReadinessState
-    valuation: ReadinessState
-    coverage: ReadinessState
-    planning_ready: Literal[False] = False
-    planning_reasons: tuple[str, ...]
-
-
-class FindingResponse(ClosedAPI):
+class SourceIssue(Record):
     code: str
-    path: Location
-    blocking: bool
-    reason: str | None
+    record: int | None
+    column: str | None
 
 
-class InspectionResponse(ClosedAPI):
-    version: Literal["synthetic-inspection-v1"] = "synthetic-inspection-v1"
-    traded_account_id: str | None
-    positions: tuple[PositionResponse, ...]
-    cash: tuple[CashResponse, ...]
-    settled_cash_nav: ValueResponse
-    total_basis: ValueResponse
-    market_minus_basis: ValueResponse
-    readiness: ReadinessResponse
-    findings: tuple[FindingResponse, ...]
-    further_findings: bool
-    inspection_valid: bool
+class FidelityPreviewResponse(Record):
+    preview: PreviewResponse | None
+    issues: tuple[SourceIssue, ...]
 
 
-def inspection_response(inspection: Inspection) -> InspectionResponse:
-    return InspectionResponse(
-        traded_account_id=inspection.traded_account_id,
-        positions=tuple(
-            PositionResponse(
-                account_id=row.account_id,
-                security_id=row.security_id,
-                quantity=book_value(row.quantity),
-                lot_quantity=book_value(row.lot_quantity),
-                price=book_value(row.price),
-                market_value=book_value(row.market_value),
-                basis=book_value(row.basis),
-                market_minus_basis=book_value(row.market_minus_basis),
-            )
-            for row in inspection.positions
-        ),
-        cash=tuple(
-            CashResponse(
-                account_id=row.account_id,
-                settled=book_value(row.settled),
-                available=book_value(row.available),
-                unsettled=book_value(row.unsettled),
-            )
-            for row in inspection.cash
-        ),
-        settled_cash_nav=book_value(inspection.settled_cash_nav),
-        total_basis=book_value(inspection.total_basis),
-        market_minus_basis=book_value(inspection.market_minus_basis),
-        readiness=ReadinessResponse(
-            inspection=inspection.readiness.inspection,
-            basis=inspection.readiness.basis,
-            valuation=inspection.readiness.valuation,
-            coverage=inspection.readiness.coverage,
-            planning_reasons=inspection.readiness.planning_reasons,
-        ),
-        findings=tuple(
-            FindingResponse(code=f.code, path=f.path, blocking=f.blocking, reason=f.reason)
-            for f in inspection.findings
-        ),
-        further_findings=inspection.further_findings,
-        inspection_valid=inspection.validated is not None,
-    )
+class LotSettingsInput(Record):
+    settings: LotSettings
+
+    @field_validator("settings", mode="before")
+    @classmethod
+    def json_settings(cls, value: object) -> object:
+        return (
+            LotSettings.model_validate_json(json.dumps(value, allow_nan=False))
+            if isinstance(value, dict)
+            else value
+        )
 
 
-class PreviewResponse(ClosedAPI):
-    schema_version: Literal["synthetic-import-api-v1"] = "synthetic-import-api-v1"
-    version: Literal["synthetic-preview-v1"] = "synthetic-preview-v1"
-    receipt: ReceiptResponse
-    recorded_at: str
-    state: Literal["staged", "rejected", "committed"]
-    rejected_at: str | None
-    source: SourceResponse | None
-    issues: tuple[APIIssue, ...]
-    further_issues: bool
-    inspection: InspectionResponse | None
-    planning_ready: Literal[False] = False
-
-
-def preview_response(preview: ImportPreview) -> PreviewResponse:
-    return PreviewResponse(
-        receipt=receipt_response(preview.receipt),
-        recorded_at=preview.recorded_at,
-        state=preview.state,
-        rejected_at=preview.rejected_at,
-        source=source_response(preview.parsing.parsed) if preview.parsing.parsed else None,
-        issues=tuple(
-            APIIssue(
-                code=i.code,
-                path=tuple(p[:128] if isinstance(p, str) else p for p in i.path),
-                offset=i.offset,
-                path_truncated=any(isinstance(p, str) and len(p) > 128 for p in i.path),
-            )
-            for i in preview.parsing.issues
-        ),
-        further_issues=preview.parsing.further_issues,
-        inspection=inspection_response(preview.inspection) if preview.inspection else None,
-    )
-
-
-class CheckpointResponse(ClosedAPI):
-    sequence: int
-    recorded_at: str
-    receipt: ReceiptResponse
-    source: SourceResponse
-    inspection: InspectionResponse
-
-
-def checkpoint_response(checkpoint: StoredCheckpoint) -> CheckpointResponse:
-    return CheckpointResponse(
-        sequence=checkpoint.sequence,
-        recorded_at=checkpoint.recorded_at,
-        receipt=receipt_response(checkpoint.receipt),
-        source=source_response(checkpoint.inspection.source),
-        inspection=inspection_response(checkpoint.inspection),
-    )
-
-
-class CurrentResponse(ClosedAPI):
-    schema_version: Literal["synthetic-import-api-v1"] = "synthetic-import-api-v1"
-    generation: Generation
-    checkpoint: CheckpointResponse | None
-    planning_ready: Literal[False] = False
-
-
-class CommandResponse(ClosedAPI):
-    schema_version: Literal["synthetic-import-api-v1"] = "synthetic-import-api-v1"
-    scope: Literal["synthetic-portfolio-import-v1"]
+class LotSettingsRequest(LotSettingsInput):
     command_key: Identifier
-    payload_version: Literal["activate-preview-v1"]
-    payload_sha256: Digest
-    preview_sha256: Digest
-    expected_generation: Generation
-    outcome: Literal[
-        "committed",
-        "duplicate",
-        "stale_generation",
-        "preview_rejected",
-        "preview_invalid",
-        "identity_review_required",
-        "source_conflict",
-    ]
-    generation: Generation
-    activation_generation: int | None
-    recorded_at: str
+    expected_revision: Revision
+
+
+class CurrentResponse(Record):
+    revision: Revision
+    snapshot_id: Digest | None
+    settings: dict[str, JsonValue]
+    current_run_id: Identifier | None
+
+
+class SelectRequest(Record):
+    snapshot_id: Digest
+    command_key: Identifier
+    expected_revision: Revision
+
+
+class SettingsRequest(Record):
+    settings: dict[str, JsonValue]
+    command_key: Identifier
+    expected_revision: Revision
+
+
+class RejectRequest(Record):
+    snapshot_id: Digest
+
+
+class DiagnosticRequest(Record):
+    run_id: Identifier
+    expected_revision: Revision
+    as_of: Timestamp
+
+
+class CommandResponse(Record):
+    outcome: str
+    revision: Revision
+
+
+class SnapshotEntry(Record):
+    id: Digest
+    imported_at: Timestamp
+    state: Literal["staged", "selected", "rejected"]
+
+
+class CatalogResponse(Record):
+    snapshots: tuple[SnapshotEntry, ...]
+    runs: tuple[Identifier, ...]
+    worksheets: tuple[Identifier, ...]
+    benchmarks: tuple[BenchmarkObservation, ...]
+    pending_history_parts: tuple[Digest, ...]
+
+
+class HistoryPart(Record):
+    batch: HistoryBatch
+    source_zlib_base64: str = Field(max_length=2800000)
+
+    @field_validator("batch", mode="before")
+    @classmethod
+    def json_batch(cls, value: object) -> object:
+        return (
+            HistoryBatch.model_validate_json(json.dumps(value, allow_nan=False))
+            if isinstance(value, dict)
+            else value
+        )
+
+
+class HistoryPartReceipt(Record):
+    id: Digest
+    batch: HistoryBatch
+
+
+class HistoryManifest(Record):
+    version: Literal["advisory-history-manifest-v1"] = "advisory-history-manifest-v1"
+    part_count: int = Field(ge=1, le=500)
+    part_ids: tuple[Digest, ...] = Field(min_length=1, max_length=500)
+    command_key: Identifier
+    expected_revision: Revision
+
+    @field_validator("part_ids", mode="before")
+    @classmethod
+    def json_ids(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, list) else value
+
+    @model_validator(mode="after")
+    def complete(self) -> Self:
+        if self.part_count != len(self.part_ids) or len(set(self.part_ids)) != self.part_count:
+            raise ValueError("history_manifest_parts_invalid")
+        return self
+
+
+class HistoryUpload(Record):
+    version: Literal["advisory-history-upload-v2"] = "advisory-history-upload-v2"
+    part_count: int = Field(ge=1, le=500)
+    parts: tuple[HistoryPart, ...] = Field(min_length=1, max_length=500)
+    command_key: Identifier
+    expected_revision: Revision
+
+    @field_validator("parts", mode="before")
+    @classmethod
+    def json_parts(cls, value: object) -> object:
+        if isinstance(value, list):
+            if len(value) > 500:
+                raise ValueError("history_parts_size_limit")
+            count = 0
+            for part in value:
+                if isinstance(part, dict) and isinstance(part.get("batch"), dict):
+                    rows = part["batch"].get("rows")
+                    if isinstance(rows, dict) and type(rows.get("row_count")) is int:
+                        count += rows["row_count"]
+            if count > 650000:
+                raise ValueError("history_observation_budget_exceeded")
+            return tuple(
+                HistoryPart.model_validate_json(json.dumps(part, allow_nan=False)) for part in value
+            )
+        return value
+
+    @model_validator(mode="after")
+    def manifest(self) -> Self:
+        if self.part_count != len(self.parts):
+            raise ValueError("history_parts_missing")
+        if sum(p.batch.rows.row_count for p in self.parts) > 650000:
+            raise ValueError("history_observation_budget_exceeded")
+        digests = [p.batch.source_sha256 for p in self.parts]
+        if len(set(digests)) != len(digests):
+            raise ValueError("duplicate_history_source_part")
+        return self
+
+
+class HistoryPlanRequest(Record):
+    request: HistoryRequest
+
+    @field_validator("request", mode="before")
+    @classmethod
+    def json_request(cls, value: object) -> object:
+        return (
+            HistoryRequest.model_validate_json(json.dumps(value, allow_nan=False))
+            if isinstance(value, dict)
+            else value
+        )
+
+
+class HistoryDiagnosticRequest(HistoryPlanRequest):
+    run_id: Identifier
+    expected_revision: Revision
+    as_of: Timestamp
+
+
+class ClearHistoryRequest(Record):
+    command_key: Identifier
+    expected_revision: Revision

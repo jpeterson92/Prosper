@@ -1,4 +1,4 @@
-"""Bounded book values and synthetic diagnostic allocation, not broker/tax rules."""
+"""Bounded book values and diagnostic allocation, not broker/tax rules."""
 
 import re
 from dataclasses import dataclass, field
@@ -197,7 +197,7 @@ def allocate_diagnostic_basis(
     sold_quantity: ExactValue,
     basis_quantum: BookValue,
 ) -> DiagnosticAllocation:
-    """Synthetic pro-rata HALF_EVEN split; full disposal consumes the remainder.
+    """Pro-rata HALF_EVEN split; full disposal consumes the remainder.
 
     The explicit basis quantum must be a power of ten and align with known basis.
     Unknown basis/quantum propagates into both basis outputs. Quantities must be

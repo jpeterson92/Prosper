@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "prosper-local"
 version = "0.0.0"
-description = "Local synthetic development foundation for Prosper"
+description = "Local advisory application for Prosper"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [

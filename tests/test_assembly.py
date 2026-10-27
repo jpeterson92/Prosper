@@ -4,7 +4,7 @@ from dataclasses import FrozenInstanceError, replace
 from decimal import localcontext
 from fractions import Fraction
 from pathlib import Path
-from typing import Literal, cast
+from typing import cast
 
 import pytest
 
@@ -31,7 +31,7 @@ EVIDENCE = Evidence("fictional-actor", "fictional-reference", TIME, "2026-10-24T
 
 
 def observation(name: str = "combined-stocks") -> LotInspection:
-    return inspect_combined_lots((FIXTURES / f"{name}.csv").read_bytes(), fictional=True)
+    return inspect_combined_lots((FIXTURES / f"{name}.csv").read_bytes())
 
 
 def assertion(value: str) -> Assertion:
@@ -58,9 +58,7 @@ def opening() -> Supplements:
 
 
 def assess(supplements: Supplements | None = None, name: str = "combined-stocks") -> Assessment:
-    return assess_inputs(
-        observation(name), opening() if supplements is None else supplements, fictional=True
-    )
+    return assess_inputs(observation(name), opening() if supplements is None else supplements)
 
 
 def codes(result: Assessment, scope: str | None = None) -> set[str]:
@@ -77,7 +75,7 @@ def selection(amount: str, reviewed: bool = True) -> CashSelection:
 
 def test_a01_observations_only_do_not_infer_supplements() -> None:
     observed = observation()
-    result = assess_inputs(observed, Supplements(), fictional=True)
+    result = assess_inputs(observed, Supplements())
     assert result.observation is observed
     assert all(
         h.observation is o for h, o in zip(result.holdings, observed.observations, strict=True)
@@ -135,8 +133,8 @@ def test_a04_reported_basis_and_unknown_term_are_not_recomputed() -> None:
     assert Fraction(lot.average_basis.value.canonical) * 3 == Fraction("99.99")
     # Unknown term alone does not exclude a known-basis observation from assembly.
     raw = (FIXTURES / "combined-stocks.csv").read_bytes().replace(b",Long,", b",Unknown,")
-    observed = inspect_combined_lots(raw, fictional=True)
-    altered = assess_inputs(observed, opening(), fictional=True)
+    observed = inspect_combined_lots(raw)
+    altered = assess_inputs(observed, opening())
     assert altered.assembly_sufficient
     assert altered.holdings[0].observation.source_fields[8] == "Unknown"
 
@@ -273,7 +271,7 @@ def test_a10_inconsistent_supplements_and_replaced_observations_fail() -> None:
         replace(observed, further_issues=True),
         replace(observed, observations=(replace(observed.observations[0], record=3),)),
     ):
-        assert not assess_inputs(altered, base, fictional=True).assembly_sufficient
+        assert not assess_inputs(altered, base).assembly_sufficient
 
 
 def test_a11_identity_covers_each_immutable_input_and_retains_provenance_order() -> None:
@@ -361,7 +359,7 @@ def test_exact_aggregate_overflow_and_unknown_quantity_do_not_promote_partial_to
         replace(o, quantity=Observed("fictional-large", maximum, None))
         for o in observed.observations
     )
-    result = assess_inputs(replace(observed, observations=changed), opening(), fictional=True)
+    result = assess_inputs(replace(observed, observations=changed), opening())
     assert isinstance(result.source_quantity, UnknownValue)
     assert result.source_quantity.reasons == ("aggregate_out_of_range",)
     assert not result.assembly_sufficient
@@ -371,7 +369,6 @@ def test_exact_aggregate_overflow_and_unknown_quantity_do_not_promote_partial_to
     result = assess_inputs(
         replace(observed, observations=(unknown,) + observed.observations[1:]),
         opening(),
-        fictional=True,
     )
     assert isinstance(result.source_quantity, UnknownValue)
     assert not result.assembly_sufficient
@@ -379,10 +376,8 @@ def test_exact_aggregate_overflow_and_unknown_quantity_do_not_promote_partial_to
 
 
 def test_bad_typed_inputs_fail_safely_without_coercion_or_paths() -> None:
-    with pytest.raises(AssemblyError, match="fictional_assertion_required"):
-        assess_inputs(observation(), opening(), fictional=cast(Literal[True], False))
     with pytest.raises(AssemblyError, match="inspection_required"):
-        assess_inputs(cast(LotInspection, None), opening(), fictional=True)
+        assess_inputs(cast(LotInspection, None), opening())
     with pytest.raises(AssemblyError, match="invalid_value"):
         SecurityLink(cast(int, True), "fictional", EVIDENCE)
     with pytest.raises(AssemblyError, match="exact_value_required"):

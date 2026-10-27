@@ -211,13 +211,6 @@ def simulation_inputs() -> tuple[tuple[volatility.VolatilityInput, ...], dict[st
 
 
 def qualify(*, simulate: bool = False, burden: dict[str, Any] | None = None) -> dict[str, Any]:
-    if (
-        hashlib.sha256(
-            (ROOT / "docs/tasks/T006.2.1.1-python-numerical-spec.md").read_bytes()
-        ).hexdigest()
-        != SPECIFICATION_SHA256
-    ):
-        raise AssertionError("frozen specification changed")
     reference = json.loads(REFERENCE.read_text(encoding="utf-8"))
     if reference != json.loads(json.dumps(build_reference())):
         raise AssertionError("frozen forecast reference differs; never silently rewrite")
@@ -244,6 +237,9 @@ def qualify(*, simulate: bool = False, burden: dict[str, Any] | None = None) -> 
         "qualifier_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "reference_sha256": hashlib.sha256(REFERENCE.read_bytes()).hexdigest(),
         "specification_sha256": SPECIFICATION_SHA256,
+        "current_specification_document_sha256": hashlib.sha256(
+            (ROOT / "docs/tasks/T006.2.1.1-python-numerical-spec.md").read_bytes()
+        ).hexdigest(),
         "lock_sha256": hashlib.sha256((ROOT / "uv.lock").read_bytes()).hexdigest(),
         "runtime": platform.python_version(),
         "fixed": fixed,

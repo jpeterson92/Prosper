@@ -4,7 +4,7 @@ Date: October 23 PDT / October 24, 2026 UTC. Status: **deferred to v2 preparatio
 
 ## Authority and purpose
 
-The owner explicitly requested saving the broader comparison of risk-model approaches for research in preparation for Prosper v2. Preserve the [literature memo](../research/RETURNS_RISK_MODELS.md), its sixteen reference groups, evidence qualifications and proposed experiments. This decision changes comparison scope/timing; it does not select a production risk model, waive v1 model qualification or start experiments. The owner subsequently adopted [D041 enhanced DCC-NL/industry risk](../architecture/decisions/0007-adopt-enhanced-dcc-nl-industry-risk.md) for v1. Its standard DCC-NL/IDR parity and targeted forward calibration are required v1 work in the [bounded child plan](T006.2-dcc-industry-plan.md), not the broad comparison deferred here. Detailed settings and actual financial qualification remain open.
+The owner explicitly requested saving the broader comparison of risk-model approaches for research in preparation for Prosper v2. Preserve the [literature memo](../research/RETURNS_RISK_MODELS.md), its sixteen reference groups, evidence qualifications and proposed experiments. This decision changes comparison scope/timing; it does not select a production risk model, waive v1 model qualification or start experiments. The owner subsequently adopted [D041 enhanced DCC-NL/industry risk](../domain/RISK_MODEL.md#selected-method-and-implementation) for v1. Its standard DCC-NL/IDR parity and targeted forward calibration are required v1 work in the [bounded child plan](T006.2-dcc-industry-plan.md), not the broad comparison deferred here. Detailed settings and actual financial qualification remain open.
 
 ## Research question and candidates
 

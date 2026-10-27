@@ -1,0 +1,3 @@
+Account number,Account name,Symbol,Security description,Source file,Source CSV row,Source download date,Acquired,Term,$ Total gain/loss,% Total gain/loss,Current value,Quantity,Average cost basis,Cost basis total
+000SYNTH001,SYNTHETIC Taxable,FAAA,Fictional Alpha,SYNTHETIC_refreshed_FAAA.csv,6,Oct-26-2026 at 02:15 PM ET,Jan-01-2000,--,--,--,--,3.2500,--,$42.00
+000SYNTH002,SYNTHETIC Outside Account,FBBB,Fictional Beta,SYNTHETIC_refreshed_FBBB.csv,6,Oct-26-2026 at 02:15 PM ET,Jan-01-2000,--,--,--,--,0.125,--,--

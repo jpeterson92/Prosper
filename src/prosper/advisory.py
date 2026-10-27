@@ -31,6 +31,15 @@ def number(text: str, *, signed: bool = False) -> float:
     return result
 
 
+def supplied_sum(values: tuple[str, ...]) -> Decimal:
+    """Sum supplied amounts for boundary comparisons, without Float64 or rounding."""
+    decimals = tuple(decimal_value(value) for value in values)
+    upper = max((value.adjusted() for value in decimals), default=0)
+    lower = min((int(value.as_tuple().exponent) for value in decimals), default=0)
+    with localcontext(Context(prec=max(28, upper - lower + len(str(len(values))) + 2))):
+        return sum(decimals, Decimal(0))
+
+
 def unit_sum(values: tuple[float, ...]) -> bool:
     if not all(type(v) in (int, float) and math.isfinite(v) and v >= 0 for v in values):
         return False
