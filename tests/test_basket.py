@@ -58,6 +58,21 @@ def taxonomy(data: b.BasketInput) -> i.Taxonomy:
     )
 
 
+def test_validity_window_does_not_carry_old_benchmark_weights_forward_unchanged() -> None:
+    data = inputs()
+    # Identity assertions can remain valid; a source-date weight cannot.
+    old = replace(data.portfolio_cash.evidence, effective="2000-01-02")
+    benchmark = tuple(
+        replace(row, weight=replace(row.weight, evidence=old)) for row in data.benchmark
+    )
+    result = b.estimate(replace(data, benchmark=benchmark))
+    assert result.weights is None
+    assert "benchmark_weights_not_as_of" in {issue.code for issue in result.issues}
+    result = b.estimate(replace(data, benchmark_cash=replace(data.benchmark_cash, evidence=old)))
+    assert result.weights is None
+    assert "benchmark_weights_not_as_of" in {issue.code for issue in result.issues}
+
+
 def test_written_values_weights_and_selected_cash() -> None:
     data = inputs()
     result = b.estimate(data)

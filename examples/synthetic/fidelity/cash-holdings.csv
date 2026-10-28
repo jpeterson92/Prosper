@@ -1,0 +1,5 @@
+Account number,Account name,Symbol,Security description,Source file,Source CSV row,Source download date,Acquired,Term,$ Total gain/loss,% Total gain/loss,Current value,Quantity,Average cost basis,Cost basis total
+000SYNTH001,SYNTHETIC Taxable A,FAAA,Fictional Alpha Common,SYNTHETIC_A_FAAA.csv,6,Oct-23-2026 at 02:15 PM ET,May-15-2024,Long,-$250.00,-20.000%,$1000.00,10.000,$125.00,$1250.00
+000SYNTH001,SYNTHETIC Taxable A,FMMXX,Fictional Money Market Fund,SYNTHETIC_A_FMMXX.csv,6,Oct-23-2026 at 02:15 PM ET,--,--,--,--,$40.10,5.000,--,--
+000SYNTH001,SYNTHETIC Taxable A,FMMXX,Fictional Money Market Fund,SYNTHETIC_A_FMMXX.csv,7,Oct-23-2026 at 02:15 PM ET,--,--,--,--,$59.90,7.000,--,--
+000SYNTH001,SYNTHETIC Taxable A,FUNK,Fictional Unknown Value Fund,SYNTHETIC_A_FUNK.csv,6,Oct-23-2026 at 02:15 PM ET,--,--,--,--,--,8.000,--,--

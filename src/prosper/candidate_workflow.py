@@ -9,6 +9,7 @@ from pydantic import Field
 from prosper import covariance, volatility
 from prosper.advisory import decimal_value
 from prosper.advisory_records import Digest, ImportSnapshot, Record, Revision, Security
+from prosper.benchmark_drift import weights_at
 from prosper.candidate_fit import CandidateFit, compact
 from prosper.candidate_records import (
     Amount,
@@ -238,6 +239,13 @@ def prepare(frozen: FrozenCandidate) -> tuple[CandidateRequest | None, tuple[str
     ):
         issues.append("analysis_date_after_run")
     ids = frozen.coverage.security_ids
+    dated_weights = weights_at(model.benchmark, model.alignment, model.bundle.analysis_date)
+    issues.extend(f"{i.locator}:{i.code}" for i in dated_weights.issues)
+    if dated_weights.weights is None or any(
+        member.benchmark_weight != dated_weights.weights.get(member.security_id, 0.0)
+        for member in frozen.coverage.members
+    ):
+        issues.append("benchmark_weights_do_not_match_analysis_date")
     if len(ids) > 500:
         issues.append("candidate_component_capacity_unavailable_full_union_retained")
     if frozen.command.controls.method == "complete-cartesian-whole-share-reference" and (
@@ -373,4 +381,14 @@ def calculate(
             risk=risk,
             search=result,
         )
-    return CandidateOutput(outcome="checked", issues=(), risk=risk, search=result)
+    dated_weights = weights_at(
+        frozen.modeled.benchmark, frozen.modeled.alignment, frozen.modeled.bundle.analysis_date
+    )
+    return CandidateOutput(
+        outcome="checked",
+        issues=(),
+        risk=risk,
+        search=result,
+        warnings=CandidateOutput.model_fields["warnings"].default
+        + ((dated_weights.warning,) if dated_weights.warning else ()),
+    )

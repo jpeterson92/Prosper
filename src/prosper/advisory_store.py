@@ -12,7 +12,9 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Literal, Self, cast
 
 if TYPE_CHECKING:
+    from prosper.benchmark_metadata import FundMetadata
     from prosper.candidate_workflow import FrozenCandidate
+    from prosper.cash_treatment import CashTreatmentRequest
     from prosper.history import Alignment
     from prosper.modeled_inputs import FrozenModeledInputs
 
@@ -20,6 +22,7 @@ from pydantic import JsonValue
 
 from prosper.advisory_records import (
     AnalysisRun,
+    Fact,
     Finding,
     ImportSnapshot,
     encode,
@@ -34,7 +37,7 @@ from prosper.storage import MAX_BYTES, RESTORE_MARKER, PersistenceError, Runtime
 
 DATABASE_NAME = "advisory-v1.sqlite3"
 APPLICATION_ID = 0x50524144
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 13
 _SCHEMA = (
     "CREATE TABLE sources (sha256 TEXT PRIMARY KEY, original_size INTEGER NOT NULL "
     "CHECK(original_size>0 AND original_size<=16777216), zlib_bytes BLOB NOT NULL) STRICT",
@@ -189,6 +192,7 @@ class AdvisoryStore:
                 "INSERT OR IGNORE INTO snapshots VALUES (?,?,?,'staged',?)",
                 (identity, snapshot.source_sha256, _now(), document),
             )
+            self._snapshot(connection, identity)
             return identity
 
     def retain_alignment(self, alignment: "Alignment") -> str:
@@ -311,11 +315,58 @@ class AdvisoryStore:
         observation = BenchmarkObservation.model_validate_json(row[1])
         if observation.request.observation_id != identity or observation.source_sha256 != row[0]:
             raise PersistenceError("corrupt_benchmark_observation")
+        if observation.metadata is not None:
+            from prosper import vanguard as v
+            from prosper.benchmark_metadata import inspect_metadata
+
+            metadata = observation.metadata
+            try:
+                checked = inspect_metadata(
+                    observation,
+                    v.Response(
+                        200,
+                        metadata.response_url,
+                        metadata.content_type,
+                        AdvisoryStore._source(connection, metadata.source_sha256),
+                    ),
+                    datetime.fromisoformat(metadata.collected_at),
+                )
+                if checked != metadata:
+                    raise ValueError("metadata_binding_mismatch")
+            except ValueError:
+                raise PersistenceError("corrupt_benchmark_metadata") from None
         return observation
 
     def benchmark_observation(self, identity: str) -> BenchmarkObservation:
         with self._connection() as connection:
             return self._benchmark_observation(connection, identity)
+
+    def attach_benchmark_metadata(
+        self, identity: str, metadata: "FundMetadata", raw: bytes
+    ) -> BenchmarkObservation:
+        from prosper import vanguard as v
+        from prosper.benchmark_metadata import inspect_metadata
+
+        with self._connection(write=True) as connection:
+            observation = self._benchmark_observation(connection, identity)
+            if observation.metadata is not None:
+                if observation.metadata.source_sha256 != metadata.source_sha256:
+                    raise PersistenceError("benchmark_metadata_already_bound")
+                return observation
+            checked = inspect_metadata(
+                observation,
+                v.Response(200, metadata.response_url, metadata.content_type, raw),
+                datetime.fromisoformat(metadata.collected_at),
+            )
+            if checked != metadata:
+                raise PersistenceError("corrupt_benchmark_metadata")
+            self._retain_source(connection, metadata.source_sha256, raw)
+            updated = observation.model_copy(update={"metadata": metadata})
+            connection.execute(
+                "UPDATE benchmark_observations SET document=? WHERE id=?",
+                (encode(updated), identity),
+            )
+            return updated
 
     def begin_benchmark(
         self,
@@ -419,7 +470,10 @@ class AdvisoryStore:
                     "SELECT source_sha256 FROM input_sources UNION "
                     "SELECT source_sha256 FROM history_parts UNION "
                     "SELECT source_sha256 FROM benchmark_observations "
-                    "WHERE source_sha256 IS NOT NULL)"
+                    "WHERE source_sha256 IS NOT NULL UNION "
+                    "SELECT json_extract(document,'$.metadata.source_sha256') "
+                    "FROM benchmark_observations "
+                    "WHERE json_extract(document,'$.metadata.source_sha256') IS NOT NULL)"
                 )
                 connection.execute(
                     "UPDATE state SET revision=revision+1,current_run_id=NULL WHERE id=1"
@@ -444,6 +498,72 @@ class AdvisoryStore:
         snapshot = ImportSnapshot.model_validate_json(row[0])
         if snapshot.source_sha256 != row[1]:
             raise PersistenceError("snapshot_source_mismatch")
+        preparation = snapshot.holding_preparation
+        if preparation is not None:
+            original_row = connection.execute(
+                "SELECT document FROM snapshots WHERE id=?", (preparation.source_snapshot_id,)
+            ).fetchone()
+            if (
+                original_row is None
+                or hashlib.sha256(original_row[0].encode()).hexdigest()
+                != preparation.source_snapshot_id
+            ):
+                raise PersistenceError("holding_preparation_source_missing_or_corrupt")
+            original = ImportSnapshot.model_validate_json(original_row[0])
+            if original.holding_preparation is not None or (
+                original.source_sha256,
+                original.account_id,
+                original.source_as_of,
+            ) != (snapshot.source_sha256, snapshot.account_id, snapshot.source_as_of):
+                raise PersistenceError("holding_preparation_binding_invalid")
+            source_securities = {s.id: s for s in original.securities}
+            aliases = {r.source.id: r.security_id for r in preparation.rows}
+            mapped = {r.source.id for r in preparation.rows if r.disposition == "mapped"}
+            expected_securities = tuple(
+                s.model_copy(
+                    update={"id": aliases[s.id], "identity": Fact[str](value=aliases[s.id])}
+                )
+                if s.id in mapped
+                else s
+                for s in original.securities
+            )
+            if (
+                snapshot.securities != expected_securities
+                or any(source_securities.get(r.source.id) != r.source for r in preparation.rows)
+                or set(aliases)
+                != {r.security_id for r in original.lots}
+                | {r.security_id for r in original.positions}
+                or snapshot.lots
+                != tuple(
+                    r.model_copy(update={"security_id": aliases[r.security_id]})
+                    for r in original.lots
+                )
+                or snapshot.positions
+                != tuple(
+                    r.model_copy(update={"security_id": aliases[r.security_id]})
+                    for r in original.positions
+                )
+                or snapshot.cash != original.cash
+            ):
+                raise PersistenceError("holding_preparation_binding_invalid")
+            benchmark = AdvisoryStore._checked_benchmark(connection, preparation.benchmark_run_id)
+            result = BenchmarkResult.model_validate_json(json.dumps(benchmark.outputs))
+            observed = AdvisoryStore._benchmark_observation(connection, result.observation_id)
+            if (observed.source_sha256, result.metadata_source_sha256, result.effective_date) != (
+                preparation.benchmark_source_sha256,
+                preparation.metadata_source_sha256,
+                preparation.benchmark_date,
+            ):
+                raise PersistenceError("holding_preparation_binding_invalid")
+            for mapping in preparation.rows:
+                if mapping.disposition == "mapped" and not any(
+                    r.locator.section == "holdings"
+                    and r.locator.index == mapping.benchmark_index
+                    and r.disposition == "included-equity"
+                    and r.security_id == mapping.security_id
+                    for r in result.ledger
+                ):
+                    raise PersistenceError("holding_preparation_binding_invalid")
         return snapshot
 
     def snapshot(self, identity: str) -> ImportSnapshot:
@@ -528,6 +648,14 @@ class AdvisoryStore:
     ) -> dict[str, JsonValue]:
         return self._change("select", identity, command_key, expected_revision)
 
+    def treat_cash(self, command: "CashTreatmentRequest") -> dict[str, JsonValue]:
+        return self._change(
+            "cash-treatment",
+            command.model_dump(mode="json", exclude={"command_key", "expected_revision"}),
+            command.command_key,
+            command.expected_revision,
+        )
+
     def configure(
         self, settings: dict[str, JsonValue], command_key: str, expected_revision: int
     ) -> dict[str, JsonValue]:
@@ -582,7 +710,38 @@ class AdvisoryStore:
             state = self._state(connection)
             outcome = "stale_revision"
             if expected == state["revision"]:
-                if operation == "benchmark":
+                if operation == "cash-treatment":
+                    from prosper.cash_treatment import apply
+
+                    supplied = cast(dict[str, JsonValue], value)
+                    if supplied["snapshot_id"] != state["snapshot_id"]:
+                        raise PersistenceError("cash_treatment_snapshot_changed")
+                    snapshot = self._snapshot(connection, str(supplied["snapshot_id"]))
+                    self._source(connection, snapshot.source_sha256)
+                    try:
+                        updated = apply(
+                            snapshot,
+                            str(supplied["security_id"]),
+                            cast(str | None, supplied["kind"]),
+                            _now(),
+                        )
+                    except ValueError:
+                        raise PersistenceError("cash_treatment_invalid") from None
+                    if updated == snapshot:
+                        outcome = "duplicate"
+                    else:
+                        document = encode(updated)
+                        identity = hashlib.sha256(document.encode()).hexdigest()
+                        connection.execute(
+                            "INSERT OR IGNORE INTO snapshots VALUES (?,?,?,'selected',?)",
+                            (identity, updated.source_sha256, _now(), document),
+                        )
+                        connection.execute(
+                            "UPDATE snapshots SET state='selected' WHERE id=?", (identity,)
+                        )
+                        connection.execute("UPDATE state SET snapshot_id=? WHERE id=1", (identity,))
+                        outcome = "changed"
+                elif operation == "benchmark":
                     self._checked_benchmark(connection, str(value))
                     settings = cast(dict[str, JsonValue], state["settings"])
                     if settings.get("benchmark_run_id") == value:
@@ -600,7 +759,14 @@ class AdvisoryStore:
                     ).fetchone()
                     current = state["snapshot_id"]
                     old = self._snapshot(connection, cast(str, current)) if current else None
-                    if row == ("rejected",):
+                    preparation = snapshot.holding_preparation
+                    if preparation is not None and (
+                        cast(dict[str, JsonValue], state["settings"]).get("benchmark_run_id")
+                        != preparation.benchmark_run_id
+                        or current not in (preparation.source_snapshot_id, value)
+                    ):
+                        outcome = "prepared_snapshot_stale"
+                    elif row == ("rejected",):
                         outcome = "preview_rejected"
                     elif snapshot.observations.get("selection_blockers"):
                         outcome = "preview_blocked"

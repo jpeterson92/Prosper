@@ -1,0 +1,248 @@
+{
+  "observation_id": "fictional-ivv",
+  "stipulation": {
+    "raw_sha256": "d6d96efb857b1c111ce10caff3f213ca82ae4263a53e5fffedd88203071fd3aa",
+    "fund": {
+      "ticker": "IVV",
+      "port_id": "239726"
+    },
+    "requested_date": "2026-10-20",
+    "effective_date": "2026-10-20",
+    "collected_at": "2026-10-21T12:00:00+00:00",
+    "fund_assertion": {
+      "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+      "reference": "Fictional reviewed IVV identity and mappings",
+      "effective": "2026-10-20",
+      "recorded": "2026-10-21",
+      "valid_through": "2026-10-20",
+      "unknown_reasons": []
+    },
+    "sections": [
+      {
+        "section": "holdings",
+        "role": "primary",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+          "reference": "Fictional reviewed IVV identity and mappings",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-21",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      }
+    ],
+    "rows": [
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 0
+        },
+        "row_sha256": "4b60318e2e97fda92c8a35665f96fa7bd7b315e72548ba3e0cbecf471efdc9ed",
+        "security": {
+          "security_id": "FICTIONAL-0",
+          "currency": "USD",
+          "asset_type": "stock",
+          "evidence": {
+            "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+            "reference": "Fictional reviewed IVV identity and mappings",
+            "effective": "2026-10-20",
+            "recorded": "2026-10-21",
+            "valid_through": "2026-10-20",
+            "unknown_reasons": []
+          },
+          "unknown_reasons": []
+        },
+        "target": null,
+        "evidence": {
+          "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+          "reference": "Fictional reviewed IVV identity and mappings",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-21",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 1
+        },
+        "row_sha256": "a1abe75662c2cb879276375a00fe3f16a51b7cb9b1f89b8e49026e71d7e318a3",
+        "security": {
+          "security_id": "FICTIONAL-1",
+          "currency": "USD",
+          "asset_type": "stock",
+          "evidence": {
+            "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+            "reference": "Fictional reviewed IVV identity and mappings",
+            "effective": "2026-10-20",
+            "recorded": "2026-10-21",
+            "valid_through": "2026-10-20",
+            "unknown_reasons": []
+          },
+          "unknown_reasons": []
+        },
+        "target": null,
+        "evidence": {
+          "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+          "reference": "Fictional reviewed IVV identity and mappings",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-21",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 2
+        },
+        "row_sha256": "1ee6c4feea719a41aaacd907d526f686e0a80b07faa7fe3eea327fda7212a513",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+          "reference": "Fictional reviewed IVV identity and mappings",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-21",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 3
+        },
+        "row_sha256": "597954d98845fdad912707d57a7ef0d239b80ee811553de4978fde7555a07f87",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+          "reference": "Fictional reviewed IVV identity and mappings",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-21",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 4
+        },
+        "row_sha256": "d8e6f65ecc459fafae782b9931be68434a84ea97120246a6de0da5c6aadebed5",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+          "reference": "Fictional reviewed IVV identity and mappings",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-21",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 5
+        },
+        "row_sha256": "c9216c3f4bb1f924f4fa5c95d8b88cdad988e5e2dd166157cff88cb819ba6b45",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+          "reference": "Fictional reviewed IVV identity and mappings",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-21",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      }
+    ],
+    "benchmark_cash": {
+      "raw": "0.00",
+      "evidence": {
+        "source_sha256": "af34f810597bea6d373fadabf57d66d874c98bf69b42591f0bdb8a71a10e3bbc",
+        "reference": "Fictional reviewed IVV identity and mappings",
+        "effective": "2026-10-20",
+        "recorded": "2026-10-21",
+        "valid_through": "2026-10-20",
+        "unknown_reasons": []
+      },
+      "unknown_reasons": []
+    },
+    "benchmark_cash_unit": "decimal"
+  },
+  "policy": {
+    "values": [
+      {
+        "section": "holdings",
+        "field": "marketValue",
+        "currency": "USD"
+      }
+    ],
+    "decisions": [
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 0
+        },
+        "action": "include",
+        "reason": "Explicit fictional ordinary equity"
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 1
+        },
+        "action": "include",
+        "reason": "Explicit fictional ordinary equity"
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 2
+        },
+        "action": "exclude",
+        "reason": "Explicit unsupported instrument; excluded value is not cash"
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 3
+        },
+        "action": "exclude",
+        "reason": "Explicit unsupported instrument; excluded value is not cash"
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 4
+        },
+        "action": "exclude",
+        "reason": "Explicit unsupported instrument; excluded value is not cash"
+      },
+      {
+        "locator": {
+          "section": "holdings",
+          "index": 5
+        },
+        "action": "exclude",
+        "reason": "Explicit unsupported instrument; excluded value is not cash"
+      }
+    ],
+    "version": "equity-benchmark-v1"
+  },
+  "metadata_base64": "RmljdGlvbmFsIGluZGVwZW5kZW50IElWViBmdW5kIGlkZW50aXR5IGFuZCBzaXggcmV2aWV3ZWQgcm93IGRlY2lzaW9ucw==",
+  "metadata_reference": "Fictional reviewed IVV identity and mappings",
+  "metadata_ticker": "IVV",
+  "metadata_port_id": "239726",
+  "metadata_cusip": "464287200",
+  "metadata_as_of": "2026-10-20",
+  "metadata_reviewed": true,
+  "reviewed_at": "2026-10-21T12:00:00Z"
+}

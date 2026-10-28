@@ -11,6 +11,7 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -24,6 +25,196 @@ def document() -> Document:
     return cast(
         Document, json.loads((SOURCE / "examples/synthetic/advisory-workspace.json").read_bytes())
     )
+
+
+def test_holdings_mapping_protected_preview_explicit_selection_and_generated_provenance(
+    tmp_path: Path,
+) -> None:
+    route = "/api/v1/holdings/mapping-preview"
+    folder = SOURCE / "examples/synthetic/blackrock"
+    raw = (SOURCE / "examples/synthetic/fidelity/benchmark-holdings.csv").read_bytes()
+    with running(tmp_path / "mapping") as instance:
+        assert instance.request(route, "POST", {}, authorized=False)[0] == 401
+        assert (
+            instance.request(route, "POST", {}, headers={"Origin": "http://evil.invalid"})[0] == 403
+        )
+        assert (
+            instance.request(route, "POST", b"{}", headers={"Content-Type": "text/plain"})[0] == 415
+        )
+        _, opened = instance.request(
+            "/api/v1/fidelity/opening",
+            "POST",
+            {
+                "source_base64": base64.b64encode(raw).decode(),
+                "source_account": "000SYNTH001",
+                "source_as_of": "2026-10-20",
+                "account_alias": "Fictional mapping account",
+                "currency": "USD",
+                "recorded_at": "2026-10-21T12:00:00Z",
+            },
+        )
+        source = opened["preview"]
+        instance.request(
+            "/api/v1/select",
+            "POST",
+            {"snapshot_id": source["id"], "expected_revision": 0, "command_key": "source"},
+        )
+        observed = json.loads((folder / "current-observation.json").read_bytes())
+        assert instance.request("/api/v1/benchmarks/import", "POST", observed)[0] == 200
+        _, reviewed = instance.request(
+            "/api/v1/benchmarks/prepare",
+            "POST",
+            {
+                "observation_id": "fictional-ivv",
+                "metadata_response": {
+                    "collected_at": "2026-10-22T12:00:00Z",
+                    "response_url": "https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf",
+                    "content_type": "text/html",
+                    "http_status": 200,
+                    "body_complete": True,
+                    "source_base64": base64.b64encode(
+                        (folder / "metadata.html").read_bytes()
+                    ).decode(),
+                },
+            },
+        )
+        assert (
+            instance.request(
+                "/api/v1/benchmarks/diagnostics",
+                "POST",
+                {
+                    "run_id": "benchmark",
+                    "expected_revision": 1,
+                    "as_of": datetime.now(UTC).isoformat(),
+                    "review": reviewed,
+                },
+            )[0]
+            == 200
+        )
+        assert (
+            instance.request(
+                "/api/v1/benchmarks/select",
+                "POST",
+                {"run_id": "benchmark", "expected_revision": 1, "command_key": "benchmark"},
+            )[0]
+            == 200
+        )
+        cash = next(s["id"] for s in source["snapshot"]["securities"] if s["ticker"] == "FMMXX")
+        instance.request(
+            "/api/v1/holdings/cash-treatment",
+            "POST",
+            {
+                "snapshot_id": source["id"],
+                "security_id": cash,
+                "kind": "cash-equivalent",
+                "expected_revision": 2,
+                "command_key": "cash",
+            },
+        )
+        _, current = instance.request("/api/v1/current")
+        command = {
+            "snapshot_id": current["snapshot_id"],
+            "benchmark_run_id": "benchmark",
+            "expected_revision": 3,
+            "recorded_at": datetime.now(UTC).isoformat(),
+            "exclusions": {},
+        }
+        code, staged = instance.request(route, "POST", command)
+        assert code == 200 and instance.request(route, "POST", command) == (code, staged)
+        assert instance.request("/api/v1/current")[1] == current
+        assert [r["disposition"] for r in staged["snapshot"]["holding_preparation"]["rows"]] == [
+            "mapped",
+            "mapped",
+            "excluded",
+            "cash-treatment",
+        ]
+        assert (
+            instance.request(
+                "/api/v1/previews",
+                "POST",
+                {
+                    "version": "advisory-upload-v1",
+                    "snapshot": staged["snapshot"],
+                    "source_base64": base64.b64encode(raw).decode(),
+                },
+            )[0]
+            == 422
+        )
+        code, selected = instance.request(
+            "/api/v1/select",
+            "POST",
+            {"snapshot_id": staged["id"], "expected_revision": 3, "command_key": "mapped"},
+        )
+        assert code == 200 and selected == {"outcome": "changed", "revision": 4}
+        assert instance.request(route, "POST", command)[0] == 409
+
+
+def test_cash_treatment_is_protected_source_bound_and_returns_current_preview(
+    tmp_path: Path,
+) -> None:
+    path = "/api/v1/holdings/cash-treatment"
+    raw = (SOURCE / "examples/synthetic/fidelity/cash-holdings.csv").read_bytes()
+    with running(tmp_path / "cash") as instance:
+        assert instance.request(path, "POST", {}, authorized=False)[0] == 401
+        assert (
+            instance.request(path, "POST", {}, headers={"Origin": "http://evil.invalid"})[0] == 403
+        )
+        code, opened = instance.request(
+            "/api/v1/fidelity/opening",
+            "POST",
+            {
+                "source_base64": base64.b64encode(raw).decode(),
+                "source_account": "000SYNTH001",
+                "source_as_of": "2026-10-23",
+                "account_alias": "Fictional cash treatment test",
+                "currency": "USD",
+                "recorded_at": "2026-10-23T20:00:00Z",
+            },
+        )
+        assert code == 200
+        preview = opened["preview"]
+        money = next(r for r in preview["cash_holdings"] if r["ticker"] == "FMMXX")
+        assert money["reported_value"]["value"] == "100.00"
+        command = {
+            "snapshot_id": preview["id"],
+            "security_id": money["security_id"],
+            "kind": "cash-equivalent",
+            "command_key": "cash",
+            "expected_revision": 1,
+        }
+        assert (
+            instance.request(path, "POST", {**command, "expected_revision": 0})[0] == 409
+        )  # Staged, never selected.
+        assert (
+            instance.request(
+                "/api/v1/select",
+                "POST",
+                {"snapshot_id": preview["id"], "command_key": "select", "expected_revision": 0},
+            )[0]
+            == 200
+        )
+        code, result = instance.request(path, "POST", command)
+        assert code == 200 and result == {"outcome": "changed", "revision": 2}
+        assert instance.request(path, "POST", command) == (200, result)
+        _, current = instance.request("/api/v1/current")
+        assert current["settings"] == {} and current["current_run_id"] is None
+        _, changed = instance.request("/api/v1/previews/" + current["snapshot_id"])
+        assert changed["snapshot"]["lots"] == preview["snapshot"]["lots"]
+        treated = next(r for r in changed["cash_holdings"] if r["ticker"] == "FMMXX")
+        assert treated["treatment"]["kind"] == "cash-equivalent"
+        assert not changed["snapshot"]["cash"]
+        assert (
+            instance.request(path, "POST", {**command, "command_key": "invalid", "kind": "stock"})[
+                0
+            ]
+            == 422
+        )
+        assert (
+            instance.request(
+                path, "POST", {**command, "command_key": "other", "expected_revision": 2}
+            )[0]
+            == 409
+        )
 
 
 @dataclass(repr=False)
@@ -251,6 +442,108 @@ def test_replacement_errors_unknowns_and_two_window_stale_commands(api: API) -> 
 def test_current_routes_require_session(api: API, path: str) -> None:
     assert api.request(path, authorized=False)[0] == 401
     assert api.request(path, headers={"Origin": "https://foreign.invalid"})[0] == 403
+
+
+def test_benchmark_source_rows_before_snapshot_or_review(api: API) -> None:
+    folder = SOURCE / "examples/synthetic/benchmark"
+    observation = json.loads((folder / "current-observation.json").read_bytes())
+    assert api.request("/api/v1/benchmarks/import", "POST", observation)[0] == 200
+    route = "/api/v1/benchmarks/rows"
+    body = {"observation_id": "fictional-vti-2000"}
+    status, page = api.request(
+        route, "POST", {**body, "section": "equity", "limit": 1, "offset": 1}
+    )
+    assert status == 200 and page["total_rows"] == 8 and page["matched_rows"] == 4
+    assert page["rows"][0]["index"] == 1
+    status, page = api.request(route, "POST", {**body, "issue": "missing_ticker"})
+    assert status == 200 and page["matched_rows"] == 2
+    for bad in ({"limit": 101}, {"offset": -1}, {"query": "x" * 201}, {"query": 123}):
+        assert api.request(route, "POST", {**body, **bad})[0] == 422
+    control = {"observation_id": body["observation_id"]}
+    assert api.request(route, "POST", control, authorized=False)[0] == 401
+    assert (
+        api.request(route, "POST", control, headers={"Origin": "https://foreign.invalid"})[0] == 403
+    )
+    assert api.request(route, "POST", control, headers={"Content-Type": "text/plain"})[0] == 415
+    assert api.request(route, "POST", {"observation_id": "missing"})[0] == 404
+    current = api.current()
+    assert current["revision"] == 0 and current["snapshot_id"] is None and current["settings"] == {}
+
+
+def test_review_context_protected_source_bindings_and_missing_source_refusal(api: API) -> None:
+    folder = SOURCE / "examples/synthetic/blackrock"
+    source = json.loads((folder / "current-observation.json").read_bytes())
+    assert api.request("/api/v1/benchmarks/import", "POST", source)[0] == 200
+    route = "/api/v1/benchmarks/review-context"
+    body = {"observation_id": source["request"]["observation_id"]}
+    status, context = api.request(route, "POST", body)
+    assert status == 200 and len(context["rows"]) == 6
+    assert context["rows"][0]["source_name"] == "Fictional\nAlpha"
+    assert context["sections"][0]["row_count"] == 6
+    assert "Market Value" in context["sections"][0]["fields"]
+    assert context["mapping"]["included_count"] == 2
+    assert context["mapping"]["excluded_count"] == 4
+    assert context["mapping"]["rows"][0]["security_id"] == "FIAA"
+    assert context["mapping"]["aggregate_highlight"] is None
+    assert context["mapping"]["history_status"] == "not_assessed"
+    assert api.request(route, "POST", body, authorized=False)[0] == 401
+    assert api.request(route, "POST", body, headers={"Origin": "https://foreign.invalid"})[0] == 403
+    assert api.request(route, "POST", body, headers={"Content-Type": "text/plain"})[0] == 415
+    assert api.request(route, "POST", {"observation_id": "missing"})[0] == 404
+    assert api.request(route, "POST", {**body, "secret": "DO-NOT-ECHO"})[0] == 422
+    source["request"]["observation_id"] = "unavailable-review-context"
+    source["http_status"] = 404
+    assert api.request("/api/v1/benchmarks/import", "POST", source)[0] == 200
+    assert api.request(route, "POST", {"observation_id": "unavailable-review-context"})[0] == 503
+    assert api.current()["settings"] == {} and api.current()["revision"] == 0
+
+
+def test_official_metadata_preparation_large_body_protected_cached_and_previewed(api: API) -> None:
+    from tests.test_benchmark_metadata import imported
+
+    folder = SOURCE / "examples/synthetic/blackrock"
+    source = json.loads((folder / "current-observation.json").read_bytes())
+    assert api.request("/api/v1/benchmarks/import", "POST", source)[0] == 200
+    raw = (folder / "metadata.html").read_bytes()
+    raw = raw.replace(b"</body>", b"<!--" + b"x" * (2 * 1024 * 1024) + b"--></body>")
+    body = {
+        "observation_id": source["request"]["observation_id"],
+        "metadata_response": imported(raw).model_dump(mode="json"),
+    }
+    route = "/api/v1/benchmarks/prepare"
+    control = {"observation_id": body["observation_id"]}
+    assert api.request(route, "POST", control, authorized=False)[0] == 401
+    assert (
+        api.request(route, "POST", control, headers={"Origin": "https://foreign.invalid"})[0] == 403
+    )
+    assert api.request(route, "POST", control, headers={"Content-Type": "text/plain"})[0] == 415
+    assert api.request(route, "POST", {"observation_id": "missing"})[0] == 404
+    status, review = api.request(route, "POST", body)
+    assert status == 200
+    assert base64.b64decode(review["metadata_base64"]) == raw
+    assert review["stipulation"]["benchmark_cash"]["raw"] == "0"
+    assert "equity-only proxy" in review["stipulation"]["benchmark_cash"]["evidence"]["reference"]
+    assert (
+        api.request("/api/v1/benchmarks/review", "POST", review)[1]["status"]
+        == "estimated-equity-benchmark"
+    )
+    retry = api.request(route, "POST", {"observation_id": body["observation_id"]})
+    assert retry[0] == 200 and retry[1]["metadata_base64"] == review["metadata_base64"]
+    status, context = api.request(
+        "/api/v1/benchmarks/review-context", "POST", {"observation_id": body["observation_id"]}
+    )
+    assert status == 200 and context["metadata"]["byte_count"] == len(raw)
+    bad = {
+        **body,
+        "metadata_response": {
+            **body["metadata_response"],
+            "source_base64": base64.b64encode(raw + b" ").decode(),
+        },
+    }
+    assert api.request(route, "POST", bad)[0] == 409
+    invalid = api.request(route, "POST", {**control, "secret": "DO-NOT-ECHO"})
+    assert invalid[0] == 422 and "DO-NOT-ECHO" not in json.dumps(invalid[1])
+    assert api.current()["settings"] == {} and api.current()["revision"] == 0
 
 
 def test_benchmark_review_selection_retries_and_safe_malformed_inputs(api: API) -> None:

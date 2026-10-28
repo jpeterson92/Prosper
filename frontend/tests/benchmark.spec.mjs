@@ -16,6 +16,7 @@ async function seed(page) {
   await page.getByLabel("I reviewed this snapshot and its unknowns").check(); await page.getByRole("button", {name:"Select reviewed snapshot"}).click(); await expect(status(page)).toContainText("revision 1");
   await page.getByText("Import saved benchmark response", {exact:true}).click(); await upload(page,"Saved benchmark response JSON",observation);
   await expect(page.getByRole("article",{name:"Benchmark observation"})).toContainText("2000-01-03");
+  await expect(page.getByRole("combobox",{name:"Retained benchmark observation",exact:true})).toHaveValue(JSON.parse(observation).request.observation_id);
   await upload(page,"Reviewed benchmark mapping and metadata JSON",review);
   await expect(page.getByRole("article",{name:"Benchmark proxy review"})).toContainText("8 source rows; 2 included equities; 6 excluded");
 }
@@ -67,11 +68,47 @@ test("fund and date picker sends explicit request and retries identical lost fet
       const response=await route.fetch({url:server.origin+"/api/v1/benchmarks/import",postData:JSON.stringify(fixture)});
       if(first){first=false;await route.abort();}else await route.fulfill({response});
     });
-    await page.getByRole("combobox",{name:"Vanguard fund",exact:true}).selectOption("VOO"); await page.getByRole("combobox",{name:"Holdings date request",exact:true}).selectOption("latest"); await page.getByRole("button",{name:"Fetch full holdings"}).click();
+    await page.getByRole("combobox",{name:"Benchmark provider",exact:true}).selectOption("Vanguard"); await page.getByRole("combobox",{name:"Vanguard fund",exact:true}).selectOption("VOO"); await page.getByRole("combobox",{name:"Holdings date request",exact:true}).selectOption("latest"); await page.getByRole("button",{name:"Fetch full holdings"}).click();
     await expect(page.getByRole("button",{name:"Retry identical benchmark fetch"})).toBeVisible(); await page.getByRole("button",{name:"Retry identical benchmark fetch"}).click();
     await expect(page.getByRole("article",{name:"Benchmark observation"})).toContainText("VOO; observed"); expect(requests).toHaveLength(2); expect(requests[0]).toEqual(requests[1]); expect(requests[0].requested_date).toBeNull(); expect(requests[0].ticker).toBe("VOO");
+    await expect(page.getByRole("combobox",{name:"Retained benchmark observation",exact:true})).toHaveValue(requests[0].observation_id);
     expect((await api(server,"/api/v1/current")).settings.benchmark_run_id).toBeUndefined();
   } finally { await server.stop(); }
+});
+
+test("iShares defaults to explicit fund choice and CSV review survives save and reopen", async ({page}) => {
+  const server=await runtime({dist}); try {
+    const token=await server.session();
+    async function post(route,body) {const response=await fetch(server.origin+route,{method:"POST",headers:{Origin:server.origin,Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(body)});expect(response.ok).toBe(true);return response.json();}
+    const staged=await post("/api/v1/previews",JSON.parse(await readFile(path.join(root,"examples/synthetic/advisory-workspace.json"))));
+    await post("/api/v1/select",{snapshot_id:staged.id,command_key:"holdings",expected_revision:0});
+    await open(page,server);
+    await expect(page.getByRole("combobox",{name:"Benchmark provider",exact:true})).toHaveValue("BlackRock iShares");
+    await expect(page.getByRole("combobox",{name:"iShares fund",exact:true})).toHaveValue("");
+    await expect(page.getByRole("button",{name:"Fetch full holdings",exact:true})).toBeDisabled();
+    const fixture=JSON.parse(await readFile(path.join(root,"examples/synthetic/blackrock/current-observation.json")));
+    const mapping=JSON.parse(await readFile(path.join(root,"examples/synthetic/blackrock/current-review.json")));
+    await page.route("**/api/v1/benchmarks/fetch",async route=>{
+      const request=route.request().postDataJSON();expect(request.ticker).toBe("IVV");expect(request.requested_date).toBe("2026-10-20");
+      fixture.request=request;mapping.observation_id=request.observation_id;
+      const response=await route.fetch({url:server.origin+"/api/v1/benchmarks/import",postData:JSON.stringify(fixture)});await route.fulfill({response});
+    });
+    await page.getByRole("combobox",{name:"iShares fund",exact:true}).selectOption("IVV");
+    await page.getByRole("combobox",{name:"Holdings date request",exact:true}).selectOption("historical");
+    await page.getByLabel("Reported holdings date",{exact:true}).fill("2026-10-20");
+    await page.getByRole("button",{name:"Fetch full holdings",exact:true}).click();
+    await expect(page.getByRole("article",{name:"Benchmark observation",exact:true})).toContainText("IVV; observed");
+    await upload(page,"Reviewed benchmark mapping and metadata JSON",Buffer.from(JSON.stringify(mapping)));
+    await expect(page.getByRole("article",{name:"Benchmark proxy review",exact:true})).toContainText("6 source rows; 2 included equities; 4 excluded");
+    expect((await api(server,"/api/v1/current")).settings.benchmark_run_id).toBeUndefined();
+    await save(page);await page.getByRole("button",{name:"Select this reviewed benchmark",exact:true}).click();await expect(status(page)).toContainText("revision 2");
+    const state=await api(server,"/api/v1/current");const saved=await api(server,`/api/v1/runs/${state.settings.benchmark_run_id}`);
+    await page.reload();await expect(status(page)).toContainText("Workspace read");
+    await expect(page.getByRole("region",{name:"Standard benchmark",exact:true})).toContainText(saved.id);
+    expect(await api(server,`/api/v1/runs/${saved.id}`)).toEqual(saved);
+    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(saved.id);
+    await expect(page.getByRole("article",{name:"Benchmark proxy review",exact:true})).toContainText("6 source rows; 2 included equities; 4 excluded");
+  } finally {await server.stop();}
 });
 
 test("malformed and wrong fund reviews fail safely while incomplete reviews remain unselectable", async ({page}) => {

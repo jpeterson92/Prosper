@@ -12,15 +12,17 @@ from pydantic import Field, ValidationInfo, field_validator, model_validator
 
 from prosper import basket as b
 from prosper import benchmark_reconciliation as r
+from prosper import benchmark_source as sources
 from prosper import equity_benchmark as e
 from prosper import vanguard as v
 from prosper.advisory_records import Digest, Record, Revision
+from prosper.benchmark_metadata import MAX_METADATA_BASE64, FundMetadata
 from prosper.record_types import DateText, Identifier, Text, Timestamp
 
 
 class BenchmarkFetch(Record):
     observation_id: Identifier
-    ticker: Literal["VTI", "VOO"]
+    ticker: Literal["ITOT", "IVV", "VTI", "VOO"]
     requested_date: DateText | None  # null explicitly requests latest reported
 
 
@@ -37,6 +39,7 @@ class BenchmarkObservation(Record):
     issues: tuple[str, ...] = ()
     section_counts: dict[str, int] = Field(default_factory=dict)
     request_sha256: Digest
+    metadata: FundMetadata | None = None
 
     @model_validator(mode="after")
     def lifecycle(self) -> Self:
@@ -53,6 +56,12 @@ class BenchmarkObservation(Record):
             raise ValueError("complete observed source required")
         if self.status == "unavailable" and self.effective_date is not None:
             raise ValueError("unavailable observation cannot assert an effective date")
+        if self.metadata is not None and (
+            self.status != "observed"
+            or self.request.ticker != self.metadata.ticker
+            or self.effective_date != self.metadata.holdings_date
+        ):
+            raise ValueError("benchmark_metadata_observation_mismatch")
         return self
 
 
@@ -80,11 +89,11 @@ class BenchmarkReview(Record):
     reviewed_at: Timestamp
     stipulation: r.Stipulation
     policy: e.Policy
-    metadata_base64: str = Field(max_length=2800000, repr=False)
+    metadata_base64: str = Field(max_length=MAX_METADATA_BASE64, repr=False)
     metadata_reference: Text
-    metadata_ticker: Literal["VTI", "VOO"]
-    metadata_port_id: Literal["0970", "0968"]
-    metadata_cusip: Literal["922908769", "922908363"]
+    metadata_ticker: Literal["ITOT", "IVV", "VTI", "VOO"]
+    metadata_port_id: Literal["239724", "239726", "0970", "0968"]
+    metadata_cusip: Literal["464287150", "464287200", "922908769", "922908363"]
     metadata_as_of: DateText
     metadata_reviewed: Literal[True]
 
@@ -128,7 +137,7 @@ class BenchmarkResult(Record):
     kind: Literal["benchmark-proxy-v1"] = "benchmark-proxy-v1"
     label: str = "equity-only disclosed-holdings proxy"
     observation_id: Identifier
-    ticker: Literal["VTI", "VOO"]
+    ticker: Literal["ITOT", "IVV", "VTI", "VOO"]
     requested_date: DateText | None
     effective_date: DateText
     collected_at: Timestamp
@@ -173,13 +182,13 @@ class BenchmarkResult(Record):
 
 
 def acquisition(observation: BenchmarkObservation, raw: bytes) -> v.Acquisition:
-    selection = v.select_fund(
+    selection = sources.select_fund(
         observation.request.ticker,
         date.fromisoformat(observation.request.requested_date)
         if observation.request.requested_date
         else None,
     )
-    return v.acquire(
+    return sources.acquire(
         selection,
         collected_at=datetime.fromisoformat(observation.collected_at),
         transport=lambda _: v.Response(
@@ -201,7 +210,7 @@ def review_result(
     expected = (
         observation.request.ticker,
         source.selection.fund.port_id,
-        "922908769" if observation.request.ticker == "VTI" else "922908363",
+        sources.CUSIPS[observation.request.ticker],
     )
     if (review.metadata_ticker, review.metadata_port_id, review.metadata_cusip) != expected:
         raise ValueError("benchmark_metadata_fund_mismatch")

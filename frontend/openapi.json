@@ -188,6 +188,212 @@
         ]
       }
     },
+    "/api/v1/holdings/cash-treatment": {
+      "post": {
+        "summary": "Treat Cash",
+        "operationId": "treat_cash_api_v1_holdings_cash_treatment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashTreatmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/holdings/mapping-preview": {
+      "post": {
+        "summary": "Prepare Holdings",
+        "operationId": "prepare_holdings_api_v1_holdings_mapping_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HoldingsMappingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/candidates/start": {
       "post": {
         "summary": "Start Candidate",
@@ -1516,6 +1722,315 @@
             "description": "Service Unavailable"
           }
         }
+      }
+    },
+    "/api/v1/benchmarks/rows": {
+      "post": {
+        "summary": "Benchmark Source Rows",
+        "operationId": "benchmark_source_rows_api_v1_benchmarks_rows_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenchmarkRowsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkSourcePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/benchmarks/review-context": {
+      "post": {
+        "summary": "Benchmark Review Context",
+        "operationId": "benchmark_review_context_api_v1_benchmarks_review_context_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewContextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkReviewContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/benchmarks/prepare": {
+      "post": {
+        "summary": "Prepare Benchmark",
+        "operationId": "prepare_benchmark_api_v1_benchmarks_prepare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrepareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkReview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/benchmarks/review": {
@@ -4748,6 +5263,8 @@
           "ticker": {
             "type": "string",
             "enum": [
+              "ITOT",
+              "IVV",
               "VTI",
               "VOO"
             ],
@@ -4918,6 +5435,16 @@
           },
           "request_sha256": {
             "$ref": "#/components/schemas/Digest"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FundMetadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -4951,6 +5478,8 @@
           "ticker": {
             "type": "string",
             "enum": [
+              "ITOT",
+              "IVV",
               "VTI",
               "VOO"
             ],
@@ -5150,7 +5679,7 @@
           },
           "metadata_base64": {
             "type": "string",
-            "maxLength": 2800000,
+            "maxLength": 5592408,
             "title": "Metadata Base64"
           },
           "metadata_reference": {
@@ -5162,6 +5691,8 @@
           "metadata_ticker": {
             "type": "string",
             "enum": [
+              "ITOT",
+              "IVV",
               "VTI",
               "VOO"
             ],
@@ -5170,6 +5701,8 @@
           "metadata_port_id": {
             "type": "string",
             "enum": [
+              "239724",
+              "239726",
               "0970",
               "0968"
             ],
@@ -5178,6 +5711,8 @@
           "metadata_cusip": {
             "type": "string",
             "enum": [
+              "464287150",
+              "464287200",
               "922908769",
               "922908363"
             ],
@@ -5210,6 +5745,142 @@
         ],
         "title": "BenchmarkReview"
       },
+      "BenchmarkReviewContext": {
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Observation Id"
+          },
+          "source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "ticker": {
+            "type": "string",
+            "title": "Ticker"
+          },
+          "port_id": {
+            "type": "string",
+            "title": "Port Id"
+          },
+          "requested_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Date"
+          },
+          "effective_date": {
+            "type": "string",
+            "title": "Effective Date"
+          },
+          "collected_at": {
+            "type": "string",
+            "title": "Collected At"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewSection"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "mapping": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreparedMapping"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FundMetadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "observation_id",
+          "source_sha256",
+          "ticker",
+          "port_id",
+          "requested_date",
+          "effective_date",
+          "collected_at",
+          "sections",
+          "rows",
+          "mapping",
+          "metadata"
+        ],
+        "title": "BenchmarkReviewContext"
+      },
+      "BenchmarkRowsRequest": {
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Observation Id"
+          },
+          "section": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Section",
+            "default": ""
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Query",
+            "default": ""
+          },
+          "issue": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Issue",
+            "default": ""
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Offset",
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "default": 50
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "observation_id"
+        ],
+        "title": "BenchmarkRowsRequest"
+      },
       "BenchmarkSelect": {
         "properties": {
           "run_id": {
@@ -5234,6 +5905,78 @@
           "expected_revision"
         ],
         "title": "BenchmarkSelect"
+      },
+      "BenchmarkSourcePage": {
+        "properties": {
+          "rows_available": {
+            "type": "boolean",
+            "title": "Rows Available"
+          },
+          "section_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Section Counts"
+          },
+          "issue_groups": {
+            "items": {
+              "$ref": "#/components/schemas/SourceIssueGroup"
+            },
+            "type": "array",
+            "title": "Issue Groups"
+          },
+          "total_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Rows"
+          },
+          "matched_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Rows"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rows_available",
+          "section_counts",
+          "issue_groups",
+          "total_rows",
+          "matched_rows",
+          "offset",
+          "limit",
+          "rows"
+        ],
+        "title": "BenchmarkSourcePage"
       },
       "BuyOrder": {
         "properties": {
@@ -5294,7 +6037,7 @@
       "CandidateAsset": {
         "properties": {
           "security": {
-            "$ref": "#/components/schemas/Security-Output"
+            "$ref": "#/components/schemas/prosper__advisory_records__Security"
           },
           "sector": {
             "$ref": "#/components/schemas/Fact_str_"
@@ -6203,6 +6946,168 @@
         ],
         "title": "Cash"
       },
+      "CashHolding": {
+        "properties": {
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "ticker": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Ticker"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Fact_str_"
+          },
+          "source_refs": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Source Refs"
+          },
+          "reported_value": {
+            "$ref": "#/components/schemas/DecimalFact"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD",
+            "title": "Currency",
+            "default": "USD"
+          },
+          "treatment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CashTreatment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "security_id",
+          "ticker",
+          "name",
+          "source_refs",
+          "reported_value",
+          "treatment"
+        ],
+        "title": "CashHolding"
+      },
+      "CashTreatment": {
+        "properties": {
+          "source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Account Id"
+          },
+          "source_as_of": {
+            "type": "string",
+            "title": "Source As Of"
+          },
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "source_refs": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Source Refs"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "cash-equivalent"
+            ],
+            "title": "Kind"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          },
+          "assertion": {
+            "type": "string",
+            "const": "User classified this holding; funding is not asserted",
+            "title": "Assertion",
+            "default": "User classified this holding; funding is not asserted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_sha256",
+          "account_id",
+          "source_as_of",
+          "security_id",
+          "source_refs",
+          "kind",
+          "recorded_at"
+        ],
+        "title": "CashTreatment"
+      },
+      "CashTreatmentRequest": {
+        "properties": {
+          "snapshot_id": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cash",
+                  "cash-equivalent"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "command_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Command Key"
+          },
+          "expected_revision": {
+            "$ref": "#/components/schemas/Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "security_id",
+          "kind",
+          "command_key",
+          "expected_revision"
+        ],
+        "title": "CashTreatmentRequest"
+      },
       "CatalogResponse": {
         "properties": {
           "snapshots": {
@@ -6663,39 +7568,6 @@
       "Digest": {
         "type": "string",
         "pattern": "^[0-9a-f]{64}$"
-      },
-      "Evidence-Output": {
-        "properties": {
-          "actor": {
-            "type": "string",
-            "maxLength": 4096,
-            "minLength": 1,
-            "title": "Actor"
-          },
-          "reference": {
-            "type": "string",
-            "maxLength": 4096,
-            "minLength": 1,
-            "title": "Reference"
-          },
-          "effective_at": {
-            "type": "string",
-            "title": "Effective At"
-          },
-          "recorded_at": {
-            "type": "string",
-            "title": "Recorded At"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "actor",
-          "reference",
-          "effective_at",
-          "recorded_at"
-        ],
-        "title": "Evidence"
       },
       "ExposureLimit": {
         "properties": {
@@ -7159,6 +8031,69 @@
         ],
         "title": "Fund"
       },
+      "FundMetadata": {
+        "properties": {
+          "ticker": {
+            "type": "string",
+            "const": "IVV",
+            "title": "Ticker",
+            "default": "IVV"
+          },
+          "port_id": {
+            "type": "string",
+            "const": "239726",
+            "title": "Port Id",
+            "default": "239726"
+          },
+          "cusip": {
+            "type": "string",
+            "const": "464287200",
+            "title": "Cusip",
+            "default": "464287200"
+          },
+          "response_url": {
+            "type": "string",
+            "title": "Response Url",
+            "default": "https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf"
+          },
+          "canonical_url": {
+            "type": "string",
+            "title": "Canonical Url"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "collected_at": {
+            "type": "string",
+            "title": "Collected At"
+          },
+          "holdings_date": {
+            "type": "string",
+            "title": "Holdings Date"
+          },
+          "source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "byte_count": {
+            "type": "integer",
+            "maximum": 4194304,
+            "exclusiveMinimum": 0,
+            "title": "Byte Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "canonical_url",
+          "content_type",
+          "collected_at",
+          "holdings_date",
+          "source_sha256",
+          "byte_count"
+        ],
+        "title": "FundMetadata"
+      },
       "GroupWeight": {
         "properties": {
           "level": {
@@ -7608,6 +8543,249 @@
         ],
         "title": "HistoryTable"
       },
+      "HoldingMappingRow": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/prosper__advisory_records__Security"
+          },
+          "source_refs": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Source Refs"
+          },
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "disposition": {
+            "type": "string",
+            "enum": [
+              "mapped",
+              "preserved",
+              "excluded",
+              "cash-treatment"
+            ],
+            "title": "Disposition"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "benchmark_index": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Benchmark Index"
+          },
+          "reported_value": {
+            "$ref": "#/components/schemas/DecimalFact"
+          },
+          "excluded_bps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excluded Bps"
+          },
+          "highlight": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlight"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "source_refs",
+          "security_id",
+          "disposition",
+          "reason",
+          "reported_value"
+        ],
+        "title": "HoldingMappingRow"
+      },
+      "HoldingPreparation": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "const": "same-date-ivv-holdings-v1",
+            "title": "Method",
+            "default": "same-date-ivv-holdings-v1"
+          },
+          "source_snapshot_id": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Account Id"
+          },
+          "source_as_of": {
+            "type": "string",
+            "title": "Source As Of"
+          },
+          "benchmark_run_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Benchmark Run Id"
+          },
+          "benchmark_source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "metadata_source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "benchmark_date": {
+            "type": "string",
+            "title": "Benchmark Date"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/HoldingMappingRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "reference_value_usd": {
+            "$ref": "#/components/schemas/DecimalFact"
+          },
+          "excluded_known_value_usd": {
+            "type": "string",
+            "title": "Excluded Known Value Usd"
+          },
+          "unknown_value_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "type": "array",
+            "title": "Unknown Value Ids"
+          },
+          "aggregate_excluded_bps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregate Excluded Bps"
+          },
+          "aggregate_highlight": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregate Highlight"
+          },
+          "coverage_unknown_reasons": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Coverage Unknown Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_snapshot_id",
+          "source_sha256",
+          "account_id",
+          "source_as_of",
+          "benchmark_run_id",
+          "benchmark_source_sha256",
+          "metadata_source_sha256",
+          "benchmark_date",
+          "recorded_at",
+          "rows",
+          "reference_value_usd",
+          "excluded_known_value_usd",
+          "unknown_value_ids",
+          "aggregate_excluded_bps",
+          "aggregate_highlight",
+          "coverage_unknown_reasons"
+        ],
+        "title": "HoldingPreparation"
+      },
+      "HoldingsMappingRequest": {
+        "properties": {
+          "snapshot_id": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "benchmark_run_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Benchmark Run Id"
+          },
+          "expected_revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          },
+          "exclusions": {
+            "patternProperties": {
+              "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$": {
+                "type": "string",
+                "maxLength": 4096,
+                "minLength": 1
+              }
+            },
+            "type": "object",
+            "maxProperties": 10000,
+            "title": "Exclusions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "benchmark_run_id",
+          "expected_revision",
+          "recorded_at"
+        ],
+        "title": "HoldingsMappingRequest"
+      },
       "ImportSnapshot": {
         "properties": {
           "version": {
@@ -7654,7 +8832,7 @@
           },
           "securities": {
             "items": {
-              "$ref": "#/components/schemas/Security-Output"
+              "$ref": "#/components/schemas/prosper__advisory_records__Security"
             },
             "type": "array",
             "title": "Securities"
@@ -7679,6 +8857,24 @@
             },
             "type": "array",
             "title": "Cash"
+          },
+          "cash_treatments": {
+            "items": {
+              "$ref": "#/components/schemas/CashTreatment"
+            },
+            "type": "array",
+            "title": "Cash Treatments",
+            "default": []
+          },
+          "holding_preparation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HoldingPreparation"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "findings": {
             "items": {
@@ -8127,6 +9323,12 @@
           },
           "term": {
             "$ref": "#/components/schemas/Fact_str_"
+          },
+          "reported_value": {
+            "$ref": "#/components/schemas/DecimalFact",
+            "default": {
+              "reason": "Reported value not supplied"
+            }
           }
         },
         "additionalProperties": false,
@@ -8530,6 +9732,46 @@
         ],
         "title": "Member"
       },
+      "MetadataImport": {
+        "properties": {
+          "collected_at": {
+            "type": "string",
+            "title": "Collected At"
+          },
+          "response_url": {
+            "type": "string",
+            "title": "Response Url"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "http_status": {
+            "type": "integer",
+            "title": "Http Status"
+          },
+          "body_complete": {
+            "type": "boolean",
+            "title": "Body Complete"
+          },
+          "source_base64": {
+            "type": "string",
+            "maxLength": 5592408,
+            "title": "Source Base64"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "collected_at",
+          "response_url",
+          "content_type",
+          "http_status",
+          "body_complete",
+          "source_base64"
+        ],
+        "title": "MetadataImport"
+      },
       "ModeledBundle": {
         "properties": {
           "version": {
@@ -8900,6 +10142,12 @@
           },
           "quantity": {
             "$ref": "#/components/schemas/DecimalFact"
+          },
+          "reported_value": {
+            "$ref": "#/components/schemas/DecimalFact",
+            "default": {
+              "reason": "Reported value not supplied"
+            }
           }
         },
         "additionalProperties": false,
@@ -8913,6 +10161,355 @@
         ],
         "title": "Position"
       },
+      "PrepareRequest": {
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Observation Id"
+          },
+          "metadata_response": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetadataImport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "observation_id"
+        ],
+        "title": "PrepareRequest"
+      },
+      "PreparedMapping": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "const": "dated-issuer-ivv-v1",
+            "title": "Method",
+            "default": "dated-issuer-ivv-v1"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PreparedRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "included_count": {
+            "type": "integer",
+            "title": "Included Count"
+          },
+          "excluded_count": {
+            "type": "integer",
+            "title": "Excluded Count"
+          },
+          "source_value_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Value Usd"
+          },
+          "retained_known_value_usd": {
+            "type": "number",
+            "title": "Retained Known Value Usd"
+          },
+          "excluded_known_value_usd": {
+            "type": "number",
+            "title": "Excluded Known Value Usd"
+          },
+          "unknown_value_rows": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Unknown Value Rows"
+          },
+          "aggregate_excluded_bps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregate Excluded Bps"
+          },
+          "aggregate_highlight": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregate Highlight"
+          },
+          "highlighted_rows": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Highlighted Rows"
+          },
+          "coverage_unknown_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Coverage Unknown Reasons"
+          },
+          "history_status": {
+            "type": "string",
+            "const": "not_assessed",
+            "title": "History Status",
+            "default": "not_assessed"
+          },
+          "tax_status": {
+            "type": "string",
+            "const": "not_assessed",
+            "title": "Tax Status",
+            "default": "not_assessed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rows",
+          "included_count",
+          "excluded_count",
+          "source_value_usd",
+          "retained_known_value_usd",
+          "excluded_known_value_usd",
+          "unknown_value_rows",
+          "aggregate_excluded_bps",
+          "aggregate_highlight",
+          "highlighted_rows",
+          "coverage_unknown_reasons"
+        ],
+        "title": "PreparedMapping"
+      },
+      "PreparedRow": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "row_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "source_key": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticker"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "source_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Type"
+          },
+          "asset_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Class"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "market_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Currency"
+          },
+          "exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange"
+          },
+          "raw_market_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Market Value"
+          },
+          "value_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Usd"
+          },
+          "security_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Security Id"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "include",
+              "exclude"
+            ],
+            "title": "Action"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "excluded_bps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excluded Bps"
+          },
+          "highlight": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlight"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "section",
+          "index",
+          "row_sha256",
+          "source_key",
+          "source_ref",
+          "ticker",
+          "name",
+          "source_type",
+          "asset_class",
+          "location",
+          "currency",
+          "market_currency",
+          "exchange",
+          "raw_market_value",
+          "value_usd",
+          "security_id",
+          "action",
+          "reason",
+          "excluded_bps",
+          "highlight"
+        ],
+        "title": "PreparedRow"
+      },
       "PreviewResponse": {
         "properties": {
           "id": {
@@ -8920,6 +10517,14 @@
           },
           "snapshot": {
             "$ref": "#/components/schemas/ImportSnapshot"
+          },
+          "cash_holdings": {
+            "items": {
+              "$ref": "#/components/schemas/CashHolding"
+            },
+            "type": "array",
+            "title": "Cash Holdings",
+            "default": []
           }
         },
         "additionalProperties": false,
@@ -9057,7 +10662,7 @@
             "title": "Valid Through"
           },
           "evidence": {
-            "$ref": "#/components/schemas/Evidence-Output"
+            "$ref": "#/components/schemas/prosper__lot_records__Evidence"
           },
           "rationale": {
             "type": "string",
@@ -9137,6 +10742,102 @@
           "source_ref"
         ],
         "title": "Restriction"
+      },
+      "ReviewContextRequest": {
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Observation Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "observation_id"
+        ],
+        "title": "ReviewContextRequest"
+      },
+      "ReviewRow": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "row_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Name"
+          },
+          "source_ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ticker"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "section",
+          "index",
+          "row_sha256",
+          "source_name",
+          "source_ticker"
+        ],
+        "title": "ReviewRow"
+      },
+      "ReviewSection": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "row_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Count"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fields"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "section",
+          "row_count",
+          "fields"
+        ],
+        "title": "ReviewSection"
       },
       "Revision": {
         "type": "integer",
@@ -9594,49 +11295,6 @@
         ],
         "title": "SectionRule"
       },
-      "Security-Output": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
-            "title": "Id"
-          },
-          "source_ref": {
-            "type": "string",
-            "maxLength": 4096,
-            "minLength": 1,
-            "title": "Source Ref"
-          },
-          "ticker": {
-            "type": "string",
-            "maxLength": 4096,
-            "minLength": 1,
-            "title": "Ticker"
-          },
-          "identity": {
-            "$ref": "#/components/schemas/Fact_str_"
-          },
-          "classification": {
-            "$ref": "#/components/schemas/Fact_str_"
-          },
-          "currency": {
-            "type": "string",
-            "const": "USD",
-            "title": "Currency",
-            "default": "USD"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "source_ref",
-          "ticker",
-          "identity",
-          "classification"
-        ],
-        "title": "Security"
-      },
       "SecurityInput": {
         "properties": {
           "security_id": {
@@ -9948,6 +11606,47 @@
         ],
         "title": "SnapshotEntry"
       },
+      "SourceCell": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "string",
+              "number",
+              "null",
+              "boolean",
+              "object",
+              "array"
+            ],
+            "title": "Kind"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "source",
+              "adapter"
+            ],
+            "title": "Origin",
+            "default": "source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "value"
+        ],
+        "title": "SourceCell"
+      },
       "SourceFact": {
         "properties": {
           "source_sha256": {
@@ -10041,6 +11740,85 @@
           "column"
         ],
         "title": "SourceIssue"
+      },
+      "SourceIssueGroup": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "occurrences": {
+            "type": "integer",
+            "title": "Occurrences"
+          },
+          "affected_rows": {
+            "type": "integer",
+            "title": "Affected Rows"
+          },
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Details"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "occurrences",
+          "affected_rows",
+          "details"
+        ],
+        "title": "SourceIssueGroup"
+      },
+      "SourceRow": {
+        "properties": {
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "section",
+          "index",
+          "source_ref",
+          "cells",
+          "issues"
+        ],
+        "title": "SourceRow"
       },
       "StartDiagnostic": {
         "properties": {
@@ -10817,6 +12595,12 @@
             "const": "USD",
             "title": "Currency",
             "default": "USD"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Fact_str_",
+            "default": {
+              "reason": "Reported name not supplied"
+            }
           }
         },
         "additionalProperties": false,
@@ -11158,7 +12942,9 @@
             "enum": [
               "conditional-loss",
               "blocked",
-              "no-price-loss"
+              "no-price-loss",
+              "cash-treatment",
+              "excluded"
             ],
             "title": "Status"
           },

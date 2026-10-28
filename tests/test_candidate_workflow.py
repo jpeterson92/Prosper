@@ -149,6 +149,70 @@ def test_compact_payload_and_frozen_guard_boundary(
         w.candidates.close()
 
 
+def test_candidate_preparation_requires_drifted_analysis_date_weights_without_fitting(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from prosper.benchmark_drift import weights_at
+
+    workspace = service(tmp_path / "runtime")
+    seed(workspace)
+    stub(monkeypatch)
+    try:
+        workspace.start_candidate(command())
+        run = wait(workspace)
+        frozen = workspace.store.candidate_inputs(run.inputs["candidate_inputs"])
+        benchmark = frozen.modeled.benchmark
+        assert benchmark is not None
+        benchmark = benchmark.model_copy(update={"effective_date": "2026-10-22"})
+        model = frozen.modeled.model_copy(update={"benchmark": benchmark})
+        changed = frozen.model_copy(update={"modeled": model})
+        request, issues = prepare(changed)
+        assert request is None and "benchmark_weights_do_not_match_analysis_date" in issues
+        dated = weights_at(benchmark, model.alignment, model.bundle.analysis_date)
+        assert dated.weights is not None
+        members = tuple(
+            member.model_copy(update={"benchmark_weight": dated.weights[member.security_id]})
+            for member in frozen.coverage.members
+        )
+        changed = changed.model_copy(
+            update={"coverage": frozen.coverage.model_copy(update={"members": members})}
+        )
+        request, issues = prepare(changed)
+        assert request is not None and not issues
+        assert request.risk.benchmark_weights == tuple(
+            dated.weights[sid] for sid in request.risk.security_ids
+        )
+        assert request.risk.benchmark_weights != benchmark.weights
+        # Reuse the unchanged covariance fixture to exercise the real candidate
+        # and worksheet-warning consumers without an unnecessary model refit.
+        from types import SimpleNamespace
+
+        from prosper.worksheets import _warnings
+
+        baseline = CandidateOutput.model_validate_json(json.dumps(load("checked-output.json")))
+        assert baseline.risk is not None and baseline.search is not None
+        fitted = SimpleNamespace(
+            projection=SimpleNamespace(annualized=baseline.search.inputs.risk.annual_covariance),
+            version=baseline.risk.version,
+            identity_sha256=baseline.risk.identity_sha256,
+            horizon=baseline.risk.horizon,
+            cutoff=baseline.risk.cutoff,
+        )
+        monkeypatch.setattr(
+            "prosper.candidate_workflow.covariance.fit_covariance", lambda *a, **k: fitted
+        )
+        monkeypatch.setattr("prosper.candidate_workflow.compact", lambda value: baseline.risk)
+        output = calculate(changed)
+        assert output.outcome == "checked" and output.search is not None
+        check_output_links(changed, output)
+        assert output.search.inputs.risk.benchmark_weights == request.risk.benchmark_weights
+        assert dated.warning in output.warnings
+        assert dated.warning in _warnings(output, output.search.baseline)
+    finally:
+        workspace.candidates.close()
+
+
 def test_failed_fit_context_is_bound_to_saved_original_inputs_without_replay(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

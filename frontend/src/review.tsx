@@ -3,6 +3,9 @@ import { ClientError, connect } from "./client";
 import type { Alignment, HistoryReview, HistoryManifest, HistoryRequest, HistoryDiagnosticRequest, Catalog, Current, DiagnosticRequest, Preview, Run, SelectRequest, SettingsRequest } from "./client";
 import { HistoryRows, SavedHistory } from "./history";
 import { decimalDisplay } from "./display";
+import { CashTreatments } from "./cash-treatment";
+import type { CashAction } from "./cash-treatment";
+import { HoldingsMapping } from "./holdings-mapping";
 import { LotControls, LotView } from "./lots";
 import type { LotAction } from "./lots";
 import { BenchmarkControls } from "./benchmark";
@@ -16,7 +19,7 @@ import { InputsControls, InputsView } from "./inputs";
 import type { InputsAction } from "./inputs";
 import type { ModeledResult } from "./client";
 
-type Pending = WorksheetAction | CandidateAction | InputsAction | BenchmarkAction | LotAction | { kind: "history-refresh"; body: HistoryManifest } | { kind: "history-discard"; body: HistoryManifest } | { kind: "history-diagnostic"; body: HistoryDiagnosticRequest } | { kind: "history-clear"; body: { command_key: string; expected_revision: number } } | { kind: "select"; body: SelectRequest } | { kind: "settings"; body: SettingsRequest } | { kind: "diagnostic"; body: DiagnosticRequest } | { kind: "restore"; body: Uint8Array<ArrayBuffer> };
+type Pending = CashAction | WorksheetAction | CandidateAction | InputsAction | BenchmarkAction | LotAction | { kind: "history-refresh"; body: HistoryManifest } | { kind: "history-discard"; body: HistoryManifest } | { kind: "history-diagnostic"; body: HistoryDiagnosticRequest } | { kind: "history-clear"; body: { command_key: string; expected_revision: number } } | { kind: "select"; body: SelectRequest } | { kind: "settings"; body: SettingsRequest } | { kind: "diagnostic"; body: DiagnosticRequest } | { kind: "restore"; body: Uint8Array<ArrayBuffer> };
 type Fact = { value: string | null; reason?: string | null };
 function resourceMessage(problem: unknown): string | null {
   if (!(problem instanceof ClientError)) return null;
@@ -95,9 +98,10 @@ export function Review() {
   const session = useRef<ReturnType<typeof connect> | null>(null);
   const active = useRef(false);
   const client = () => session.current ??= connect();
-  async function refresh() {
+  async function refresh(reviewSelected = false) {
     const c = await client(); await c.runtime(); setRuntimeReady(true); const state = await c.current();
     setCurrent(state); setCatalog(await c.catalog()); setReviewed(false); setSettingsReviewed(false);
+    if(reviewSelected)setPreview(state.snapshot_id?await c.preview(state.snapshot_id):null);
   }
   async function perform(action: () => Promise<void>, mutation = false) {
     if (active.current) return;
@@ -108,8 +112,8 @@ export function Review() {
     } finally { active.current = false; setBusy(false); }
   }
   useEffect(() => { void perform(async () => { await refresh(); setMessage("Workspace read."); }); }, []);
-  async function refreshAfterAction() {
-    try { await refresh(); } catch {
+  async function refreshAfterAction(reviewSelected = false) {
+    try { await refresh(reviewSelected); } catch {
       session.current = null; setCurrent(null);
       setError("The action outcome is shown above. Current state could not be refreshed. Refresh the workspace before another change.");
     }
@@ -117,7 +121,10 @@ export function Review() {
   async function execute(command: Pending) {
     const c = await client();
     try {
-    if (command.kind === "worksheet-save") {
+    if (command.kind === "cash-treatment") {
+      const result=await c.treatCash(command.body);setPreview(null);
+      setMessage(`Cash treatment: ${result.outcome}; revision ${result.revision}. Investment budget unchanged.`);
+    } else if (command.kind === "worksheet-save") {
       setWorksheet(await c.saveWorksheet(command.body)); setMessage("Dated manual worksheet saved. Review its frozen inputs, assumptions and warnings.");
     } else if (command.kind === "candidate-start" || command.kind === "candidate-cancel") {
       setRun(command.kind === "candidate-start" ? await c.startCandidate(command.body) : await c.cancelCandidate(command.body)); setMessage("Candidate run state saved. Review progress and qualification below.");
@@ -141,7 +148,7 @@ export function Review() {
       }
       throw problem;
     }
-    setPending(null); setReviewed(false); setSettingsReviewed(false); await refreshAfterAction();
+    setPending(null); setReviewed(false); setSettingsReviewed(false); await refreshAfterAction(command.kind==="cash-treatment");
   }
   function mutate(command: Pending) { setPending(command); void perform(() => execute(command), true); }
   function plan(mode: "missing" | "selected" | "full") {
@@ -175,6 +182,8 @@ export function Review() {
     <InputsControls current={current} disabled={disabled} api={client} onMutate={mutate} />
     <BenchmarkControls current={current} catalog={catalog} disabled={disabled} api={client} onMutate={mutate} onRefresh={refresh} saved={run} />
     {preview && <Snapshot preview={preview} rounded={rounded} />}
+    {preview && <CashTreatments preview={preview} current={current} disabled={disabled} onMutate={mutate} />}
+    {preview && <HoldingsMapping preview={preview} current={current} disabled={disabled} api={client} onPreview={value=>{setPreview(value);setReviewed(false);setMessage("Holdings mapping preview staged; selected holdings unchanged.");void perform(refresh);}} />}
     <section aria-label="Settings"><h2>Explicit settings</h2><p>Record supplied settings as a JSON object. No financial defaults or validation of investor limits is supplied by this foundation.</p><label>Settings JSON<textarea rows={8} value={settings} disabled={disabled} onChange={(e) => { setSettings(e.target.value); setSettingsReviewed(false); }} /></label><button disabled={disabled} onClick={() => { setSettings(JSON.stringify(current!.settings, null, 2)); setSettingsReviewed(false); }}>Load current settings</button><label><input type="checkbox" checked={settingsReviewed} disabled={disabled} onChange={(e) => setSettingsReviewed(e.target.checked)} />I reviewed these settings</label><button disabled={disabled || !settingsReviewed} onClick={() => void perform(async () => {
       const value: unknown = JSON.parse(settings, (_key, value: unknown) => { if (typeof value === "number" && !Number.isFinite(value)) throw new ClientError(422); return value; }); if (value === null || Array.isArray(value) || typeof value !== "object") throw new ClientError(422);
       const command: Pending = { kind: "settings", body: { settings: value as SettingsRequest["settings"], command_key: crypto.randomUUID(), expected_revision: current!.revision } };

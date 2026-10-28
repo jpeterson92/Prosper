@@ -38,7 +38,7 @@ class Row(Record):
     indicative_net_proceeds: Fact[float]
     indicative_tax_pnl: Fact[float]
     modeled_cost: Fact[float]
-    status: Literal["conditional-loss", "blocked", "no-price-loss"]
+    status: Literal["conditional-loss", "blocked", "no-price-loss", "cash-treatment", "excluded"]
     blockers: tuple[Text, ...]
     warnings: tuple[Text, ...]
 
@@ -96,18 +96,81 @@ def facts_from(snapshot: ImportSnapshot) -> ScreeningFacts | None:
 
 
 def retained_activities(snapshots: tuple[ImportSnapshot, ...]) -> tuple[Activity, ...]:
+    # Callers put the frozen current snapshot first. Its user treatment applies
+    # only to the same original source/account/holding, including older views
+    # of those bytes. Original screening records remain unchanged. Known
+    # identities/conflicts and independently supplied activities are retained.
+    cash_refs: dict[tuple[str, str], set[str]] = {}
+    mapped_refs: dict[tuple[str, str], dict[str, Fact[str]]] = {}
+    for snapshot in snapshots:
+        cash_refs.setdefault(
+            (snapshot.source_sha256, snapshot.account_id),
+            {ref for t in snapshot.cash_treatments for ref in t.source_refs},
+        )
+        mapped_refs.setdefault(
+            (snapshot.source_sha256, snapshot.account_id),
+            {
+                ref: Fact[str](value=row.security_id)
+                for row in snapshot.holding_preparation.rows
+                if row.disposition == "mapped"
+                for ref in row.source_refs
+            }
+            if snapshot.holding_preparation
+            else {},
+        )
     result: list[Activity] = []
     for snapshot in snapshots:
+        refs = cash_refs[(snapshot.source_sha256, snapshot.account_id)]
+        identities = mapped_refs[(snapshot.source_sha256, snapshot.account_id)]
+        accounting = snapshot.observations.get("source_row_accounting")
+        own_acquisitions = (
+            {
+                "lot-acquisition-" + snapshot.source_sha256 + "-" + str(r.get("record"))
+                for r in accounting
+                if isinstance(r, dict) and r.get("disposition") == "selected-lot"
+            }
+            if isinstance(accounting, list)
+            else set()
+        )
+        context = snapshot.observations.get("lot_context")
+        supplied = context.get("screening") if isinstance(context, dict) else None
+        independent = supplied.get("activities") if isinstance(supplied, dict) else None
+        if isinstance(independent, list):
+            own_acquisitions -= {
+                a["id"] for a in independent if isinstance(a, dict) and isinstance(a.get("id"), str)
+            }
         facts = facts_from(snapshot)
         if facts:
-            result.extend(facts.activities)
+            result.extend(
+                a.model_copy(update={"identity": identities[a.source_ref]})
+                if (
+                    a.id in own_acquisitions
+                    and a.side == "acquisition"
+                    and a.identity.value is None
+                    and a.source_ref in identities
+                    and a.account_ref == snapshot.account_id
+                )
+                else a
+                for a in facts.activities
+                if not (
+                    a.id in own_acquisitions
+                    and a.side == "acquisition"
+                    and a.identity.value is None
+                    and a.source_ref in refs
+                    and a.account_ref == snapshot.account_id
+                )
+            )
             continue
         securities = {s.id: s for s in snapshot.securities}
         for lot in snapshot.lots:
+            if lot.source_ref in refs and securities[lot.security_id].identity.value is None:
+                continue
             result.append(
                 Activity(
                     id=lot.id,
-                    identity=securities[lot.security_id].identity,
+                    identity=securities[lot.security_id].identity
+                    if securities[lot.security_id].identity.value is not None
+                    else identities.get(lot.source_ref, securities[lot.security_id].identity),
                     account_ref=snapshot.account_id,
                     account_scope=snapshot.account_scope,
                     day=_acquired(lot.acquired),
@@ -317,6 +380,34 @@ def evaluate(
         raise ValueError("unknown_proposed_lot")
     rows: list[Row] = []
     for lot in snapshot.lots:
+        if lot.security_id in snapshot.cash_security_ids | snapshot.excluded_stock_ids:
+            cash = lot.security_id in snapshot.cash_security_ids
+            na = unknown(
+                "Not a stock sale after explicit user cash treatment"
+                if cash
+                else "Stock metrics unavailable for an excluded holding"
+            )
+            rows.append(
+                Row(
+                    lot_id=lot.id,
+                    security_id=lot.security_id,
+                    source_ref=lot.source_ref,
+                    quantity=lot.quantity,
+                    term=lot.term,
+                    proposed_whole_shares=None,
+                    remaining_quantity=lot.quantity.value,
+                    allocated_basis=na,
+                    reference_value=na,
+                    price_basis_loss=na,
+                    indicative_net_proceeds=na,
+                    indicative_tax_pnl=na,
+                    modeled_cost=na,
+                    status="cash-treatment" if cash else "excluded",
+                    blockers=("user_cash_treatment" if cash else "holding_mapping_excluded",),
+                    warnings=(),
+                )
+            )
+            continue
         security = securities[lot.security_id]
         blockers = [
             *global_blocks,
@@ -449,6 +540,10 @@ def evaluate(
             )
             if buy_security.classification.value != "us-domestic-common-equity":
                 reasons.append("unsupported_or_unknown_tax_class")
+            if sid in snapshot.cash_security_ids:
+                reasons.append("user_cash_treatment")
+            if sid in snapshot.excluded_stock_ids:
+                reasons.append("holding_mapping_excluded")
             if (
                 buy_security.identity.value is not None
                 and buy_security.identity.value in sold_identities

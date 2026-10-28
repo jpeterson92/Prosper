@@ -85,6 +85,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/holdings/cash-treatment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Treat Cash */
+        post: operations["treat_cash_api_v1_holdings_cash_treatment_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/holdings/mapping-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prepare Holdings */
+        post: operations["prepare_holdings_api_v1_holdings_mapping_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/candidates/start": {
         parameters: {
             query?: never;
@@ -300,6 +334,57 @@ export interface paths {
         get: operations["benchmark_source_api_v1_benchmarks_observations__identity__source_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/benchmarks/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Benchmark Source Rows */
+        post: operations["benchmark_source_rows_api_v1_benchmarks_rows_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/benchmarks/review-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Benchmark Review Context */
+        post: operations["benchmark_review_context_api_v1_benchmarks_review_context_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/benchmarks/prepare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prepare Benchmark */
+        post: operations["prepare_benchmark_api_v1_benchmarks_prepare_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -923,7 +1008,7 @@ export interface components {
              * Ticker
              * @enum {string}
              */
-            ticker: "VTI" | "VOO";
+            ticker: "ITOT" | "IVV" | "VTI" | "VOO";
             /** Requested Date */
             requested_date: string | null;
         };
@@ -977,6 +1062,7 @@ export interface components {
                 [key: string]: number;
             };
             request_sha256: components["schemas"]["Digest"];
+            metadata?: components["schemas"]["FundMetadata"] | null;
         };
         /** BenchmarkResult */
         BenchmarkResult: {
@@ -997,7 +1083,7 @@ export interface components {
              * Ticker
              * @enum {string}
              */
-            ticker: "VTI" | "VOO";
+            ticker: "ITOT" | "IVV" | "VTI" | "VOO";
             /** Requested Date */
             requested_date: string | null;
             /** Effective Date */
@@ -1073,17 +1159,17 @@ export interface components {
              * Metadata Ticker
              * @enum {string}
              */
-            metadata_ticker: "VTI" | "VOO";
+            metadata_ticker: "ITOT" | "IVV" | "VTI" | "VOO";
             /**
              * Metadata Port Id
              * @enum {string}
              */
-            metadata_port_id: "0970" | "0968";
+            metadata_port_id: "239724" | "239726" | "0970" | "0968";
             /**
              * Metadata Cusip
              * @enum {string}
              */
-            metadata_cusip: "922908769" | "922908363";
+            metadata_cusip: "464287150" | "464287200" | "922908769" | "922908363";
             /** Metadata As Of */
             metadata_as_of: string;
             /**
@@ -1092,6 +1178,58 @@ export interface components {
              */
             metadata_reviewed: true;
         };
+        /** BenchmarkReviewContext */
+        BenchmarkReviewContext: {
+            /** Observation Id */
+            observation_id: string;
+            source_sha256: components["schemas"]["Digest"];
+            /** Ticker */
+            ticker: string;
+            /** Port Id */
+            port_id: string;
+            /** Requested Date */
+            requested_date: string | null;
+            /** Effective Date */
+            effective_date: string;
+            /** Collected At */
+            collected_at: string;
+            /** Sections */
+            sections: components["schemas"]["ReviewSection"][];
+            /** Rows */
+            rows: components["schemas"]["ReviewRow"][];
+            mapping: components["schemas"]["PreparedMapping"] | null;
+            metadata: components["schemas"]["FundMetadata"] | null;
+        };
+        /** BenchmarkRowsRequest */
+        BenchmarkRowsRequest: {
+            /** Observation Id */
+            observation_id: string;
+            /**
+             * Section
+             * @default
+             */
+            section: string;
+            /**
+             * Query
+             * @default
+             */
+            query: string;
+            /**
+             * Issue
+             * @default
+             */
+            issue: string;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+            /**
+             * Limit
+             * @default 50
+             */
+            limit: number;
+        };
         /** BenchmarkSelect */
         BenchmarkSelect: {
             /** Run Id */
@@ -1099,6 +1237,27 @@ export interface components {
             /** Command Key */
             command_key: string;
             expected_revision: components["schemas"]["Revision"];
+        };
+        /** BenchmarkSourcePage */
+        BenchmarkSourcePage: {
+            /** Rows Available */
+            rows_available: boolean;
+            /** Section Counts */
+            section_counts: {
+                [key: string]: number;
+            };
+            /** Issue Groups */
+            issue_groups: components["schemas"]["SourceIssueGroup"][];
+            /** Total Rows */
+            total_rows: number | null;
+            /** Matched Rows */
+            matched_rows: number | null;
+            /** Offset */
+            offset: number;
+            /** Limit */
+            limit: number;
+            /** Rows */
+            rows: components["schemas"]["SourceRow"][];
         };
         /** BuyOrder */
         BuyOrder: {
@@ -1121,7 +1280,7 @@ export interface components {
         };
         /** CandidateAsset */
         CandidateAsset: {
-            security: components["schemas"]["Security-Output"];
+            security: components["schemas"]["prosper__advisory_records__Security"];
             sector: components["schemas"]["Fact_str_"];
             industry: components["schemas"]["Fact_str_"];
         };
@@ -1420,6 +1579,60 @@ export interface components {
              */
             currency: "USD";
         };
+        /** CashHolding */
+        CashHolding: {
+            /** Security Id */
+            security_id: string;
+            /** Ticker */
+            ticker: string;
+            name: components["schemas"]["Fact_str_"];
+            /** Source Refs */
+            source_refs: string[];
+            reported_value: components["schemas"]["DecimalFact"];
+            /**
+             * Currency
+             * @default USD
+             * @constant
+             */
+            currency: "USD";
+            treatment: components["schemas"]["CashTreatment"] | null;
+        };
+        /** CashTreatment */
+        CashTreatment: {
+            source_sha256: components["schemas"]["Digest"];
+            /** Account Id */
+            account_id: string;
+            /** Source As Of */
+            source_as_of: string;
+            /** Security Id */
+            security_id: string;
+            /** Source Refs */
+            source_refs: string[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "cash" | "cash-equivalent";
+            /** Recorded At */
+            recorded_at: string;
+            /**
+             * Assertion
+             * @default User classified this holding; funding is not asserted
+             * @constant
+             */
+            assertion: "User classified this holding; funding is not asserted";
+        };
+        /** CashTreatmentRequest */
+        CashTreatmentRequest: {
+            snapshot_id: components["schemas"]["Digest"];
+            /** Security Id */
+            security_id: string;
+            /** Kind */
+            kind: ("cash" | "cash-equivalent") | null;
+            /** Command Key */
+            command_key: string;
+            expected_revision: components["schemas"]["Revision"];
+        };
         /** CatalogResponse */
         CatalogResponse: {
             /** Snapshots */
@@ -1551,17 +1764,6 @@ export interface components {
             as_of: string;
         };
         Digest: string;
-        /** Evidence */
-        "Evidence-Output": {
-            /** Actor */
-            actor: string;
-            /** Reference */
-            reference: string;
-            /** Effective At */
-            effective_at: string;
-            /** Recorded At */
-            recorded_at: string;
-        };
         /** ExposureLimit */
         ExposureLimit: {
             /**
@@ -1704,6 +1906,43 @@ export interface components {
             ticker: string;
             /** Port Id */
             port_id: string;
+        };
+        /** FundMetadata */
+        FundMetadata: {
+            /**
+             * Ticker
+             * @default IVV
+             * @constant
+             */
+            ticker: "IVV";
+            /**
+             * Port Id
+             * @default 239726
+             * @constant
+             */
+            port_id: "239726";
+            /**
+             * Cusip
+             * @default 464287200
+             * @constant
+             */
+            cusip: "464287200";
+            /**
+             * Response Url
+             * @default https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf
+             */
+            response_url: string;
+            /** Canonical Url */
+            canonical_url: string;
+            /** Content Type */
+            content_type: string;
+            /** Collected At */
+            collected_at: string;
+            /** Holdings Date */
+            holdings_date: string;
+            source_sha256: components["schemas"]["Digest"];
+            /** Byte Count */
+            byte_count: number;
         };
         /** GroupWeight */
         GroupWeight: {
@@ -1863,6 +2102,77 @@ export interface components {
             /** Data */
             data: string;
         };
+        /** HoldingMappingRow */
+        HoldingMappingRow: {
+            source: components["schemas"]["prosper__advisory_records__Security"];
+            /** Source Refs */
+            source_refs: string[];
+            /** Security Id */
+            security_id: string;
+            /**
+             * Disposition
+             * @enum {string}
+             */
+            disposition: "mapped" | "preserved" | "excluded" | "cash-treatment";
+            /** Reason */
+            reason: string;
+            /** Benchmark Index */
+            benchmark_index?: number | null;
+            reported_value: components["schemas"]["DecimalFact"];
+            /** Excluded Bps */
+            excluded_bps?: number | null;
+            /** Highlight */
+            highlight?: boolean | null;
+        };
+        /** HoldingPreparation */
+        HoldingPreparation: {
+            /**
+             * Method
+             * @default same-date-ivv-holdings-v1
+             * @constant
+             */
+            method: "same-date-ivv-holdings-v1";
+            source_snapshot_id: components["schemas"]["Digest"];
+            source_sha256: components["schemas"]["Digest"];
+            /** Account Id */
+            account_id: string;
+            /** Source As Of */
+            source_as_of: string;
+            /** Benchmark Run Id */
+            benchmark_run_id: string;
+            benchmark_source_sha256: components["schemas"]["Digest"];
+            metadata_source_sha256: components["schemas"]["Digest"];
+            /** Benchmark Date */
+            benchmark_date: string;
+            /** Recorded At */
+            recorded_at: string;
+            /** Rows */
+            rows: components["schemas"]["HoldingMappingRow"][];
+            reference_value_usd: components["schemas"]["DecimalFact"];
+            /** Excluded Known Value Usd */
+            excluded_known_value_usd: string;
+            /** Unknown Value Ids */
+            unknown_value_ids: string[];
+            /** Aggregate Excluded Bps */
+            aggregate_excluded_bps: number | null;
+            /** Aggregate Highlight */
+            aggregate_highlight: boolean | null;
+            /** Coverage Unknown Reasons */
+            coverage_unknown_reasons: string[];
+        };
+        /** HoldingsMappingRequest */
+        HoldingsMappingRequest: {
+            snapshot_id: components["schemas"]["Digest"];
+            /** Benchmark Run Id */
+            benchmark_run_id: string;
+            expected_revision: components["schemas"]["Revision"];
+            /** Recorded At */
+            recorded_at: string;
+            /** Exclusions */
+            exclusions?: {
+                [key: string]: string;
+            };
+        };
         /** ImportSnapshot */
         ImportSnapshot: {
             /**
@@ -1885,13 +2195,19 @@ export interface components {
             /** Source As Of */
             source_as_of: string;
             /** Securities */
-            securities: components["schemas"]["Security-Output"][];
+            securities: components["schemas"]["prosper__advisory_records__Security"][];
             /** Lots */
             lots: components["schemas"]["Lot"][];
             /** Positions */
             positions: components["schemas"]["Position"][];
             /** Cash */
             cash: components["schemas"]["Cash"][];
+            /**
+             * Cash Treatments
+             * @default []
+             */
+            cash_treatments: components["schemas"]["CashTreatment"][];
+            holding_preparation?: components["schemas"]["HoldingPreparation"] | null;
             /**
              * Findings
              * @default []
@@ -2041,6 +2357,12 @@ export interface components {
             total_basis: components["schemas"]["DecimalFact"];
             acquired: components["schemas"]["Fact_Annotated_str__Strict_strict_True___AfterValidator__"];
             term: components["schemas"]["Fact_str_"];
+            /**
+             * @default {
+             *       "reason": "Reported value not supplied"
+             *     }
+             */
+            reported_value: components["schemas"]["DecimalFact"];
         };
         /** LotDiagnosticRequest */
         LotDiagnosticRequest: {
@@ -2170,6 +2492,21 @@ export interface components {
             sector: string | null;
             /** Industry */
             industry: string | null;
+        };
+        /** MetadataImport */
+        MetadataImport: {
+            /** Collected At */
+            collected_at: string;
+            /** Response Url */
+            response_url: string;
+            /** Content Type */
+            content_type: string;
+            /** Http Status */
+            http_status: number;
+            /** Body Complete */
+            body_complete: boolean;
+            /** Source Base64 */
+            source_base64: string;
         };
         /** ModeledBundle */
         ModeledBundle: {
@@ -2305,11 +2642,115 @@ export interface components {
             /** Source Ref */
             source_ref: string;
             quantity: components["schemas"]["DecimalFact"];
+            /**
+             * @default {
+             *       "reason": "Reported value not supplied"
+             *     }
+             */
+            reported_value: components["schemas"]["DecimalFact"];
+        };
+        /** PrepareRequest */
+        PrepareRequest: {
+            /** Observation Id */
+            observation_id: string;
+            metadata_response?: components["schemas"]["MetadataImport"] | null;
+        };
+        /** PreparedMapping */
+        PreparedMapping: {
+            /**
+             * Method
+             * @default dated-issuer-ivv-v1
+             * @constant
+             */
+            method: "dated-issuer-ivv-v1";
+            /** Rows */
+            rows: components["schemas"]["PreparedRow"][];
+            /** Included Count */
+            included_count: number;
+            /** Excluded Count */
+            excluded_count: number;
+            /** Source Value Usd */
+            source_value_usd: number | null;
+            /** Retained Known Value Usd */
+            retained_known_value_usd: number;
+            /** Excluded Known Value Usd */
+            excluded_known_value_usd: number;
+            /** Unknown Value Rows */
+            unknown_value_rows: number[];
+            /** Aggregate Excluded Bps */
+            aggregate_excluded_bps: number | null;
+            /** Aggregate Highlight */
+            aggregate_highlight: boolean | null;
+            /** Highlighted Rows */
+            highlighted_rows: number[];
+            /** Coverage Unknown Reasons */
+            coverage_unknown_reasons: string[];
+            /**
+             * History Status
+             * @default not_assessed
+             * @constant
+             */
+            history_status: "not_assessed";
+            /**
+             * Tax Status
+             * @default not_assessed
+             * @constant
+             */
+            tax_status: "not_assessed";
+        };
+        /** PreparedRow */
+        PreparedRow: {
+            /** Section */
+            section: string;
+            /** Index */
+            index: number;
+            row_sha256: components["schemas"]["Digest"];
+            source_key: components["schemas"]["Digest"];
+            /** Source Ref */
+            source_ref: string | null;
+            /** Ticker */
+            ticker: string | null;
+            /** Name */
+            name: string | null;
+            /** Source Type */
+            source_type: string | null;
+            /** Asset Class */
+            asset_class: string | null;
+            /** Location */
+            location: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Market Currency */
+            market_currency: string | null;
+            /** Exchange */
+            exchange: string | null;
+            /** Raw Market Value */
+            raw_market_value: string | null;
+            /** Value Usd */
+            value_usd: number | null;
+            /** Security Id */
+            security_id: string | null;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "include" | "exclude";
+            /** Reason */
+            reason: string;
+            /** Excluded Bps */
+            excluded_bps: number | null;
+            /** Highlight */
+            highlight: boolean | null;
         };
         /** PreviewResponse */
         PreviewResponse: {
             id: components["schemas"]["Digest"];
             snapshot: components["schemas"]["ImportSnapshot"];
+            /**
+             * Cash Holdings
+             * @default []
+             */
+            cash_holdings: components["schemas"]["CashHolding"][];
         };
         /** Profile */
         Profile: {
@@ -2355,7 +2796,7 @@ export interface components {
             valid_from: string;
             /** Valid Through */
             valid_through: string;
-            evidence: components["schemas"]["Evidence-Output"];
+            evidence: components["schemas"]["prosper__lot_records__Evidence"];
             /** Rationale */
             rationale: string;
         };
@@ -2376,6 +2817,32 @@ export interface components {
             side: "both" | "sell" | "buy";
             /** Source Ref */
             source_ref: string;
+        };
+        /** ReviewContextRequest */
+        ReviewContextRequest: {
+            /** Observation Id */
+            observation_id: string;
+        };
+        /** ReviewRow */
+        ReviewRow: {
+            /** Section */
+            section: string;
+            /** Index */
+            index: number;
+            row_sha256: components["schemas"]["Digest"];
+            /** Source Name */
+            source_name: string | null;
+            /** Source Ticker */
+            source_ticker: string | null;
+        };
+        /** ReviewSection */
+        ReviewSection: {
+            /** Section */
+            section: string;
+            /** Row Count */
+            row_count: number | null;
+            /** Fields */
+            fields: string[];
         };
         Revision: number;
         /** RiskInput */
@@ -2518,23 +2985,6 @@ export interface components {
             unit: string;
             evidence: components["schemas"]["prosper__basket__Evidence"];
         };
-        /** Security */
-        "Security-Output": {
-            /** Id */
-            id: string;
-            /** Source Ref */
-            source_ref: string;
-            /** Ticker */
-            ticker: string;
-            identity: components["schemas"]["Fact_str_"];
-            classification: components["schemas"]["Fact_str_"];
-            /**
-             * Currency
-             * @default USD
-             * @constant
-             */
-            currency: "USD";
-        };
         /** SecurityInput */
         SecurityInput: {
             /** Security Id */
@@ -2635,6 +3085,24 @@ export interface components {
              */
             state: "staged" | "selected" | "rejected";
         };
+        /** SourceCell */
+        SourceCell: {
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "string" | "number" | "null" | "boolean" | "object" | "array";
+            /** Value */
+            value: string;
+            /**
+             * Origin
+             * @default source
+             * @enum {string}
+             */
+            origin: "source" | "adapter";
+        };
         /** SourceFact */
         SourceFact: {
             source_sha256: components["schemas"]["Digest"];
@@ -2661,6 +3129,30 @@ export interface components {
             record: number | null;
             /** Column */
             column: string | null;
+        };
+        /** SourceIssueGroup */
+        SourceIssueGroup: {
+            /** Code */
+            code: string;
+            /** Occurrences */
+            occurrences: number;
+            /** Affected Rows */
+            affected_rows: number;
+            /** Details */
+            details: string[];
+        };
+        /** SourceRow */
+        SourceRow: {
+            /** Section */
+            section: string;
+            /** Index */
+            index: number;
+            /** Source Ref */
+            source_ref: string | null;
+            /** Cells */
+            cells: components["schemas"]["SourceCell"][];
+            /** Issues */
+            issues: string[];
         };
         /** StartDiagnostic */
         StartDiagnostic: {
@@ -2908,6 +3400,12 @@ export interface components {
              * @constant
              */
             currency: "USD";
+            /**
+             * @default {
+             *       "reason": "Reported name not supplied"
+             *     }
+             */
+            name: components["schemas"]["Fact_str_"];
         };
         /** Evidence */
         prosper__basket__Evidence: {
@@ -2999,7 +3497,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "conditional-loss" | "blocked" | "no-price-loss";
+            status: "conditional-loss" | "blocked" | "no-price-loss" | "cash-treatment" | "excluded";
             /** Blockers */
             blockers: string[];
             /** Warnings */
@@ -3119,6 +3617,180 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["Upload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    treat_cash_api_v1_holdings_cash_treatment_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CashTreatmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommandResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    prepare_holdings_api_v1_holdings_mapping_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HoldingsMappingRequest"];
             };
         };
         responses: {
@@ -4247,6 +4919,267 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    benchmark_source_rows_api_v1_benchmarks_rows_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenchmarkRowsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkSourcePage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    benchmark_review_context_api_v1_benchmarks_review_context_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewContextRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkReviewContext"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    prepare_benchmark_api_v1_benchmarks_prepare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrepareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkReview"];
+                };
             };
             /** @description Bad Request */
             400: {

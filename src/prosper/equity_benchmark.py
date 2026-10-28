@@ -15,6 +15,7 @@ import polars as pl
 from prosper import advisory
 from prosper import basket as b
 from prosper import benchmark_reconciliation as r
+from prosper import benchmark_source as sources
 from prosper import benchmark_tables as t
 from prosper import vanguard as v
 from prosper.innovations import fingerprint
@@ -152,7 +153,7 @@ def _select(
     source, response = (acquisition.snapshot, acquisition.response)
     source_ok = source is not None and response is not None
     if response is not None:
-        replay = v.acquire(
+        replay = sources.acquire(
             acquisition.selection,
             collected_at=acquisition.collected_at,
             transport=lambda _: response,

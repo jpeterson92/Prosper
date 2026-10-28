@@ -77,6 +77,8 @@ def _validate(connection: sqlite3.Connection) -> None:
         unpack_source(digest, size, encoded)
     for identity, digest, imported, _, document in connection.execute("SELECT * FROM snapshots"):
         snapshot = ImportSnapshot.model_validate_json(document)
+        if snapshot.holding_preparation is not None:
+            AdvisoryStore._snapshot(connection, identity)
         TypeAdapter(Timestamp).validate_python(imported)
         if (
             hashlib.sha256(encode(snapshot).encode()).hexdigest() != identity
@@ -267,6 +269,8 @@ def _validate(connection: sqlite3.Connection) -> None:
         observation = BenchmarkObservation.model_validate_json(document)
         if observation.request.observation_id != identity or observation.source_sha256 != digest:
             raise PersistenceError("corrupt_advisory_backup")
+        if observation.metadata is not None:
+            AdvisoryStore._benchmark_observation(connection, identity)
     if "benchmark_run_id" in state.settings:
         AdvisoryStore._checked_benchmark(connection, str(state.settings["benchmark_run_id"]))
     for (identity,) in connection.execute("SELECT id FROM worksheets"):

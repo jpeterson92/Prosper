@@ -251,6 +251,7 @@ class _RequestBoundary:
                 "/api/v1/benchmarks/import",
                 "/api/v1/benchmarks/review",
                 "/api/v1/benchmarks/diagnostics",
+                "/api/v1/benchmarks/prepare",
                 "/api/v1/history/parts",
                 "/api/v1/history/rows",
                 "/api/v1/inputs/preview",

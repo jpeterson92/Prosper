@@ -1,6 +1,5 @@
 """Current advisory routes under the protected owning loopback process."""
 
-import base64
 import hashlib
 import json
 from datetime import UTC, datetime
@@ -50,8 +49,17 @@ from prosper.benchmark import (
     BenchmarkSelect,
     review_result,
 )
+from prosper.benchmark_diagnostics import BenchmarkRowsRequest, BenchmarkSourcePage, source_page
+from prosper.benchmark_metadata import PrepareRequest, decode_metadata
+from prosper.benchmark_review_context import (
+    BenchmarkReviewContext,
+    ReviewContextRequest,
+    review_context,
+)
 from prosper.candidate_workflow import CandidateIdentity, CandidateOutput, CandidateStart
+from prosper.cash_treatment import CashTreatmentRequest
 from prosper.history import Alignment
+from prosper.holdings_mapping import HoldingsMappingRequest
 from prosper.lot_opportunities import LotResult
 from prosper.lot_records import LotDiagnosticRequest, LotSettings
 from prosper.modeled_inputs import ModeledDiagnostic, ModeledResult, ModeledUpload
@@ -66,6 +74,8 @@ BODY_MEDIA_TYPES = {
     "/api/v1/candidates/cancel": b"application/json",
     "/api/v1/previews": b"application/json",
     "/api/v1/select": b"application/json",
+    "/api/v1/holdings/cash-treatment": b"application/json",
+    "/api/v1/holdings/mapping-preview": b"application/json",
     "/api/v1/settings": b"application/json",
     "/api/v1/diagnostics": b"application/json",
     "/api/v1/reject": b"application/json",
@@ -88,6 +98,9 @@ BODY_MEDIA_TYPES = {
     "/api/v1/benchmarks/review": b"application/json",
     "/api/v1/benchmarks/diagnostics": b"application/json",
     "/api/v1/benchmarks/select": b"application/json",
+    "/api/v1/benchmarks/rows": b"application/json",
+    "/api/v1/benchmarks/review-context": b"application/json",
+    "/api/v1/benchmarks/prepare": b"application/json",
     "/api/v1/inputs/preview": b"application/json",
     "/api/v1/inputs/diagnostics": b"application/json",
 }
@@ -236,6 +249,9 @@ def install_import_routes(app: FastAPI, service: Workspace) -> None:
                 "candidate_result_unavailable",
                 "command_key_reused",
                 "analysis_id_reused",
+                "benchmark_metadata_already_bound",
+                "cash_treatment_snapshot_changed",
+                "holdings_mapping_inputs_changed",
                 "worksheet_id_reused",
                 "checked_candidate_required",
                 "restore_requires_empty_workspace",
@@ -258,6 +274,18 @@ def install_import_routes(app: FastAPI, service: Workspace) -> None:
                 "future_lot_analysis_date",
                 "lot_diagnostic_request_invalid",
                 "benchmark_review_invalid",
+                "benchmark_metadata_invalid",
+                "cash_treatment_holding_unavailable",
+                "cash_treatment_invalid",
+                "holdings_mapping_invalid",
+                "holdings_mapping_original_snapshot_required",
+                "holdings_mapping_source_unsupported",
+                "holdings_mapping_fund_date_or_knowledge_invalid",
+                "holdings_mapping_source_reconciliation_invalid",
+                "holdings_mapping_unknown_exclusion",
+                "holdings_mapping_cardinality_invalid",
+                "holdings_mapping_coverage_invalid",
+                "holdings_mapping_generated_record_required",
                 "benchmark_selection_unavailable",
                 "benchmark_knowledge_after_analysis",
                 "duplicate_input_source",
@@ -284,6 +312,14 @@ def install_import_routes(app: FastAPI, service: Workspace) -> None:
     @router.post("/previews", response_model=PreviewResponse)
     def stage(upload: Upload) -> PreviewResponse:
         return service.stage(upload)
+
+    @router.post("/holdings/cash-treatment", response_model=CommandResponse)
+    def treat_cash(command: CashTreatmentRequest) -> CommandResponse:
+        return CommandResponse.model_validate(service.store.treat_cash(command))
+
+    @router.post("/holdings/mapping-preview", response_model=PreviewResponse)
+    def prepare_holdings(command: HoldingsMappingRequest) -> PreviewResponse:
+        return service.prepare_holdings(command)
 
     @router.post("/candidates/start", response_model=AnalysisRun)
     def start_candidate(command: CandidateStart) -> AnalysisRun:
@@ -350,6 +386,35 @@ def install_import_routes(app: FastAPI, service: Workspace) -> None:
             media_type="application/octet-stream",
         )
 
+    @router.post("/benchmarks/rows", response_model=BenchmarkSourcePage)
+    def benchmark_source_rows(command: BenchmarkRowsRequest) -> BenchmarkSourcePage:
+        observation = service.store.benchmark_observation(command.observation_id)
+        raw = (
+            service.store.source_bytes(observation.source_sha256)
+            if observation.status == "observed" and observation.source_sha256
+            else None
+        )
+        return source_page(
+            observation,
+            raw,
+            section=command.section,
+            query=command.query,
+            issue=command.issue,
+            offset=command.offset,
+            limit=command.limit,
+        )
+
+    @router.post("/benchmarks/review-context", response_model=BenchmarkReviewContext)
+    def benchmark_review_context(command: ReviewContextRequest) -> BenchmarkReviewContext:
+        observation = service.store.benchmark_observation(command.observation_id)
+        if observation.source_sha256 is None:
+            raise PersistenceError("benchmark_source_unavailable")
+        return review_context(observation, service.store.source_bytes(observation.source_sha256))
+
+    @router.post("/benchmarks/prepare", response_model=BenchmarkReview)
+    def prepare_benchmark(command: PrepareRequest) -> BenchmarkReview:
+        return service.prepare_benchmark(command)
+
     @router.post("/benchmarks/review", response_model=BenchmarkResult)
     def preview_benchmark(command: BenchmarkReview) -> BenchmarkResult:
         if datetime.fromisoformat(command.reviewed_at) > datetime.now(UTC):
@@ -358,7 +423,7 @@ def install_import_routes(app: FastAPI, service: Workspace) -> None:
         if observation.source_sha256 is None:
             raise PersistenceError("benchmark_selection_unavailable")
         try:
-            metadata = base64.b64decode(command.metadata_base64, validate=True)
+            metadata = decode_metadata(command.metadata_base64)
             return review_result(
                 observation,
                 service.store.source_bytes(observation.source_sha256),

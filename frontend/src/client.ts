@@ -5,6 +5,8 @@ export type Current = components["schemas"]["CurrentResponse"];
 export type Preview = components["schemas"]["PreviewResponse"];
 export type SelectRequest = components["schemas"]["SelectRequest"];
 export type SettingsRequest = components["schemas"]["SettingsRequest"];
+export type CashTreatmentRequest = components["schemas"]["CashTreatmentRequest"];
+export type HoldingsMappingRequest = components["schemas"]["HoldingsMappingRequest"];
 export type DiagnosticRequest = components["schemas"]["DiagnosticRequest"];
 export type Run = components["schemas"]["AnalysisRun"];
 export type Catalog = components["schemas"]["CatalogResponse"];
@@ -25,6 +27,8 @@ export type BenchmarkDiagnostic = components["schemas"]["BenchmarkDiagnostic"];
 export type BenchmarkSelect = components["schemas"]["BenchmarkSelect"];
 export type BenchmarkReview = components["schemas"]["BenchmarkReview"];
 export type BenchmarkResult = components["schemas"]["BenchmarkResult"];
+export type BenchmarkSourcePage = components["schemas"]["BenchmarkSourcePage"];
+export type BenchmarkReviewContext = components["schemas"]["BenchmarkReviewContext"];
 export type ModeledUpload = components["schemas"]["ModeledUpload"];
 export type ModeledResult = components["schemas"]["ModeledResult"];
 export type ModeledDiagnostic = components["schemas"]["ModeledDiagnostic"];
@@ -93,6 +97,8 @@ export async function connect(origin = window.location.origin) {
     async current() {
       const result = data(await client.GET("/api/v1/current")); revision(result.revision); return result;
     },
+    async treatCash(body: CashTreatmentRequest) { return data(await client.POST("/api/v1/holdings/cash-treatment", { body })); },
+    async prepareHoldings(body: HoldingsMappingRequest) { return data(await client.POST("/api/v1/holdings/mapping-preview", { body })); },
     async startCandidate(body: CandidateStart) { return data(await client.POST("/api/v1/candidates/start", { body })); },
     async checkWorksheet(body: WorksheetCheck) { return data(await client.POST("/api/v1/worksheets/check", { body })); },
     async saveWorksheet(body: WorksheetSave) { return data(await client.POST("/api/v1/worksheets", { body })); },
@@ -156,6 +162,9 @@ export async function connect(origin = window.location.origin) {
     async fetchBenchmark(body: BenchmarkFetch) { return data(await client.POST("/api/v1/benchmarks/fetch", { body })); },
     async importBenchmark(body: BenchmarkImport) { return data(await client.POST("/api/v1/benchmarks/import", { body })); },
     async benchmarkObservation(identity: string) { return data(await client.GET("/api/v1/benchmarks/observations/{identity}", { params: { path: { identity } } })); },
+    async benchmarkRows(identity: string, filters: {section: string; query: string; issue: string; offset: number}) { return data(await client.POST("/api/v1/benchmarks/rows", {body: {observation_id: identity, ...filters, limit: 50}})); },
+    async benchmarkReviewContext(observation_id: string) { return data(await client.POST("/api/v1/benchmarks/review-context", {body:{observation_id}})); },
+    async prepareBenchmark(observation_id: string) { return data(await client.POST("/api/v1/benchmarks/prepare", {body:{observation_id}})); },
     async benchmarkSource(identity: string) {
       const response = await fetch(`${origin}/api/v1/benchmarks/observations/${encodeURIComponent(identity)}/source`, { headers, credentials: "omit", cache: "no-store" });
       if (!response.ok) throw new ClientError(response.status); return response.text();

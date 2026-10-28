@@ -133,6 +133,8 @@ def input_issues(request: CandidateRequest) -> tuple[str, ...]:
         s.id
         for s in snapshot.securities
         if s.classification.value in (None, "us-domestic-common-equity")
+        and s.id not in snapshot.cash_security_ids
+        and s.id not in snapshot.excluded_stock_ids
     }
     rows: tuple[Lot | Position, ...] = (*snapshot.lots, *snapshot.positions)
     held = {r.security_id for r in rows} & included
@@ -149,6 +151,22 @@ def input_issues(request: CandidateRequest) -> tuple[str, ...]:
         issues.append("ambiguous_source_lot_locator")
     if not set(request.buy_bounds) <= set(ids):
         issues.append("unknown_buy_domain_security")
+    if set(request.buy_bounds) & snapshot.cash_security_ids:
+        issues.append("cash_treatment_not_a_stock_purchase")
+    if set(request.buy_bounds) & snapshot.excluded_stock_ids:
+        issues.append("holding_mapping_excluded_purchase")
+    if any(
+        request.sale_bounds.get(lot.id, 0)
+        for lot in snapshot.lots
+        if lot.security_id in snapshot.excluded_stock_ids
+    ):
+        issues.append("holding_mapping_excluded_sale")
+    if any(
+        request.sale_bounds.get(lot.id, 0)
+        for lot in snapshot.lots
+        if lot.security_id in snapshot.cash_security_ids
+    ):
+        issues.append("cash_treatment_not_a_stock_sale")
     if request.method == "complete-cartesian-whole-share-reference" and (
         len(ids) > 16 or len(request.sale_bounds) + len(request.buy_bounds) > 16
     ):

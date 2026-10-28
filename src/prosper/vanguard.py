@@ -58,7 +58,7 @@ class Selection:
             raise ValueError("effective_date_must_be_date")
 
     @property
-    def source(self) -> Literal["vanguard-full-holdings"]:
+    def source(self) -> str:
         return DEFAULT_BENCHMARK_SOURCE
 
     @property

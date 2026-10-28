@@ -51,6 +51,8 @@ dd { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
 .complete { color: #2a6948; }
 .attention { color: #8a5028; font-weight: 650; }
 ul { padding-left: 20px; font-size: 13px; line-height: 1.7; }
+li { overflow-wrap: anywhere; }
+.cash-treatment-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .finding-list { list-style: none; padding-left: 0; }
 .finding-list li { padding: 11px 0; border-bottom: 1px solid #e2e8df; overflow-wrap: anywhere; }
 .finding-list .badge { padding: 3px 8px; margin-left: 8px; font-size: 10px; }
@@ -102,4 +104,7 @@ tbody th { font-weight: 600; }
 textarea, select { display: block; width: 100%; max-width: 100%; padding: 10px; margin: 8px 0 16px; border: 1px solid #a9bcae; border-radius: 5px; background: white; color: inherit; }
 textarea, pre { font-family: ui-monospace, monospace; font-size: 12px; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.source-value { white-space: pre-wrap; overflow-wrap: anywhere; }
+.source-facts { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(0, 3fr); gap: 8px 16px; font-size: 13px; }
+.source-facts dd { margin: 0; overflow-wrap: anywhere; }
 section > button { margin: 8px 10px 8px 0; }

@@ -7,6 +7,7 @@ from pydantic import Field, JsonValue, field_validator, model_validator
 
 from prosper.advisory_records import Digest, ImportSnapshot, Record, Revision
 from prosper.benchmark import BenchmarkObservation
+from prosper.cash_treatment import CashHolding
 from prosper.history import HistoryBatch, HistoryRequest
 from prosper.history_table import HistoryTable
 from prosper.lot_records import FidelityContext, LotSettings
@@ -54,6 +55,7 @@ class Upload(Record):
 class PreviewResponse(Record):
     id: Digest
     snapshot: ImportSnapshot
+    cash_holdings: tuple[CashHolding, ...] = ()
 
 
 class FidelityUpload(Record):

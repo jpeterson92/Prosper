@@ -1,0 +1,412 @@
+{
+  "observation_id": "fictional-vti-dated",
+  "stipulation": {
+    "raw_sha256": "538326bc36f3e22afeb8ae621312affe4e387f85c483a3499a64dd3a575b75c6",
+    "fund": {
+      "ticker": "VTI",
+      "port_id": "0970"
+    },
+    "requested_date": "2026-10-20",
+    "effective_date": "2026-10-20",
+    "collected_at": "2026-10-20T12:00:00+00:00",
+    "fund_assertion": {
+      "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+      "reference": "explicit fictional equity/relationship proof",
+      "effective": "2026-10-20",
+      "recorded": "2026-10-20",
+      "valid_through": "2026-10-20",
+      "unknown_reasons": []
+    },
+    "sections": [
+      {
+        "section": "equity",
+        "role": "primary",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "section": "fixedIncome",
+        "role": "primary",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "section": "shortTermReserves",
+        "role": "primary",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "section": "derivatives",
+        "role": "primary",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "section": "shortTermReservesMoneyMarket",
+        "role": "empty",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "section": "allocationToUnderlyingFunds",
+        "role": "empty",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "section": "formattedFundOfFundsHoldings",
+        "role": "empty",
+        "weight_field": "percentOfFunds",
+        "unit": "percent",
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      }
+    ],
+    "rows": [
+      {
+        "locator": {
+          "section": "equity",
+          "index": 0
+        },
+        "row_sha256": "1a427ccf42907b9cd4ffe26a98bf03e7199e5b750647793e78235b0821ba95d3",
+        "security": {
+          "security_id": "FICTIONAL-0",
+          "currency": "USD",
+          "asset_type": "stock",
+          "evidence": {
+            "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+            "reference": "explicit fictional equity/relationship proof",
+            "effective": "2026-10-20",
+            "recorded": "2026-10-20",
+            "valid_through": "2026-10-20",
+            "unknown_reasons": []
+          },
+          "unknown_reasons": []
+        },
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "equity",
+          "index": 1
+        },
+        "row_sha256": "02a1eb81525ff9a01612a66427b12898baa7354949607779d96b1aaa5f675400",
+        "security": {
+          "security_id": "FICTIONAL-1",
+          "currency": "USD",
+          "asset_type": "stock",
+          "evidence": {
+            "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+            "reference": "explicit fictional equity/relationship proof",
+            "effective": "2026-10-20",
+            "recorded": "2026-10-20",
+            "valid_through": "2026-10-20",
+            "unknown_reasons": []
+          },
+          "unknown_reasons": []
+        },
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "equity",
+          "index": 2
+        },
+        "row_sha256": "41592d96137fb6f6b1ce3e62d4dddcd51895b86e83606c15d2e98da8261ee920",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "equity",
+          "index": 3
+        },
+        "row_sha256": "ca03ab449eda85b8dfcab04de57eaf1631b2490e5128866653579ae361a5c123",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "fixedIncome",
+          "index": 0
+        },
+        "row_sha256": "cf372019f09eb49b8b1203c5574097a14221066b90b030b234804863bce5a98b",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "shortTermReserves",
+          "index": 0
+        },
+        "row_sha256": "2c45510cf5f83b402b8fb9d57339d050970d72171cb459c913cfcf9d0ffeefdb",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "shortTermReserves",
+          "index": 1
+        },
+        "row_sha256": "d2a72e3e3e33329065f129aa944084f7bc0a721064ad8bde51c110466d1115ac",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      },
+      {
+        "locator": {
+          "section": "derivatives",
+          "index": 0
+        },
+        "row_sha256": "019aa9f7e03113423170ab1285f0f2a86f4082a1bf132369c7c75bff7e86a6da",
+        "security": null,
+        "target": null,
+        "evidence": {
+          "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+          "reference": "explicit fictional equity/relationship proof",
+          "effective": "2026-10-20",
+          "recorded": "2026-10-20",
+          "valid_through": "2026-10-20",
+          "unknown_reasons": []
+        }
+      }
+    ],
+    "benchmark_cash": {
+      "raw": "0.00",
+      "evidence": {
+        "source_sha256": "d9be85e520d3077119a7727a69a24168a4ba9f8659b147674fd0d9a5672562ec",
+        "reference": "explicit fictional equity/relationship proof",
+        "effective": "2026-10-20",
+        "recorded": "2026-10-20",
+        "valid_through": "2026-10-20",
+        "unknown_reasons": []
+      },
+      "unknown_reasons": []
+    },
+    "benchmark_cash_unit": "decimal"
+  },
+  "policy": {
+    "values": [
+      {
+        "section": "equity",
+        "field": "marketValue",
+        "currency": "USD"
+      },
+      {
+        "section": "fixedIncome",
+        "field": "marketValue",
+        "currency": "USD"
+      },
+      {
+        "section": "shortTermReserves",
+        "field": "marketValue",
+        "currency": "USD"
+      },
+      {
+        "section": "derivatives",
+        "field": "marketValue",
+        "currency": "USD"
+      },
+      {
+        "section": "shortTermReservesMoneyMarket",
+        "field": "marketValue",
+        "currency": "USD"
+      },
+      {
+        "section": "allocationToUnderlyingFunds",
+        "field": "marketValue",
+        "currency": "USD"
+      },
+      {
+        "section": "formattedFundOfFundsHoldings",
+        "field": "marketValue",
+        "currency": "USD"
+      }
+    ],
+    "decisions": [
+      {
+        "locator": {
+          "section": "equity",
+          "index": 0
+        },
+        "action": "include",
+        "reason": "qualified fictional ordinary equity"
+      },
+      {
+        "locator": {
+          "section": "equity",
+          "index": 1
+        },
+        "action": "include",
+        "reason": "qualified fictional ordinary equity"
+      },
+      {
+        "locator": {
+          "section": "equity",
+          "index": 2
+        },
+        "action": "exclude",
+        "reason": "unresolved fictional identity"
+      },
+      {
+        "locator": {
+          "section": "equity",
+          "index": 3
+        },
+        "action": "exclude",
+        "reason": "unsupported fictional instrument"
+      },
+      {
+        "locator": {
+          "section": "fixedIncome",
+          "index": 0
+        },
+        "action": "exclude",
+        "reason": "unsupported fictional instrument"
+      },
+      {
+        "locator": {
+          "section": "shortTermReserves",
+          "index": 0
+        },
+        "action": "exclude",
+        "reason": "unsupported fictional instrument"
+      },
+      {
+        "locator": {
+          "section": "shortTermReserves",
+          "index": 1
+        },
+        "action": "exclude",
+        "reason": "unsupported fictional instrument"
+      },
+      {
+        "locator": {
+          "section": "derivatives",
+          "index": 0
+        },
+        "action": "exclude",
+        "reason": "unsupported fictional instrument"
+      }
+    ],
+    "version": "equity-benchmark-v1"
+  },
+  "metadata_base64": "aW5kZXBlbmRlbnQgZmljdGlvbmFsIEQwNDUgYXNzZXJ0aW9ucw==",
+  "metadata_reference": "explicit fictional equity/relationship proof",
+  "metadata_ticker": "VTI",
+  "metadata_port_id": "0970",
+  "metadata_cusip": "922908769",
+  "metadata_as_of": "2026-10-20",
+  "metadata_reviewed": true,
+  "reviewed_at": "2026-10-20T12:00:00+00:00"
+}

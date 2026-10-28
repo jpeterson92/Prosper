@@ -24,6 +24,8 @@ Recompute final suggested quantities, basis estimate, costs, cash and risk indep
 
 Normalize retained benchmark values by `E = sum(retained primary equity values)` only under D045. Source completeness, identities and exclusions must be accounted for before normalization. An incomplete source percentage sum is not a floating error and cannot be repaired by this tolerance.
 
+For owner-adopted later-date benchmark use, compound each retained constituent's sourced simple total returns after the source close through the target close, multiply source weights by those gross factors and normalize the resulting proxy values. Use Float64 Polars grouping/alignment, require complete covered membership/session order and positive finite factors/denominator, and refuse nonzero underflow or overflow. The [dated-weight contract](../domain/BENCHMARK_INPUTS.md#total-return-drift-to-a-later-effective-date) owns provenance, reinvestment, cutoff and unknown/freshness rules. Independent endpoint-adjusted-close/Decimal expectations check the compounding path; no fitted-risk experiment is needed for this transformation.
+
 ## Written acceptance cases
 
 | Case | Independently reasoned expected result |

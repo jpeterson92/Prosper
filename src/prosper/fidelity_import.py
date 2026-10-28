@@ -87,6 +87,8 @@ def normalize(raw: bytes, context: FidelityContext) -> tuple[ImportSnapshot | No
         locator = f"combined-record:{row.record}; source:{fields[4]}/record:{fields[5]}"
         if mapping:
             security = mapping.security
+            if security.name.value is None and fields[3].strip():
+                security = security.model_copy(update={"name": Fact[str](value=fields[3])})
         else:
             key = hashlib.sha256((fields[0] + "\0" + fields[2]).encode()).hexdigest()
             security = Security(
@@ -95,6 +97,9 @@ def normalize(raw: bytes, context: FidelityContext) -> tuple[ImportSnapshot | No
                 ticker=fields[2] or "unresolved",
                 identity=Fact[str](value=None, reason="No reviewed source-to-security mapping"),
                 classification=Fact[str](value=None, reason="No reviewed tax classification"),
+                name=Fact[str](value=fields[3])
+                if fields[3].strip()
+                else Fact[str](value=None, reason="Reported name not supplied"),
             )
         securities.setdefault(security.id, security)
         acquired = Fact[str](value=row.acquired.value, reason=row.acquired.reason)
@@ -146,6 +151,7 @@ def normalize(raw: bytes, context: FidelityContext) -> tuple[ImportSnapshot | No
                 source_ref=locator,
                 quantity=quantity,
                 total_basis=basis,
+                reported_value=_decimal(row.current_value),
                 acquired=acquired,
                 term=Fact[str](
                     value=term,

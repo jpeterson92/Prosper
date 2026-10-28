@@ -271,6 +271,9 @@ def estimate(data: BasketInput) -> BasketEstimate:
         loc = "benchmark:" + benchmark_row.row_id
         _security(benchmark_row.security, cutoff, known_at, loc, issues)
         value = _estimated_fact(benchmark_row.weight, cutoff, known_at, loc + ":weight", issues)
+        if benchmark_row.weight.evidence.effective != data.as_of:
+            issues.append(Issue(loc, "benchmark_weights_not_as_of"))
+            value = None
         if benchmark_row.unit not in ("decimal", "percent"):
             issues.append(Issue(loc, "explicit_decimal_or_percent_unit_required"))
             value = None
@@ -332,6 +335,9 @@ def estimate(data: BasketInput) -> BasketEstimate:
         issues.append(Issue("universe:" + sid, "unattributed_universe_member"))
     cash = _estimated_fact(data.portfolio_cash, cutoff, known_at, "portfolio_cash", issues)
     bcash = _estimated_fact(data.benchmark_cash, cutoff, known_at, "benchmark_cash", issues)
+    if data.benchmark_cash.evidence.effective != data.as_of:
+        issues.append(Issue("benchmark_cash", "benchmark_weights_not_as_of"))
+        bcash = None
     if data.benchmark_cash_unit not in ("percent", "decimal"):
         issues.append(Issue("benchmark_cash", "explicit_decimal_or_percent_unit_required"))
         bcash = None

@@ -9,10 +9,15 @@ import binascii
 import hashlib
 import json
 from datetime import UTC, date, datetime
+from http.client import HTTPException
+from threading import Lock
 from typing import cast
+from urllib.error import URLError
 
 from pydantic import JsonValue
 
+from prosper import benchmark_metadata as metadata_source
+from prosper import benchmark_source as benchmark_sources
 from prosper import vanguard as v
 from prosper.advisory_records import AnalysisRun, Fact, Finding, ImportSnapshot, encode
 from prosper.advisory_store import AdvisoryStore
@@ -35,12 +40,14 @@ from prosper.benchmark import (
     BenchmarkImport,
     BenchmarkObservation,
     BenchmarkResult,
+    BenchmarkReview,
     review_result,
 )
 from prosper.candidate_workflow import CandidateStart, FrozenCandidate
 from prosper.fidelity_import import normalize
 from prosper.history import Alignment, HistoryRequest
 from prosper.history_refresh import align
+from prosper.holdings_mapping import HoldingsMappingRequest
 from prosper.lot_opportunities import ScreeningInputs, evaluate, screening_inputs
 from prosper.lot_records import (
     Account,
@@ -72,6 +79,7 @@ from prosper.storage import PersistenceError
 class Workspace:
     def __init__(self, store: AdvisoryStore) -> None:
         self.store = store
+        self._metadata_lock = Lock()
         from prosper.candidate_jobs import CandidateJobs
 
         self.candidates = CandidateJobs(store)
@@ -265,11 +273,11 @@ class Workspace:
         observation, fresh = self.store.begin_benchmark(request)
         if not fresh:
             return observation
-        selection = v.select_fund(
+        selection = benchmark_sources.select_fund(
             request.ticker,
             date.fromisoformat(request.requested_date) if request.requested_date else None,
         )
-        acquired = v.acquire(
+        acquired = benchmark_sources.acquire(
             selection,
             collected_at=datetime.fromisoformat(observation.collected_at),
             transport=v.fetch_https,
@@ -293,13 +301,13 @@ class Workspace:
             ):
                 raise PersistenceError("command_key_reused")
             return observation
-        selection = v.select_fund(
+        selection = benchmark_sources.select_fund(
             imported.request.ticker,
             date.fromisoformat(imported.request.requested_date)
             if imported.request.requested_date
             else None,
         )
-        acquired = v.acquire(
+        acquired = benchmark_sources.acquire(
             selection,
             collected_at=datetime.fromisoformat(imported.collected_at),
             transport=lambda _: v.Response(
@@ -338,11 +346,57 @@ class Workspace:
         )
         return self.store.finish_benchmark(updated, raw)
 
+    def prepare_benchmark(self, command: metadata_source.PrepareRequest) -> "BenchmarkReview":
+        with self._metadata_lock:
+            observation = self.store.benchmark_observation(command.observation_id)
+            if observation.status != "observed" or observation.request.ticker != "IVV":
+                raise PersistenceError("benchmark_metadata_invalid")
+            imported = command.metadata_response
+            try:
+                if observation.metadata is not None:
+                    metadata_raw = self.store.source_bytes(observation.metadata.source_sha256)
+                    if imported is not None and (
+                        hashlib.sha256(
+                            metadata_source.decode_metadata(imported.source_base64)
+                        ).hexdigest()
+                        != observation.metadata.source_sha256
+                    ):
+                        raise PersistenceError("benchmark_metadata_already_bound")
+                else:
+                    if imported is None:
+                        response = metadata_source.fetch_metadata()
+                        collected = datetime.now(UTC)
+                    else:
+                        response = v.Response(
+                            imported.http_status,
+                            imported.response_url,
+                            imported.content_type,
+                            metadata_source.decode_metadata(imported.source_base64),
+                            imported.body_complete,
+                        )
+                        collected = datetime.fromisoformat(imported.collected_at)
+                    metadata = metadata_source.inspect_metadata(observation, response, collected)
+                    metadata_raw = response.body
+                    observation = self.store.attach_benchmark_metadata(
+                        command.observation_id, metadata, metadata_raw
+                    )
+                if observation.source_sha256 is None:
+                    raise PersistenceError("benchmark_source_unavailable")
+                return metadata_source.draft(
+                    observation, self.store.source_bytes(observation.source_sha256), metadata_raw
+                )
+            except (OSError, URLError, HTTPException):
+                raise PersistenceError("benchmark_metadata_unavailable") from None
+            except PersistenceError:
+                raise
+            except (ValueError, RecursionError):
+                raise PersistenceError("benchmark_metadata_invalid") from None
+
     def diagnose_benchmark(self, command: BenchmarkDiagnostic) -> AnalysisRun:
         request = command.model_dump(mode="json")
         # Large source bytes belong in sources, not duplicated in frozen request JSON.
         try:
-            metadata = base64.b64decode(command.review.metadata_base64, validate=True)
+            metadata = metadata_source.decode_metadata(command.review.metadata_base64)
         except ValueError:
             raise PersistenceError("invalid_source_encoding") from None
         metadata_digest = hashlib.sha256(metadata).hexdigest()
@@ -394,15 +448,54 @@ class Workspace:
         )
 
     def stage(self, upload: Upload) -> PreviewResponse:
+        if upload.snapshot.holding_preparation is not None:
+            raise PersistenceError("holdings_mapping_generated_record_required")
         try:
             raw = base64.b64decode(upload.source_base64, validate=True)
         except (ValueError, binascii.Error):
             raise PersistenceError("invalid_source_encoding") from None
         identity = self.store.stage(upload.snapshot, raw)
-        return PreviewResponse(id=identity, snapshot=self.store.snapshot(identity))
+        return self.preview(identity)
 
     def preview(self, identity: str) -> PreviewResponse:
-        return PreviewResponse(id=identity, snapshot=self.store.snapshot(identity))
+        from prosper.cash_treatment import holdings
+
+        snapshot = self.store.snapshot(identity)
+        return PreviewResponse(id=identity, snapshot=snapshot, cash_holdings=holdings(snapshot))
+
+    def prepare_holdings(self, command: "HoldingsMappingRequest") -> PreviewResponse:
+        from prosper.holdings_mapping import prepare
+
+        state = self.store.current()
+        settings = cast(dict[str, JsonValue], state["settings"])
+        if (state["revision"], state["snapshot_id"], settings.get("benchmark_run_id")) != (
+            command.expected_revision,
+            command.snapshot_id,
+            command.benchmark_run_id,
+        ):
+            raise PersistenceError("holdings_mapping_inputs_changed")
+        snapshot = self.store.snapshot(command.snapshot_id)
+        benchmark = self.store.run(command.benchmark_run_id)
+        result = BenchmarkResult.model_validate_json(json.dumps(benchmark.outputs))
+        observation = self.store.benchmark_observation(result.observation_id)
+        if observation.source_sha256 is None:
+            raise PersistenceError("benchmark_source_unavailable")
+        raw = self.store.source(command.snapshot_id)
+        try:
+            prepared = prepare(
+                snapshot,
+                raw,
+                observation,
+                self.store.source_bytes(observation.source_sha256),
+                result,
+                command,
+            )
+        except ValueError as error:
+            code = str(error)
+            raise PersistenceError(
+                code if code.startswith("holdings_mapping_") else "holdings_mapping_invalid"
+            ) from None
+        return self.preview(self.store.stage(prepared, raw))
 
     def open_fidelity(self, opening: FidelityOpening) -> FidelityPreviewResponse:
         """Import source facts without requiring hand-authored context JSON."""
@@ -496,8 +589,10 @@ class Workspace:
             state = self.store.current()
             if state["snapshot_id"] is None:
                 raise PersistenceError("selected_snapshot_required")
-            retained = screening_inputs(self.store.selected_snapshots())
             selected = self.store.snapshot(str(state["snapshot_id"]))
+            retained = screening_inputs(
+                (selected, *(s for s in self.store.selected_snapshots() if s != selected))
+            )
             if set(command.sale_quantities) - {lot.id for lot in selected.lots}:
                 raise PersistenceError("lot_diagnostic_request_invalid")
             try:
@@ -615,6 +710,8 @@ class Workspace:
                     if s.classification.value is not None
                     and s.classification.value != "us-domestic-common-equity"
                 }
+                held -= snapshot.cash_security_ids
+                held -= snapshot.excluded_stock_ids
                 if not held <= {s.security_id for s in command.request.series}:
                     raise PersistenceError("required_held_security_missing")
             run = self.store.start_run(

@@ -19,6 +19,7 @@ from prosper.advisory_records import (
     Record,
 )
 from prosper.benchmark import BenchmarkResult
+from prosper.benchmark_drift import weights_at
 from prosper.history import Alignment, HistoryRequest, Profile
 from prosper.lot_records import LotSettings, Mark
 from prosper.record_types import DateText, Identifier, Text, Timestamp
@@ -265,7 +266,26 @@ def union(
     rows: list[Lot | Position] = [*snapshot.lots, *snapshot.positions]
     for row in rows:
         security = securities[row.security_id]
-        if security.classification.value not in (None, "us-domestic-common-equity"):
+        if row.security_id in snapshot.excluded_stock_ids:
+            exclusions.append(
+                Finding(
+                    code="holding_mapping_excluded",
+                    locator=row.source_ref,
+                    reason=(
+                        "Explicit holdings mapping exclusion; "
+                        "original facts and restrictions retained"
+                    ),
+                )
+            )
+        elif row.security_id in snapshot.cash_security_ids:
+            exclusions.append(
+                Finding(
+                    code="user_cash_treatment",
+                    locator=row.source_ref,
+                    reason=f"{row.security_id}: user cash treatment; no modeled funding",
+                )
+            )
+        elif security.classification.value not in (None, "us-domestic-common-equity"):
             exclusions.append(
                 Finding(
                     code="excluded_held_class",
@@ -279,7 +299,8 @@ def union(
         for sid in benchmark.security_ids:
             roles.setdefault(sid, []).append("benchmark")
     for sid in bundle.candidate_security_ids:
-        roles.setdefault(sid, []).append("candidate")
+        if sid not in snapshot.cash_security_ids | snapshot.excluded_stock_ids:
+            roles.setdefault(sid, []).append("candidate")
     return tuple(sorted(roles)), roles, tuple(exclusions)
 
 
@@ -590,7 +611,16 @@ def evaluate(
             sid: None if unknown or not math.isfinite(qty) else qty
             for sid, qty, unknown in grouped.iter_rows()
         }
-    weights = dict(zip(benchmark.security_ids, benchmark.weights, strict=True)) if benchmark else {}
+    estimated_weights = weights_at(benchmark, alignment, bundle.analysis_date)
+    for weight_issue in estimated_weights.issues:
+        issue(
+            "benchmark",
+            weight_issue.code,
+            weight_issue.locator,
+            weight_issue.reason,
+            weight_issue.security_id,
+        )
+    weights = estimated_weights.weights
     hierarchy: dict[str, str] = {}
     members = []
     for sid in ids:
@@ -740,9 +770,7 @@ def evaluate(
                 ),
                 locators=tuple(row.source_ref for row in all_holdings if row.security_id == sid),
                 held_quantity=quantities.get(sid) if "held" in roles[sid] else 0.0,
-                benchmark_weight=weights.get(sid, 0.0)
-                if benchmark and benchmark.status == "estimated-equity-benchmark"
-                else None,
+                benchmark_weight=weights.get(sid, 0.0) if weights is not None else None,
                 mark=price,
                 sector=sector,
                 industry=industry,
@@ -821,4 +849,6 @@ def evaluate(
         software_inputs_complete=not issues,
         innovation_inputs_available=innovation_ready
         and not any(i.scope in ("history", "profile") for i in issues),
+        warnings=ModeledResult.model_fields["warnings"].default
+        + ((estimated_weights.warning,) if estimated_weights.warning else ()),
     )

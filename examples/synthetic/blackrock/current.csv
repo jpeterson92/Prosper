@@ -1,0 +1,12 @@
+iShares Core S&P 500 ETF
+Fund Holdings as of,"Oct 20, 2026"
+Inception Date,"May 15, 2000"
+
+Ticker,Name,Type,Sector,Asset Class,Market Value,Notional Value,Quantity,Price,Location,Exchange,Currency,FX Rate,Market Currency,Accrual Date,Market Weight,Notional Weight
+FIAA,"Fictional
+Alpha",EQUITY,Fictional sector,Equity,"60,000.00","60,000.00","6,000.00",10.00,United States,Fictional exchange,USD,1.00,USD,-,60.0000,60.0000
+FIBB,Fictional Beta,EQUITY,Fictional sector,Equity,"30,000.000","30,000.000","3,000.00",10.00,United States,Fictional exchange,USD,1.00,USD,-,-,-
+USD,Fictional cash,CASH,Fictional sector,Cash,-1.00,-1.00,-1.00,100.00,United States,Fictional exchange,USD,1.00,USD,-,-0.01,-0.01
+-,Fictional money market,STIF,Fictional sector,Money Market,-,-,2.00,1.00,United States,Fictional exchange,USD,1.00,USD,-,-,-
+FUT,Fictional futures,INDEX,Fictional sector,Futures,0.00,400.00,1.00,10.00,United States,Fictional exchange,USD,1.00,USD,-,0.00,0.50
+FW,Fictional warrant,WARRANT,Fictional sector,Equity,5.00,5.00,1.00,5.00,United States,Fictional exchange,USD,1.00,USD,-,0.01,0.01

@@ -108,7 +108,7 @@ def test_complete_representative_source_shape_without_a_large_history(
     review = BenchmarkReview.model_validate_json(json.dumps(sources["benchmark-review.json"]))
     benchmark_raw = base64.b64decode(fixture.source_base64)
     assert hashlib.sha256(benchmark_raw).hexdigest() == review.stipulation.raw_sha256
-    rows = json.loads(benchmark_raw)["2000-01-03"]["equity"]
+    rows = json.loads(benchmark_raw)[fixture.request.requested_date]["equity"]
     assert len(rows) == len(review.stipulation.rows) == len(review.policy.decisions) == 500
     assert all(row["percentOfFunds"] == "" and row["marketValue"] == "100.00" for row in rows)
     assert len({r.security.security_id for r in review.stipulation.rows if r.security}) == 500

@@ -35,9 +35,9 @@ def seed(workspace: Workspace) -> None:
         )
     )
     workspace.store.select(staged.id, "snapshot", 0)
-    benchmark = ROOT / "examples/synthetic/benchmark"
+    benchmark = FOLDER
     workspace.import_benchmark(
-        BenchmarkImport.model_validate_json((benchmark / "current-observation.json").read_bytes())
+        BenchmarkImport.model_validate_json((benchmark / "benchmark.json").read_bytes())
     )
     workspace.diagnose_benchmark(
         BenchmarkDiagnostic(
@@ -45,7 +45,7 @@ def seed(workspace: Workspace) -> None:
             expected_revision=1,
             as_of="2026-10-25T22:00:00Z",
             review=BenchmarkReview.model_validate_json(
-                (benchmark / "current-review.json").read_bytes()
+                (benchmark / "benchmark-review.json").read_bytes()
             ),
         )
     )
@@ -94,11 +94,18 @@ def test_complete_union_order_values_and_saved_original_input_recovery(tmp_path:
     assert preview.return_cell_count == 15 and preview.unavailable_return_count == 0
     # Lot and independent position both say 12.5; they are not two exposures.
     assert preview.members[2].held_quantity == 12.5 and preview.members[2].mark == 12
-    assert preview.members[0].benchmark_weight == pytest.approx(2 / 3)
-    assert preview.members[1].benchmark_weight == pytest.approx(1 / 3)
+    # Source values 60/30; adjusted-close endpoints independently imply these
+    # later-date values. This avoids reusing the daily compounding algorithm.
+    alpha, beta = 60 * 198 / 200, 30 * 208 / 210
+    assert preview.members[0].benchmark_weight == pytest.approx(alpha / (alpha + beta))
+    assert preview.members[1].benchmark_weight == pytest.approx(beta / (alpha + beta))
+    assert any("2026-10-20 to 2026-10-23" in warning for warning in preview.warnings)
     assert preview.members[4].roles == ("candidate",)
     assert preview.innovation_inputs_available and not preview.risk_available
     saved = workspace.diagnose_inputs(command())
+    frozen = workspace.store.modeled_inputs(saved.inputs["modeled_inputs"])
+    assert frozen.benchmark and frozen.benchmark.weights == pytest.approx((2 / 3, 1 / 3))
+    assert frozen.benchmark.effective_date == "2026-10-20"
     assert saved.outputs["software_inputs_complete"] is True
     assert "source_base64" not in json.dumps(saved.inputs)
     assert workspace.diagnose_inputs(command()) == saved
