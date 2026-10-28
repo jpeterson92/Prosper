@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/prosper-banner.svg" alt="Prosper — Tax-aware portfolio research. Holdings, risk, decisions." width="1200" />
+  <img src="docs/assets/prosper-banner.svg" alt="Prosper — Risk-optimized tax-loss harvesting in your own brokerage account." width="1200" />
 </p>
 
 <p align="center">
@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Status-Development_prototype-B28040" alt="Development prototype" />
 </p>
 
-<p align="center"><strong>A local application for exploring tax-loss harvesting without losing sight of portfolio risk.</strong></p>
+<p align="center"><strong>Risk-optimized tax-loss harvesting in your own brokerage account.</strong></p>
 
 <p align="center">
   <a href="#a-look-inside">See the application</a> ·
@@ -20,25 +20,23 @@
 
 ---
 
-Tax-loss harvesting connects several difficult problems: messy portfolio data, lot-level decisions, uncertain risk estimates, transaction costs, and investment constraints. A useful tool has to make those connections understandable.
+Prosper is being built to give individual investors and small registered investment advisers (RIAs) free, open-source tools for tax-loss harvesting in their own brokerage accounts.
 
-**Prosper is my independent project bringing investment-product thinking into a working software system.** It imports current holdings, estimates conditional loss opportunities, models benchmark-relative risk, compares constrained whole-share proposals, and saves a dated worksheet for manual review and execution.
-
-The project spans product design, quantitative modeling, a typed Python service, a React interface, and verification of financial calculations and state transitions.
+Given your holdings, tax lots and benchmark, it compares potential trades by estimated loss, transaction costs, cash and portfolio risk. You can adjust the quantities, check them against your limits, and save a worksheet to use at your broker.
 
 ## A look inside
 
-### Compare the decision, not just the loss
+### Compare proposals
 
-Review no trade alongside checked proposals, inspect the effect of share quantities on estimated loss, cash and risk, then save a dated worksheet.
+See how each proposal changes estimated losses, cash and risk relative to keeping your current holdings.
 
 ![Prosper application: candidate comparison and a checked manual worksheet, using fictional holdings.](docs/assets/decision-workspace.png)
 
 <sub>Actual application UI with fictional holdings and illustrative settings. Risk and loss figures are unqualified estimates; the example is not an investment recommendation.</sub>
 
-### Turn a proposal into a checked decision
+### Adjust quantities and save a worksheet
 
-Adjust whole-share quantities and recheck the result against the saved inputs and enabled limits. The worksheet keeps the assumptions, dates and warnings with the decision.
+Change the proposed share quantities and run the checks again. The saved worksheet includes the trades, estimates, assumptions, dates and warnings.
 
 ![Actual final-check panel for a revised worksheet, using the same fictional portfolio.](docs/assets/worksheet-checks.png)
 
@@ -46,15 +44,15 @@ Adjust whole-share quantities and recheck the result against the saved inputs an
 
 ## The investor workflow
 
-| Step | What the investor gets |
+| Step | What you do |
 | --- | --- |
-| **1 · Bring the holdings** | Import a current lot snapshot. Retain the original file, supplied quantities and basis, and explicit unknowns. |
-| **2 · Establish the reference** | Select a dated full-holdings benchmark proxy and review market inputs, exclusions, marks and data coverage. |
-| **3 · Understand the trade-offs** | Inspect conditional lot losses and estimated benchmark-relative risk. Compare no trade with constrained whole-share proposals. |
-| **4 · Make the decision explicit** | Revise quantities, run final checks, and save/export an immutable, dated manual worksheet. |
-| **5 · Return with current facts** | Reopen saved work or import refreshed holdings after external account changes. |
+| **1 · Import holdings** | Bring in your current tax lots. Review quantities, cost basis and any missing information. |
+| **2 · Choose a benchmark** | Select a dated benchmark proxy and review its holdings, prices, history and exclusions. |
+| **3 · Compare proposals** | Look at estimated losses, costs, cash and benchmark-relative risk for whole-share trades. |
+| **4 · Review and save** | Adjust quantities, run final checks, and export a dated worksheet. |
+| **5 · Refresh next time** | Import updated holdings after trading or other account changes. Previous worksheets remain available. |
 
-Prosper stops at the advisory worksheet. The investor executes at the broker; the application does not place orders or reconstruct an account from assumed fills.
+You place the trades at your broker. Prosper uses a refreshed holdings import to reflect subsequent account changes.
 
 ## Under the hood
 
@@ -71,41 +69,32 @@ flowchart LR
 
 | Layer | Implementation |
 | --- | --- |
-| **Investor interface** | React + strict TypeScript; generated API contracts; explicit review, comparison and worksheet controls. |
-| **Local application service** | FastAPI + Pydantic; protected loopback requests; structured errors and revision-aware mutations. |
-| **Portfolio data** | Polars for ingestion, joins, alignment and coverage; original source bytes and located unknowns retained. |
+| **Interface** | React + strict TypeScript, with generated API contracts. |
+| **Application service** | FastAPI + Pydantic, running locally with authenticated requests and revision checks. |
+| **Portfolio data** | Polars for imports, joins, history alignment and coverage checks. Original files and missing values are retained. |
 | **Quantitative core** | NumPy + SciPy; OHLC-derived innovations, univariate volatility, dynamic conditional correlation and nonlinear covariance shrinkage. |
-| **Portfolio decisions** | Bounded whole-share candidate construction, with a separate validator recomputing financial feasibility from canonical inputs. |
-| **Saved state** | SQLite transactions, immutable snapshots/results, durable retry receipts, and current-format backup/restore. |
+| **Trade proposals** | Whole-share search with separate checks for quantities, cash, costs, gains and enabled risk limits. |
+| **Storage** | SQLite transactions, saved inputs/results, retry handling and backup/restore. Reopening a worksheet preserves its original calculations. |
 
-The selected risk method is **IDR-DCC-NL**. One covariance estimate supports tracking-error and exposure analysis. Search limits remain visible; a bounded search does not claim a global optimum or prove infeasibility.
-
-## Engineering choices that matter
-
-- **Unknown stays unknown.** Missing basis, incomplete prices or incompatible history produce located diagnostics. They do not silently become zero, fabricated observations or a smaller fitted universe.
-- **Search does not validate itself.** Proposed orders pass a separate final check of quantities, cash, costs, gains, risk and enabled investor limits.
-- **A retry is not another trade plan.** Durable command identities distinguish an identical retry from changed input. Revision checks prevent late work from replacing newer state.
-- **Saved output is a record of a decision.** Historical worksheets retain their original inputs, assumptions and results. Reopening or restoring them does not refit the model.
-- **Financial precision has a boundary.** Supplied quantities, basis and entered amounts retain decimal text; derived analytics use Float64, with calculation-specific tolerances and discrete financial checks.
-- **Verification reaches the workflow.** The suite includes hand-derived financial cases, numerical reference checks, protected API tests, browser journeys, interruption/stale-state cases, and source-preserving recovery.
+The risk model is **IDR-DCC-NL**, described in the [risk-model documentation](docs/domain/RISK_MODEL.md). Its covariance estimate is used to calculate tracking error and risk exposures. Candidate search is bounded; it does not guarantee the best possible portfolio.
 
 ## Explore the code
 
-| If you are interested in… | Start here |
+| Area | Code |
 | --- | --- |
-| Translating the investor journey into an application | [Workspace orchestration](src/prosper/workspace.py) · [React review interface](frontend/src/review.tsx) |
-| Quantitative methods and input conventions | [OHLC innovations](src/prosper/innovations.py) · [Volatility fitting](src/prosper/volatility.py) · [DCC](src/prosper/dcc.py) · [Shrinkage](src/prosper/shrinkage.py) |
-| Constrained decisions and financial correctness | [Candidate construction](src/prosper/candidate_search.py) · [Final validation](src/prosper/candidate_validation.py) · [Reference cases](tests/test_candidate_reference.py) |
-| Traceable data and reliable state | [Data records](src/prosper/advisory_records.py) · [Transactional store](src/prosper/advisory_store.py) · [Recovery](src/prosper/advisory_recovery.py) |
-| Turning a checked proposal into a usable deliverable | [Worksheet service](src/prosper/worksheets.py) · [Worksheet interface](frontend/src/worksheets.tsx) |
+| Application and UI | [Workspace](src/prosper/workspace.py) · [React interface](frontend/src/review.tsx) |
+| Risk estimation | [OHLC innovations](src/prosper/innovations.py) · [Volatility fitting](src/prosper/volatility.py) · [DCC](src/prosper/dcc.py) · [Shrinkage](src/prosper/shrinkage.py) |
+| Trade construction and checks | [Candidate search](src/prosper/candidate_search.py) · [Final validation](src/prosper/candidate_validation.py) · [Reference cases](tests/test_candidate_reference.py) |
+| Data and storage | [Records](src/prosper/advisory_records.py) · [SQLite store](src/prosper/advisory_store.py) · [Recovery](src/prosper/advisory_recovery.py) |
+| Worksheets | [Service](src/prosper/worksheets.py) · [Interface](frontend/src/worksheets.tsx) |
 
 For a more detailed walkthrough, read the [engineering tour](docs/showcase/ENGINEERING.md).
 
 ## Project status
 
-**Working development prototype.** The implemented path runs from source import through exploratory modeling, checked candidates, worksheets and recovery. Automated examples and public screenshots use fictional portfolios.
+**Development prototype.** The current application supports imports, exploratory risk estimates, checked proposals, worksheets and recovery. The screenshots and automated examples use fictional portfolios.
 
-The next product work focuses on reducing first-session preparation: standard defaults, clearer exceptions, and a simpler path from holdings and benchmark selection to a basic proposal. Independent tax/model review, calibration, qualified financial inputs and release readiness remain separate milestones. The software is not currently authorized for financial reliance.
+Current work focuses on making setup easier, with standard defaults and clearer review of missing or excluded inputs. Independent tax/model review, calibration, input qualification and release checks are still required before financial use.
 
 ## Development
 
@@ -135,4 +124,4 @@ See the [development guide](docs/engineering/DEVELOPMENT.md) for launch commands
 
 </details>
 
-Software licensing and public contribution terms have not yet been selected. Third-party market-data rights are separate from code availability. Keep private portfolio files and credentials outside the repository.
+Prosper is being built toward free, open-source distribution. A software license and public contribution terms have not yet been selected. Third-party market-data rights are separate from code availability. Keep private portfolio files and credentials outside the repository.

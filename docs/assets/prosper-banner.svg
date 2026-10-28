@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="470" viewBox="0 0 1600 470" fill="none" role="img" aria-labelledby="title desc">
-  <title id="title">Prosper — Tax-aware portfolio research</title>
-  <desc id="desc">Prosper's mint and gold leaf monogram, with a quiet portfolio grid on a deep forest background. Holdings, risk, decisions. An independent software project.</desc>
+  <title id="title">Prosper — Risk-optimized tax-loss harvesting</title>
+  <desc id="desc">Risk-optimized tax-loss harvesting in your own brokerage account. Built for individual investors and small RIAs. Prosper's mint and gold leaf monogram, with a portfolio grid on a deep forest background.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="470" gradientUnits="userSpaceOnUse"><stop stop-color="#102F27"/><stop offset="1" stop-color="#173F34"/></linearGradient>
     <pattern id="grid" width="52" height="52" patternUnits="userSpaceOnUse"><path d="M52 0H0V52" stroke="#B9ECC5" stroke-opacity=".075"/></pattern>
@@ -22,15 +22,16 @@
     <rect x="1184" y="286" width="76" height="76" rx="13" fill="#B9ECC5" fill-opacity=".18"/>
     <rect x="1290" y="277" width="76" height="76" rx="13" fill="#E8B86D"/>
     <path d="M1313 316L1326 329L1347 305" stroke="#173F34" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="72" y="66" fill="#A4C8B2" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="600" letter-spacing="3.5">AN INDEPENDENT SOFTWARE PROJECT</text>
+    <text x="72" y="66" fill="#A4C8B2" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="600" letter-spacing="3.5">BUILT FOR INDIVIDUAL INVESTORS &amp; SMALL RIAs</text>
     <g transform="translate(45 120)">
       <path d="M39 164V63C39 47 51 37 68 37H90C116 37 132 52 132 76C132 101 115 116 90 116H42" stroke="#B9ECC5" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M116 29C128 9 150 8 166 11C163 32 147 48 126 45L116 29Z" fill="#E8B86D"/>
       <path d="M127 38L155 18" stroke="#173F34" stroke-width="3" stroke-linecap="round"/>
     </g>
     <text x="246" y="242" fill="#F5F2E9" font-family="Georgia,Times New Roman,serif" font-size="128" letter-spacing="-4">Prosper</text>
-    <text x="252" y="300" fill="#C0D6C8" font-family="Segoe UI,Arial,sans-serif" font-size="32" letter-spacing=".2">Tax-aware portfolio research</text>
-    <path d="M252 348H918" stroke="#97B5A3" stroke-opacity=".28"/>
+    <text x="252" y="296" fill="#C0D6C8" font-family="Segoe UI,Arial,sans-serif" font-size="30" letter-spacing=".2">Risk-optimized tax-loss harvesting.</text>
+    <text x="252" y="332" fill="#C0D6C8" font-family="Segoe UI,Arial,sans-serif" font-size="24" letter-spacing=".2">In your own brokerage account.</text>
+    <path d="M252 364H918" stroke="#97B5A3" stroke-opacity=".28"/>
     <text x="252" y="390" fill="#A4C8B2" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="600" letter-spacing="3">HOLDINGS</text>
     <path d="M394 384H426M419 378L426 384L419 390" stroke="#E8B86D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="454" y="390" fill="#A4C8B2" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="600" letter-spacing="3">RISK</text>

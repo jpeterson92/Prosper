@@ -1,16 +1,16 @@
 # Building Prosper
 
-Prosper is an independent software project exploring a practical investment-product question: how can a self-directed investor identify a useful tax-loss-harvesting decision, understand its portfolio consequences, and retain a clear record of the assumptions behind it?
+Prosper is being built to give individual investors and small RIAs free, open-source tools for risk-optimized tax-loss harvesting in their own brokerage accounts. This guide follows the code from portfolio inputs to trade proposals and saved worksheets.
 
-The interesting engineering sits between the numerical calculation and the investor's decision. A plausible result is not enough if source data is incomplete, cash is unavailable, inputs changed during a calculation, or the saved worksheet cannot be retained as a historical record.
+The application checks whether the inputs are complete, whether proposed trades satisfy the investor's limits, and whether a result still belongs to the current holdings and settings. Saved worksheets retain the inputs and calculations used at the time.
 
-## One investor journey, explicit boundaries
+## Application workflow
 
 The application follows **current holdings → input review → risk and candidate comparison → dated manual worksheet → refreshed holdings next session**. Execution remains external. Imported activity informs screening; it is not replayed into holdings or treated as proof that a proposed trade occurred.
 
 The [workspace service](../../src/prosper/workspace.py) connects typed records, data coverage, the numerical core and saved outputs. The [React interface](../../frontend/src/review.tsx) exposes the same workflow through protected local APIs. Generated TypeScript contracts keep the browser and service aligned.
 
-## Data quality is part of the product
+## Imports and missing data
 
 Original source bytes, source dates, row references and unknown facts are retained. Import review and active selection are separate steps. A malformed replacement cannot silently turn a portfolio into an empty state.
 
@@ -34,9 +34,9 @@ $$
 \operatorname{TE}(w,b)=\sqrt{(w-b)^\mathsf{T}\Sigma(w-b)}
 $$
 
-The equation is compact. Making its inputs coherent—and communicating their limits—is a substantial part of the application. Model implementation, numerical reference checks, calibration and financial acceptance are distinct.
+History, portfolio weights and benchmark weights must use compatible dates and conventions. Numerical reference checks test the implementation; calibration and independent model review remain separate requirements for financial use.
 
-## Construction and validation are different jobs
+## Candidate search and final checks
 
 The [candidate constructor](../../src/prosper/candidate_search.py) explores a bounded set of whole-share proposals. The [final validator](../../src/prosper/candidate_validation.py) independently recomputes financial feasibility from canonical inputs. An objective score cannot override a cash deficit, positive-gain restriction or enabled risk/cost limit.
 
@@ -44,7 +44,7 @@ The [tiny reference cases](../../tests/test_candidate_reference.py) include inde
 
 “Separate validation” means separation from the search implementation. It does not claim an independent external audit or professional model acceptance.
 
-## State transitions deserve financial-level care
+## Saved state, retries and recovery
 
 The [SQLite store](../../src/prosper/advisory_store.py) retains selected snapshots, revisions, settings, original inputs, run records and durable command receipts. A repeated command with identical content returns its original outcome; reuse with changed content is rejected. A result cannot become current after relevant inputs change.
 
@@ -52,11 +52,11 @@ Long-running work uses an [isolated worker](../../src/prosper/candidate_worker.p
 
 [Recovery](../../src/prosper/advisory_recovery.py) uses a consistent current-format backup and validates required records and sources before restoration. Unsupported, corrupt or populated destinations are refused; recovery does not silently wipe work or recalculate historical financial results.
 
-## The deliverable is a decision record
+## Worksheets
 
 The [worksheet service](../../src/prosper/worksheets.py) connects a checked candidate to a dated manual deliverable: account/security/lot references, whole shares, indicative marks, costs, cash, risk, assumptions and warnings. Quantity edits receive new final checks. Revisions create new records and preserve their parents.
 
-This is the product boundary: the investor can understand and retain an estimate, then verify current broker facts before acting. The software does not submit an order, reserve funds, confirm a fill or reconstruct basis from assumed execution.
+The investor reviews the worksheet and current broker facts before placing trades. The software does not submit orders, reserve funds or treat a proposal as an executed trade.
 
 ## Evidence and remaining work
 
