@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Prosper</title>
+  <desc id="desc">A mint P with a golden leaf on a deep forest square.</desc>
+  <rect width="192" height="192" rx="44" fill="#102F27"/>
+  <path d="M57 143V64C57 50 67 42 81 42H99C120 42 134 55 134 74C134 94 120 107 99 107H59" stroke="#B9ECC5" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M118 36C128 20 145 19 158 21C156 38 143 51 126 49L118 36Z" fill="#E8B86D"/>
+  <path d="M126 43L149 27" stroke="#102F27" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
