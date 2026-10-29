@@ -180,6 +180,50 @@ thead th { font-size:12px; }
 button.value-trigger { padding-block:3px; }
 .table-scroll:focus-visible { outline-offset:0; }
 .comparison-table td[data-label]:not([data-label="Checks"]) { font-variant-numeric:tabular-nums; }
+
+/* Focused task views and saved documents. */
+.app-toolbar { min-height:62px; padding-block:10px; }
+.toolbar-end { gap:12px; }
+.page-heading { margin-bottom:20px; }
+.welcome-panel { grid-template-columns:minmax(0,1.7fr) minmax(220px,1fr); padding:28px; gap:32px; }
+.welcome-panel h2 { font-size:24px; margin-top:14px; }
+.welcome-panel .action-row { margin-top:16px; }
+.portfolio-context { border-left:1px solid var(--line); padding-left:28px; align-self:center; }
+.portfolio-context>strong { font-size:22px; font-weight:600; }
+.portfolio-context p { font-size:13px; margin-top:8px; }
+.appearance-settings .appearance-control { max-width:250px; }
+.appearance-settings .appearance-control select { width:100%; font-size:14px; }
+.mapping-tools { border-block:1px solid var(--line); padding-block:6px; margin-block:20px; }
+.mapping-tools>section { border:0; padding:12px 0; background:transparent; }
+.preparation-workspace form { max-width:980px; }
+.preparation-workspace fieldset { background:var(--surface-alt); }
+.preparation-review { scroll-margin-top:82px; }
+.preparation-review:focus { outline:none; }
+[aria-label="Cash and cost settings"] { scroll-margin-top:82px; }
+.preparation-review .risk-summary { border-block:1px solid var(--line); padding-block:14px; }
+.reuse-summary { padding:12px 16px; background:var(--accent-soft); border-radius:7px; margin-block:12px; font-size:13px; }
+.issue-actions { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
+.decision-actions { border-top:1px solid var(--line); padding-top:14px; }
+.record-context { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:24px; margin:12px 0 20px; }
+.record-context h2 { margin-top:12px; font-size:23px; }
+.record-context dd { font-size:15px; }
+.record-context p { font-size:13px; color:var(--muted); }
+.limit-summary { padding:14px 18px; background:var(--surface-alt); border-radius:8px; margin:18px 0; }
+.limit-summary h4 { margin-top:0; }
+.limit-summary .readiness-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin:12px 0; }
+.limit-summary dd { font-size:15px; font-variant-numeric:tabular-nums; }
+.comparison-caption { max-width:850px; font-size:13px; color:var(--muted); }
+.metric-change { color:var(--muted); margin-top:5px; }
+.warning-summary { padding:10px 0; border-bottom:1px solid var(--line); font-size:13px; }
+.warning-summary ul { margin-bottom:0; }
+.facts dd { font-variant-numeric:tabular-nums; }
+.help-popover { overscroll-behavior:contain; }
+.detail-body { overflow-wrap:anywhere; }
+@media(max-width:1050px) {
+  .welcome-panel { grid-template-columns:1fr; gap:20px; }
+  .portfolio-context { border-left:0; border-top:1px solid var(--line); padding:18px 0 0; }
+  .limit-summary .readiness-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
 @media(max-width:700px) {
   .app-toolbar { align-items:flex-start; flex-wrap:wrap; gap:8px; }
   .account-context { flex:1 1 100%; }
@@ -197,4 +241,28 @@ button.value-trigger { padding-block:3px; }
   .view-switch { flex-wrap:wrap; }
   input:not([type="checkbox"]),select,textarea { font-size:16px; }
   .appearance-control select { font-size:12px; }
+  .app-sidebar { padding:12px 14px 8px; }
+  .app-sidebar nav { margin-top:9px; }
+  .app-sidebar nav button { flex-direction:row; gap:5px; padding:10px 2px; }
+  .app-sidebar nav svg { display:none; }
+  .sidebar-bottom { top:12px; right:12px; }
+  .app-toolbar { flex-wrap:nowrap; align-items:center; padding:10px 16px; min-height:62px; }
+  .account-context { flex:1 1 auto; font-size:12px; }
+  .account-context small { white-space:normal; }
+  .toolbar-end { width:auto; gap:6px; flex:none; }
+  .qualification { white-space:normal; max-width:94px; }
+  .refresh-button { width:30px; height:32px; }
+  #workspace-content { padding-top:20px; }
+  .welcome-panel { padding:20px; }
+  .welcome-panel h2 { font-size:23px; }
+  .record-context { padding:18px; }
+  .record-context .facts { grid-template-columns:1fr; gap:14px; }
+  .limit-summary { padding:14px; }
+  .limit-summary .readiness-grid { gap:14px; }
+  .facts { gap:18px; }
+  .metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 14px; }
+  .metric-grid dd { font-size:15px; }
+  .issue-actions { align-items:flex-start; }
+  .appearance-settings .appearance-control select { font-size:16px; }
 }
+@media(max-width:360px) { .qualification { max-width:80px; } .limit-summary .readiness-grid { grid-template-columns:1fr; } }

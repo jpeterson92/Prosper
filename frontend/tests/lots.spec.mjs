@@ -61,7 +61,7 @@ test("reviewed source lots show conditional losses, IRA conflicts and recovered 
     expect(await api(target,`/api/v1/runs/${saved.id}`)).toEqual(saved);
     await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(saved.id);
     await expect(result).toContainText("subtotal (USD): 10.00");
-    await expect(page.getByRole("article",{name:"Saved diagnostic"})).toContainText("historical inputs");
+    await expect(page.getByRole("article",{name:"Saved diagnostic"})).toContainText("Historical inputs");
     await mkdir(path.join(root,".local/t005.1"),{recursive:true});
     await page.screenshot({path:path.join(root,".local/t005.1/recovered-lots-desktop.png"),fullPage:true});
     await page.setViewportSize({width:390,height:844});

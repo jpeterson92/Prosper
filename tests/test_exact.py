@@ -1,6 +1,6 @@
 """Synthetic primitive expectations; rational references do not use Decimal allocation."""
 
-from decimal import ROUND_UP, Decimal, Inexact, Rounded, localcontext
+from decimal import ROUND_UP, Decimal, Inexact, InvalidOperation, Rounded, localcontext
 from fractions import Fraction
 from typing import Literal
 
@@ -258,7 +258,10 @@ def test_unknown_quantum_and_known_contradictions() -> None:
         )
 
 
-def test_hostile_decimal_context_does_not_change_values_or_rounding() -> None:
+@pytest.mark.parametrize("preexisting_flags", [False, True])
+def test_hostile_decimal_context_does_not_change_values_or_rounding(
+    preexisting_flags: bool,
+) -> None:
     with localcontext() as ambient:
         ambient.prec = 2
         ambient.rounding = ROUND_UP
@@ -266,12 +269,21 @@ def test_hostile_decimal_context_does_not_change_values_or_rounding() -> None:
         ambient.Emin = -2
         ambient.traps[Inexact] = True
         ambient.traps[Rounded] = True
+        # localcontext inherits sticky flags from prior work in this worker.
+        # Exercise both a clean caller and an already signaled caller explicitly.
+        ambient.clear_flags()
+        if preexisting_flags:
+            for signal in (InvalidOperation, Inexact, Rounded):
+                ambient.flags[signal] = True
+        before = ambient.copy()
         assert known("1234567890.1200").canonical == "1234567890.12"
         allocation = split("3", "1.00", "1")
         assert isinstance(allocation.allocated_basis, ExactValue)
         assert allocation.allocated_basis.canonical == "0.33"
         assert ambient.prec == 2 and ambient.rounding == ROUND_UP
-        assert not any(ambient.flags.values())
+        assert ambient.flags == before.flags
+        assert ambient.traps == before.traps
+        assert ambient.Emax == before.Emax and ambient.Emin == before.Emin
 
 
 @settings(max_examples=250, derandomize=True, database=None)

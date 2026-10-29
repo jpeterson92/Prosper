@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { runtime, root, python } from "../tools/runtime.mjs";
-import { compactValue, decimalDisplay, percentPreview } from "../src/display.ts";
+import { compactValue, decimalDisplay, percentPreview, metricChange } from "../src/display.ts";
 
 const raw = await readFile(path.join(root, "examples/synthetic/advisory-workspace.json"));
 const dist = path.join(root, "frontend/dist");
@@ -30,6 +30,10 @@ async function api(server, route, body) {
   const response = await fetch(server.origin + route, { method: body ? "POST" : "GET", headers: { Origin: server.origin, Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
   expect(response.ok).toBe(true); return response.json();
 }
+
+test("comparison changes preserve unavailable values, units and tiny nonzero direction",()=>{
+  for(const [value,baseline,kind,expected] of [[4,0,"money","+$4.00"],[2,4,"money","-$2.00"],[0,0,"money","Unchanged"],[0.001,0,"money","+$<0.01"],[0,0.001,"money","-$<0.01"],[0.04,0.025,"risk","+1.5 pp"],[0.001,0.002,"risk","-0.1 pp"],[undefined,0,"money","Change unavailable"],[0,undefined,"risk","Change unavailable"],[Infinity,0,"money","Change unavailable"]])expect(metricChange(value,baseline,kind)).toBe(expected);
+});
 
 test("percentage previews shift decimal text without changing precision or units",()=>{
   for(const [raw,expected]of [["0.015","1.5%"],["1.0000","100%"],["0","0%"],["-0.0001","-0.01%"],["9007199254740993.0001","900,719,925,474,099,300.01%"],["1e-3","Enter a decimal fraction"]])expect(percentPreview(raw)).toBe(expected);

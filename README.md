@@ -28,7 +28,7 @@ Given your holdings, tax lots and benchmark, it compares potential trades by est
 
 ### A local investment workspace
 
-Move between Overview, Holdings, Analysis and Worksheets without losing your in-session drafts. The next action reflects the current saved inputs. Light, dark and system appearance use the same interface.
+Move between Overview, Holdings, Analysis and Worksheets without losing your in-session drafts. The next action reflects current inputs and calculation state. Light, dark and system appearance are available in Settings. Preparation separates editing from review, with unresolved questions linked to their controls.
 
 ![Prosper Overview with a current input review and an explicit next action, using fictional holdings.](docs/assets/investor-overview.png)
 
@@ -36,7 +36,7 @@ Move between Overview, Holdings, Analysis and Worksheets without losing your in-
 
 ### Compare proposals
 
-See how each proposal changes estimated losses, cash and risk relative to keeping your current holdings.
+See how each proposal changes estimated losses, costs, cash and risk relative to keeping your current holdings. Saved limits and check outcomes sit beside the comparison; exact values remain available in details.
 
 ![Prosper application: candidate comparison and a checked manual worksheet, using fictional holdings.](docs/assets/decision-workspace.png)
 
@@ -44,7 +44,7 @@ See how each proposal changes estimated losses, cash and risk relative to keepin
 
 ### Save and reopen a dated worksheet
 
-Change the proposed share quantities and run the checks again. Compare/revise and saved-worksheet views keep editing separate from the dated result. Saved work retains its original trades, estimates, assumptions, dates and warnings; export does not recalculate it.
+Change the proposed share quantities and run the checks again. Compare/revise and saved-worksheet views keep editing separate from the dated result. Saved work opens as a focused document with its original account, benchmark and dates. Record links support reopening the same saved result; export does not recalculate its trades, estimates or assumptions.
 
 ![Actual saved worksheet component, using the same fictional portfolio.](docs/assets/worksheet-checks.png)
 

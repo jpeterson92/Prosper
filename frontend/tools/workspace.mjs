@@ -13,7 +13,8 @@ export async function navigate(page, destination, stage) {
   await expect(page.getByRole("heading",{name:destination,exact:true,level:1})).toBeVisible();
 }
 export async function reveal(page, text) {
-  const summary=page.locator("summary").filter({hasText:text}).filter({visible:true});
+  let summary=page.locator("summary").filter({hasText:text}).filter({visible:true});
+  if(!await summary.count()&&await page.getByRole("button",{name:"Edit inputs",exact:true}).isVisible())await page.getByRole("button",{name:"Edit inputs",exact:true}).click();
   await expect(summary).toBeVisible();if(await summary.evaluate(el=>!el.parentElement.open))await summary.click();
 }
 export async function sourceDetails(page, label) {await page.getByRole("button",{name:label,exact:true}).click();}
@@ -27,7 +28,7 @@ export async function prepareUpload(page,label) {
   if(label==="Declared combined-lot CSV"||label==="Reviewed lot context JSON"){await navigate(page,"Holdings");await reveal(page,/^(Import refreshed holdings|Import holdings file)$/);if(label==="Reviewed lot context JSON")await reveal(page,"Advanced reviewed context (optional)");return;}
   if(label==="Modeled input/profile JSON"){await navigate(page,"Analysis","Review inputs");return reveal(page,"Advanced supplied input configuration");}
   if(label==="Candidate controls JSON"){await navigate(page,"Analysis","Proposals");return reveal(page,"Advanced proposal controls file");}
-  if(label.startsWith("Current workspace backup"))return navigate(page,"Settings");
+  if(label.startsWith("Current workspace backup")){await navigate(page,"Settings");return reveal(page,"Restore a backup into an empty workspace");}
   if(label.startsWith("History file")||label==="Required history window JSON")return historyTools(page);
   if(label==="Saved benchmark response JSON"||label==="Reviewed benchmark mapping and metadata JSON"){await navigate(page,"Analysis","Benchmark");return reveal(page,label==="Saved benchmark response JSON"?"Import saved benchmark response":"Import a prepared benchmark review");}
 }

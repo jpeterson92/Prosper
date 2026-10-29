@@ -40,3 +40,12 @@ export function percentPreview(raw:string):string {
   const fraction=match[3]??"",digits=match[2]!+fraction.padEnd(2,"0"),point=match[2]!.length+2;
   return decimalDisplay(`${match[1]}${digits.slice(0,point)}${digits.length>point?"."+digits.slice(point):""}`,true,4).replace(/(\.\d*?)0+$/,"$1").replace(/\.$/,"")+"%";
 }
+
+/** Display-only difference; saved checks remain the financial authority. */
+export function metricChange(value:number|undefined,baseline:number|undefined,kind:"money"|"risk"="money"):string {
+  if(value===undefined||baseline===undefined||!Number.isFinite(value)||!Number.isFinite(baseline))return "Change unavailable";
+  const difference=value-baseline;
+  if(!Number.isFinite(difference))return "Change unavailable";
+  if(difference===0)return "Unchanged";
+  return `${difference<0?"-":"+"}${kind==="money"?"$":""}${compactValue(Math.abs(difference)*(kind==="risk"?100:1),kind==="money"?"money":"number",2)}${kind==="risk"?" pp":""}`;
+}

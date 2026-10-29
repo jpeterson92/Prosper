@@ -21,7 +21,7 @@ export function Help({label,children,trigger}:{label:string;children:ReactNode;t
   useLayoutEffect(()=>{
     if(!open)return;const anchor=button.current?.getBoundingClientRect(),panel=popover.current?.getBoundingClientRect();
     if(anchor&&panel)setPosition({left:Math.max(16,Math.min(anchor.left,window.innerWidth-panel.width-16)),top:Math.max(16,Math.min(anchor.bottom+8,window.innerHeight-panel.height-16))});
-    const dismiss=()=>setOpen(false);window.addEventListener("resize",dismiss);document.addEventListener("scroll",dismiss,true);
+    const dismiss=(event:Event)=>{if(event.type==="scroll"&&event.target instanceof Node&&popover.current?.contains(event.target))return;setOpen(false);};window.addEventListener("resize",dismiss);document.addEventListener("scroll",dismiss,true);
     return()=>{window.removeEventListener("resize",dismiss);document.removeEventListener("scroll",dismiss,true);};
   },[open]);
   return <span className="help" ref={root} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))setOpen(false);}} onKeyDown={e=>{if(e.key==="Escape"){setOpen(false);button.current?.focus();e.stopPropagation();}}}>
@@ -33,7 +33,7 @@ export function Help({label,children,trigger}:{label:string;children:ReactNode;t
 export function DetailsPanel({title,children,label=title,dismissSignal}:{title:string;children:ReactNode;label?:string;dismissSignal?:unknown}) {
   const dialog=useRef<HTMLDialogElement>(null),id=useId();
   useEffect(()=>{dialog.current?.close();},[dismissSignal]);
-  return <><button type="button" className="text-button detail-link" onClick={()=>dialog.current?.showModal()}>{label}<span aria-hidden="true"> ↗</span></button>
+  return <><button type="button" className="text-button detail-link" onClick={()=>dialog.current?.showModal()}>{label}<span aria-hidden="true"> ›</span></button>
     <dialog className="detail-panel" ref={dialog} aria-labelledby={id} onClick={e=>{if(e.target===e.currentTarget)dialog.current?.close();}}>
       <div className="detail-sheet"><header><h2 id={id}>{title}</h2><button type="button" className="icon-button" aria-label={`Close ${title}`} onClick={()=>dialog.current?.close()}>×</button></header><div className="detail-body">{children}</div></div>
     </dialog></>;
@@ -53,14 +53,25 @@ export function Icon({name}:{name:"overview"|"holdings"|"analysis"|"worksheets"|
 
 export const issueTitle=(code:string)=>({lot_mark_conflict:"Review updated prices",lot_settings_required:"Add cash and cost settings",settings_date_mismatch:"Review the analysis date",selected_snapshot_required:"Import your holdings",selected_benchmark_required:"Choose a benchmark",coverage_settings_required:"Confirm freshness settings",history_selection_required:"Choose imported market history",investor_controls_required:"Review investor limits",taxonomy_declaration_required:"Confirm the classification framework",source_declaration_required:"Confirm source permissions and dates",investor_control_unspecified:"Complete an investor limit",mark_missing:"A current price is missing",classification_unknown:"A classification needs review",empty_modeled_union:"No holdings have sufficient declared history",history_length_mismatch:"More market history is needed",identity_missing:"Confirm a security identity",history_context_ambiguous_or_missing:"Choose the matching history source"} as Record<string,string>)[code]??code.replaceAll("_"," ").replace(/^./,c=>c.toUpperCase());
 
-export function Issues({issues}:{issues:readonly {code:string;reason:string;locator:string;scope:string;security_id?:string|null}[]}) {
+export function Issues({issues,onResolve}:{onResolve?:(code:string)=>void;issues:readonly {code:string;reason:string;locator:string;scope:string;security_id?:string|null}[]}) {
   const groups=new Map<string,typeof issues[number][]>();
   for(const issue of issues)groups.set(issue.code,[...(groups.get(issue.code)??[]),issue]);
-  return <div className="issue-list">{[...groups].map(([code,items])=><div className="issue-item" key={code}><span className="issue-dot" aria-hidden="true"/><div><strong>{issueTitle(code)}</strong><p>{items[0]?.reason}</p>{items.length>1&&<small>{items.length} affected items</small>}<DetailsPanel title={issueTitle(code)} label="View affected items">{items.map((i,n)=><div className="issue-detail" key={n}>{i.security_id&&<h3><SecurityName id={i.security_id}/></h3>}<p>{i.reason}</p><details><summary>Source details</summary><p>{i.scope} / {i.code}</p><p>{i.locator}</p></details></div>)}</DetailsPanel></div></div>)}</div>;
+  return <div className="issue-list">{[...groups].map(([code,items])=><div className="issue-item" key={code}><span className="issue-dot" aria-hidden="true"/><div><strong>{issueTitle(code)}</strong><p>{items[0]?.reason}</p>{items.length>1&&<small>{items.length} affected items</small>}<div className="issue-actions">{onResolve&&<button className="secondary" type="button" onClick={()=>onResolve(code)}>Review this question</button>}<DetailsPanel title={issueTitle(code)} label="View affected items">{items.map((i,n)=><div className="issue-detail" key={n}>{i.security_id&&<h3><SecurityName id={i.security_id}/></h3>}<p>{i.reason}</p><details><summary>Source details</summary><p>{i.scope} / {i.code}</p><p>{i.locator}</p></details></div>)}</DetailsPanel></div></div></div>)}</div>;
 }
 
 
+// Only recognized boilerplate is summarized. Every unfamiliar or dated warning
+// remains visible verbatim; full originals are retained for inspection.
+const warningSummary:Record<string,string>={
+  "Unqualified proxy risk and conditional loss estimates; no financial-use authorization":"Risk is unqualified. Independent review, source qualification and calibration remain open; financial use is not authorized.",
+  "Unqualified covariance estimate; no calibrated investor risk or financial authorization":"Risk is unqualified. Independent review, source qualification and calibration remain open; financial use is not authorized.",
+  "Independent tax/model review, real-source qualification and calibration remain open":"Risk is unqualified. Independent review, source qualification and calibration remain open; financial use is not authorized.",
+  "Exploratory unqualified estimate; financial-use authorization is unavailable":"Risk is unqualified. Independent review, source qualification and calibration remain open; financial use is not authorized.",
+  "No broker order, reservation, fill, funding or deductible-loss guarantee":"Manual execution only. Orders, funding, fills and deductible losses are not guaranteed.",
+  "After external activity or material changes, import refreshed holdings before another suggestion":"After external account changes, import refreshed holdings before another suggestion.",
+};
 export function Warnings({values}:{values:readonly string[]}) {
   if(!values.length)return null;
-  return <div className="warning-groups" aria-label="Assumptions and warnings">{warningGroups(values).map(([name,items])=><details key={name} open={name==="Coverage and exclusions"||items.some(value=>/unknown|incomplete|unverified|unavailable|missing/i.test(value))}><summary>{name} ({items.length})</summary><ul>{items.map((value,i)=><li key={i}>{value}</li>)}</ul></details>)}</div>;
+  const groups=warningGroups([...new Set(values.map(value=>warningSummary[value]??value))]);
+  return <div className="warning-groups" aria-label="Assumptions and warnings"><h4>Review before relying on these estimates</h4>{groups.map(([name,items])=><div className="warning-summary" key={name}><strong>{name}</strong><ul>{items.map((value,i)=><li key={i}>{value}</li>)}</ul></div>)}<DetailsPanel title="Original assumptions and warnings" label={`Full original warnings (${values.length})`}><ul>{values.map((value,i)=><li key={i}>{value}</li>)}</ul></DetailsPanel></div>;
 }
