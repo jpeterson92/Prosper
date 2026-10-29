@@ -6,6 +6,7 @@ import json
 import sqlite3
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
+from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import cast
@@ -151,6 +152,14 @@ def _validate(connection: sqlite3.Connection) -> None:
             frozen = AdvisoryStore._modeled_inputs(connection, run.inputs["modeled_inputs"])
             modeled_request = cast(dict[str, JsonValue], run.inputs["modeled_request"])
             bundle = ModeledBundle.model_validate_json(json.dumps(modeled_request["bundle"]))
+            binding = bundle.assembly
+            if binding and (
+                binding.snapshot_id != run.snapshot_id
+                or binding.input_revision != run.input_revision
+                or binding.benchmark_run_id != frozen.benchmark_run_id
+                or datetime.fromisoformat(binding.prepared_at) > datetime.fromisoformat(run.as_of)
+            ):
+                raise PersistenceError("corrupt_advisory_backup")
             if bundle != frozen.bundle or (
                 modeled_request["run_id"],
                 modeled_request["expected_revision"],
@@ -175,7 +184,12 @@ def _validate(connection: sqlite3.Connection) -> None:
                 ):
                     raise PersistenceError("corrupt_advisory_backup")
             if run.status == "partial":
-                ModeledResult.model_validate_json(json.dumps(run.outputs))
+                modeled_result = ModeledResult.model_validate_json(json.dumps(run.outputs))
+                if (
+                    modeled_result.sleeve != frozen.sleeve
+                    or modeled_result.security_ids != frozen.sleeve.retained_ids
+                ):
+                    raise PersistenceError("corrupt_advisory_backup")
         if run.model_version == "benchmark-proxy-v1":
             request = run.inputs["benchmark_request"]
             if not isinstance(request, dict) or not isinstance(request.get("review"), dict):

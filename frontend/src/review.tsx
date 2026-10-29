@@ -3,6 +3,12 @@ import { ClientError, connect } from "./client";
 import type { Alignment, HistoryReview, HistoryManifest, HistoryRequest, HistoryDiagnosticRequest, Catalog, Current, DiagnosticRequest, Preview, Run, SelectRequest, SettingsRequest } from "./client";
 import { HistoryRows, SavedHistory } from "./history";
 import { decimalDisplay } from "./display";
+import { readLocation, writeLocation } from "./navigation";
+import { recordStatus } from "./presentation";
+import { AppShell } from "./app-shell";
+import type { Page, Stage } from "./app-shell";
+import { DetailsPanel, ExactValue, Help, Icon, SecurityLabels, Warnings } from "./ui";
+import { SavedWork } from "./saved-work";
 import { CashTreatments } from "./cash-treatment";
 import type { CashAction } from "./cash-treatment";
 import { HoldingsMapping } from "./holdings-mapping";
@@ -15,9 +21,10 @@ import { Worksheets } from "./worksheets";
 import type { WorksheetAction } from "./worksheets";
 import type { Worksheet } from "./client";
 import type { CandidateAction } from "./candidates";
-import { InputsControls, InputsView } from "./inputs";
+import { InputsControls, InputsView, RiskSettingsView } from "./inputs";
+import { InputPreparation } from "./input-preparation";
 import type { InputsAction } from "./inputs";
-import type { ModeledResult } from "./client";
+import type { ModeledResult, ModeledUpload } from "./client";
 
 type Pending = CashAction | WorksheetAction | CandidateAction | InputsAction | BenchmarkAction | LotAction | { kind: "history-refresh"; body: HistoryManifest } | { kind: "history-discard"; body: HistoryManifest } | { kind: "history-diagnostic"; body: HistoryDiagnosticRequest } | { kind: "history-clear"; body: { command_key: string; expected_revision: number } } | { kind: "select"; body: SelectRequest } | { kind: "settings"; body: SettingsRequest } | { kind: "diagnostic"; body: DiagnosticRequest } | { kind: "restore"; body: Uint8Array<ArrayBuffer> };
 type Fact = { value: string | null; reason?: string | null };
@@ -28,31 +35,23 @@ function resourceMessage(problem: unknown): string | null {
   return null;
 }
 function FactValue({ fact, rounded = false }: { fact: Fact; rounded?: boolean }) {
-  return fact.value === null ? <span className="unknown">Unknown <small>{fact.reason}</small></span> : <span className="number" title={fact.value}>{rounded ? decimalDisplay(fact.value, true) : fact.value}</span>;
+  return fact.value === null ? <span className="unknown">Unknown <small>{fact.reason}</small></span> : <span className="number" title={fact.value}>{rounded ? <ExactValue value={fact.value} places={2}/> : fact.value}</span>;
 }
-function Snapshot({ preview, rounded }: { preview: Preview; rounded: boolean }) {
-  const s = preview.snapshot;
-  return <article aria-label="Snapshot review">
-    <section><h2>Reviewed source</h2><dl className="facts">
-      <div><dt>Account</dt><dd>{s.account_alias} / {s.account_id}</dd></div>
-      <div><dt>Scope</dt><dd>{s.account_scope}</dd></div>
-      <div><dt>Source / as of</dt><dd>{s.source_name} / {s.source_as_of}</dd></div>
-      <div><dt>Snapshot ID</dt><dd>{preview.id}</dd></div>
-      <div><dt>Original source SHA-256</dt><dd>{s.source_sha256}</dd></div>
-    </dl><p>Original source bytes are retained with this snapshot. Unknown facts block their dependent financial results.</p></section>
-    <section><h3>Securities</h3><ul>{s.securities.map((row) => <li key={row.id}>{row.id} / {row.ticker} <FactValue fact={row.identity} /> <FactValue fact={row.classification} /><small>{row.source_ref}</small></li>)}</ul></section>
-    <section><h3>Lots</h3><div className="table-scroll" tabIndex={0}><table><thead><tr><th>Lot / security</th><th>Quantity</th><th>Total basis (USD)</th><th>Acquired / term</th><th>Source row</th></tr></thead>
-      <tbody>{s.lots.map((row) => <tr key={row.id}><th>{row.id}<small>{row.account_id} / {row.security_id}</small></th><td><FactValue fact={row.quantity} rounded={rounded} /></td><td><FactValue fact={row.total_basis} rounded={rounded} /></td><td><FactValue fact={row.acquired} /><FactValue fact={row.term} /></td><td>{row.source_ref}</td></tr>)}</tbody></table></div></section>
-    <section><h3>Positions and cash observations</h3><ul>{s.positions.map((row) => <li key={row.id}>{row.security_id}: <FactValue fact={row.quantity} rounded={rounded} /><small>{row.source_ref}</small></li>)}{s.cash.map((row) => <li key={row.id}>{row.kind} ({row.currency}): <FactValue fact={row.amount} rounded={rounded} /><small>{row.source_ref}</small></li>)}</ul><p>Imported cash observations do not set an investment budget.</p></section>
-    <section><h3>Source findings and exclusions</h3><ul>{[...s.findings, ...s.exclusions].map((f, i) => <li key={i}><strong>{f.code}</strong> / {f.locator}: {f.reason}</li>)}</ul><details><summary>Other supplied observations</summary><pre>{JSON.stringify(s.observations, null, 2)}</pre></details></section>
-  </article>;
+function Snapshot({preview,rounded}:{preview:Preview;rounded:boolean}) {
+  const s=preview.snapshot,held=new Set([...s.lots,...s.positions].map(row=>row.security_id)),grouped=new Map<string,typeof s.findings>();
+  for(const issue of [...s.findings,...s.exclusions])grouped.set(issue.code,[...(grouped.get(issue.code)??[]),issue]);
+  return <SecurityLabels value={s.securities}><article aria-label="Snapshot review"><section><div className="section-heading"><h2>Your holdings</h2><DetailsPanel title="Original holdings source" label="Source details"><dl className="facts"><div><dt>Account</dt><dd>{s.account_alias} / {s.account_id}</dd></div><div><dt>Scope</dt><dd>{s.account_scope}</dd></div><div><dt>Source</dt><dd>{s.source_name} / {s.source_as_of}</dd></div></dl><p>Snapshot ID {preview.id}</p><p>Original source SHA-256 {s.source_sha256}</p><pre>{JSON.stringify(s,null,2)}</pre></DetailsPanel></div><p>{s.account_alias} - {s.source_as_of.slice(0,10)} - {held.size} reported holding{held.size===1?"":"s"}</p>
+    <div className="table-scroll"><table><caption>Holdings and tax lots</caption><thead><tr><th>Security</th><th>Shares</th><th>Reported basis (USD)</th><th>Lot details</th><th>Review</th></tr></thead><tbody>{s.securities.filter(security=>s.lots.some(l=>l.security_id===security.id)||s.positions.some(p=>p.security_id===security.id)).map(security=>{const lots=s.lots.filter(l=>l.security_id===security.id),positions=s.positions.filter(p=>p.security_id===security.id),quantity=positions.length===1?positions[0]?.quantity:lots.length===1?lots[0]?.quantity:null;return <tr key={security.id}><th>{security.ticker}<small>{security.name.value??"Name not supplied"}</small></th><td>{quantity?<FactValue fact={quantity} rounded={rounded}/>:lots.length?`${lots.length} lots` : "Not reported"}</td><td>{lots.length===1?<FactValue fact={lots[0]!.total_basis} rounded={rounded}/>:lots.length?"See individual lots":"Not reported"}</td><td>{lots.length>0?<DetailsPanel title={`Lots for ${security.ticker}`} label={`${lots.length} tax lot${lots.length===1?"":"s"}`}><div className="table-scroll"><table><caption>Original tax lots</caption><thead><tr><th>Lot</th><th>Quantity</th><th>Basis (USD)</th><th>Acquired / term</th></tr></thead><tbody>{lots.map(l=><tr key={l.id}><th>{l.id}</th><td><FactValue fact={l.quantity} rounded={rounded}/></td><td><FactValue fact={l.total_basis} rounded={rounded}/></td><td><FactValue fact={l.acquired}/><FactValue fact={l.term}/><details><summary>Source reference</summary>{l.source_ref}</details></td></tr>)}</tbody></table></div></DetailsPanel>:<span>No reported lots</span>}</td><td>{security.identity.value===null?"Identity needs review":security.classification.value===null?"Classification needs review":"Supplied identity"}<Help label={`About ${security.ticker} review status`}>Identity: {security.identity.value??security.identity.reason}. Classification: {security.classification.value??security.classification.reason}. A supplied identity does not establish tax eligibility.</Help></td></tr>;})}</tbody></table></div>
+    {grouped.size>0&&<div className="source-findings"><h3>Source findings and exclusions</h3>{[...grouped].map(([code,items])=><div className="issue-item" key={code}><div><p>{items[0]?.reason}</p><DetailsPanel title="Source findings" label={`View ${items.length} affected items`}><ul>{items.map((i,n)=><li key={n}>{i.reason}<details><summary>Source details</summary>{i.code} / {i.locator}</details></li>)}</ul></DetailsPanel></div></div>)}</div>}
+    <DetailsPanel title="Positions and cash observations" label="View reported cash and independent positions"><ul>{s.positions.map(row=><li key={row.id}>{s.securities.find(v=>v.id===row.security_id)?.ticker??row.security_id}: <FactValue fact={row.quantity} rounded={rounded}/><details><summary>Source details</summary>{row.source_ref}</details></li>)}{s.cash.map(row=><li key={row.id}>{row.kind} ({row.currency}): <FactValue fact={row.amount} rounded={rounded}/><details><summary>Source details</summary>{row.source_ref}</details></li>)}</ul><p>Reported cash does not set the amount selected for investment.</p></DetailsPanel>
+  </section></article></SecurityLabels>;
 }
 
 function DiagnosticView({ run, revision }: { run: Run; revision: number | undefined }) {
   const counts = run.outputs?.counts;
   const findings = run.outputs?.findings;
-  return <article aria-label="Saved diagnostic">
-    <p>{run.id} / {run.status} / {run.as_of}</p>
+  return <SecurityLabels value={[]}><article aria-label="Saved diagnostic">
+    <p>{run.as_of.slice(0,10)} - {recordStatus(run)}</p><DetailsPanel title="Saved analysis identity" label="Record details"><p>{run.id} / {run.model_version} / {run.as_of}</p></DetailsPanel>
     <p>Saved input revision {run.input_revision}; {run.input_revision === revision ? "matches current inputs" : "historical inputs"}</p>
     {run.outputs?.kind === "history-inputs-v1" && <>
       <p>{run.outputs.coverage_complete === true ? "Recorded history coverage complete" : "Recorded history incomplete"}; this is input coverage, with financial qualification still unavailable.</p>
@@ -60,23 +59,32 @@ function DiagnosticView({ run, revision }: { run: Run; revision: number | undefi
       {Array.isArray(run.outputs.sessions) && <p>Saved sessions: {run.outputs.sessions.map(String).join(", ")}</p>}
     </>}
     {counts !== null && typeof counts === "object" && !Array.isArray(counts) && <dl className="facts">{Object.entries(counts).map(([name, value]) => <div key={name}><dt>{name}</dt><dd>{typeof value === "number" ? value : "Unavailable"}</dd></div>)}</dl>}
-    <ul>{run.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul>
+    <Warnings values={run.warnings}/>
     {Array.isArray(findings) && <ul>{findings.map((finding, index) => finding && typeof finding === "object" && !Array.isArray(finding) ? <li key={index}><strong>{String(finding.code)}</strong> / {String(finding.locator)}: {String(finding.reason)}</li> : null)}</ul>}
     {run.exclusions.length > 0 && <><h3>Exclusions</h3><ul>{run.exclusions.map((f, i) => <li key={i}>{f.locator}: {f.reason}</li>)}</ul></>}
     {Array.isArray(run.outputs?.issues) && <ul>{run.outputs.issues.map((issue, index) => <li key={index}>{JSON.stringify(issue)}</li>)}</ul>}
     <SavedHistory run={run} />
     <LotView run={run} />
     <CandidateView run={run} />
-    {run.model_version === "modeled-inputs-v1" && run.status === "partial" && <InputsView result={run.outputs as unknown as ModeledResult} label="Saved modeled inputs" />}
+    {run.model_version === "modeled-inputs-v1" && run.status === "partial" && <>
+      <InputsView result={run.outputs as unknown as ModeledResult} label="Saved modeled inputs" />
+      <RiskSettingsView profile={(run.inputs.modeled_request as unknown as {bundle: ModeledUpload["bundle"]}).bundle.profile} />
+    </>}
     <details><summary>Saved inputs and result record</summary><pre>{JSON.stringify(run, null, 2)}</pre></details>
-  </article>;
+  </article></SecurityLabels>;
 }
 
 export function Review() {
+  const [page,setPage]=useState<Page>(()=>readLocation().page);
+  const [stage,setStage]=useState<Stage>(()=>readLocation().stage);
+  const [preparedPrices,setPreparedPrices]=useState<{revision:number;marks:import("./client").LotSettings["marks"]}|null>(null);
+  const [latest,setLatest]=useState<Run|null>(null);
+  const [selected,setSelected]=useState<Preview|null>(null);
   const [current, setCurrent] = useState<Current | null>(null);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [run, setRun] = useState<Run | null>(null);
+  const [diagnosticOpen,setDiagnosticOpen]=useState(false);
   const [worksheet, setWorksheet] = useState<Worksheet | null>(null);
   const [historyFile, setHistoryFile] = useState<HistoryReview | null>(null);
   const [historyReviewed, setHistoryReviewed] = useState(false);
@@ -87,7 +95,7 @@ export function Review() {
   const [file, setFile] = useState<File | null>(null);
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const [reviewed, setReviewed] = useState(false);
-  const [rounded, setRounded] = useState(false);
+  const [rounded, setRounded] = useState(true);
   const [settings, setSettings] = useState("{}");
   const [settingsReviewed, setSettingsReviewed] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -101,7 +109,9 @@ export function Review() {
   async function refresh(reviewSelected = false) {
     const c = await client(); await c.runtime(); setRuntimeReady(true); const state = await c.current();
     setCurrent(state); setCatalog(await c.catalog()); setReviewed(false); setSettingsReviewed(false);
-    if(reviewSelected)setPreview(state.snapshot_id?await c.preview(state.snapshot_id):null);
+    const chosen=state.snapshot_id?await c.preview(state.snapshot_id):null;setSelected(chosen);
+    if(reviewSelected)setPreview(chosen);
+    try {setLatest(state.current_run_id?await c.run(state.current_run_id):null);} catch {setLatest(null);}
   }
   async function perform(action: () => Promise<void>, mutation = false) {
     if (active.current) return;
@@ -119,6 +129,7 @@ export function Review() {
     }
   }
   async function execute(command: Pending) {
+    if(command.kind==="settings")document.querySelector<HTMLDialogElement>("dialog.detail-panel[open]")?.close();
     const c = await client();
     try {
     if (command.kind === "cash-treatment") {
@@ -127,17 +138,17 @@ export function Review() {
     } else if (command.kind === "worksheet-save") {
       setWorksheet(await c.saveWorksheet(command.body)); setMessage("Dated manual worksheet saved. Review its frozen inputs, assumptions and warnings.");
     } else if (command.kind === "candidate-start" || command.kind === "candidate-cancel") {
-      setRun(command.kind === "candidate-start" ? await c.startCandidate(command.body) : await c.cancelCandidate(command.body)); setMessage("Candidate run state saved. Review progress and qualification below.");
+      if(command.kind==="candidate-start")setWorksheet(null);setDiagnosticOpen(false);setRun(command.kind === "candidate-start" ? await c.startCandidate(command.body) : await c.cancelCandidate(command.body)); setMessage("Candidate run state saved. Review progress and qualification below.");
     } else if (command.kind === "modeled-inputs") {
-      setRun(await c.diagnoseInputs(command.body)); setMessage("Dated modeled input diagnostics saved.");
+      setDiagnosticOpen(true);setRun(await c.diagnoseInputs(command.body)); setMessage("Dated modeled input diagnostics saved.");
     } else if (command.kind === "benchmark-diagnostic") {
-      setRun(await c.diagnoseBenchmark(command.body)); setMessage("Reviewed benchmark result saved; selection unchanged.");
+      setDiagnosticOpen(true);setRun(await c.diagnoseBenchmark(command.body)); setMessage("Reviewed benchmark result saved; selection unchanged.");
     } else if (command.kind === "benchmark-select") {
       const result = await c.selectBenchmark(command.body); setMessage(`Benchmark selection: ${result.outcome}; revision ${result.revision}.`);
     } else if (command.kind === "lot-diagnostic") {
-      setRun(await c.diagnoseLots(command.body)); setMessage("Dated lot diagnostics saved.");
+      setDiagnosticOpen(true);setRun(await c.diagnoseLots(command.body)); setMessage("Dated lot diagnostics saved.");
     } else if ((command.kind === "diagnostic" || command.kind === "history-diagnostic")) {
-      setRun(command.kind === "history-diagnostic" ? await c.diagnoseHistory(command.body) : await c.diagnose(command.body)); setMessage(command.kind === "history-diagnostic" ? "Dated history diagnostics saved." : "Dated source diagnostics saved.");
+      setDiagnosticOpen(true);setRun(command.kind === "history-diagnostic" ? await c.diagnoseHistory(command.body) : await c.diagnose(command.body)); setMessage(command.kind === "history-diagnostic" ? "Dated history diagnostics saved." : "Dated source diagnostics saved.");
     } else {
       const result = command.kind === "lot-settings" ? await c.configureLots(command.body) : command.kind === "select" ? await c.select(command.body) : command.kind === "settings" ? await c.configure(command.body) : command.kind === "history-refresh" ? await c.refreshHistory(command.body) : command.kind === "history-discard" ? await c.discardHistory(command.body) : command.kind === "history-clear" ? await c.clearHistory(command.body) : await c.restore(command.body);
       setMessage(`Action result: ${result.outcome}; revision ${result.revision}.`);
@@ -158,39 +169,70 @@ export function Review() {
     void perform(async () => { setAlignment(await (await client()).planHistory(request)); setMessage("History refresh plan read; no acquisition or financial calculation was requested."); });
   }
   const disabled = busy || pending !== null || current === null;
-  return <>
-    <header className="page-header"><div><p className="eyebrow">PROSPER / LOCAL WORKSPACE</p><h1>Current advisory workspace</h1><p>Review a snapshot, record explicit settings and save dated source diagnostics.</p></div><span className="badge" role="status" aria-label="Workspace purpose">{runtimeReady ? "Exploratory estimates; financial use unauthorized" : "Reading workspace"}</span></header>
-    <p className="notice">Conditional lot loss estimates use reviewed source facts, marks and screening assumptions. Fitted-risk candidate runs require complete inputs and explicit settings. Financial-use authorization remains unavailable.</p>
-    <p role="status" aria-label="Workspace status">{message}</p>{error && <p role="alert">{error}</p>}
-    {pending && <section aria-label="Pending action"><p>An action is unresolved. Its original request is retained in this window.</p><button disabled={busy} onClick={() => void perform(() => execute(pending), true)}>Retry identical action</button></section>}
-    <section aria-label="Current selection"><h2>Selected snapshot and settings</h2><p>Revision {current?.revision ?? "unknown"}; selected snapshot: {current?.snapshot_id ?? "None"}</p><p>Current diagnostic: {current?.current_run_id ?? "None"}</p><pre aria-label="Current settings">{JSON.stringify(current?.settings ?? {}, null, 2)}</pre>
-      <button disabled={busy} onClick={() => void perform(async () => { await refresh(); setMessage("Workspace read."); })}>Refresh workspace</button>
-      <button disabled={disabled || !current?.snapshot_id} onClick={() => void perform(async () => { setPreview(await (await client()).preview(current!.snapshot_id!)); setReviewed(false); })}>Review selected snapshot</button>
-    </section>
-    <section aria-label="Import"><h2>Import and review</h2><label>Normalized snapshot JSON file (up to 2 MiB)<input type="file" accept=".json" disabled={disabled} onChange={(event) => setFile(event.target.files?.[0] ?? null)} /></label>
+  function navigate(next:Page) {setPage(next);writeLocation({page:next,stage});window.scrollTo({top:0,behavior:"instant"});}
+  function changeStage(next:Stage) {setPage("analysis");setStage(next);writeLocation({page:"analysis",stage:next});window.scrollTo({top:0,behavior:"instant"});}
+  useEffect(()=>{const restore=()=>{const location=readLocation();setPage(location.page);setStage(location.stage);};window.addEventListener("popstate",restore);return()=>window.removeEventListener("popstate",restore);},[]);
+  useEffect(()=>{document.querySelectorAll<HTMLDialogElement>("dialog[open]").forEach(dialog=>dialog.close());document.querySelector<HTMLElement>("#workspace-content h1")?.focus({preventScroll:true});},[page,stage]);
+  const currentWork=latest?.input_revision===current?.revision?latest:null;
+  const inputReady=currentWork?.model_version==="modeled-inputs-v1"&&currentWork.outputs?.software_inputs_complete===true;
+  const proposalReady=currentWork?.model_version==="candidate-workflow-v1"&&currentWork.status!=="running"&&currentWork.outputs?.outcome==="checked";
+  const nextLabel=!current?.snapshot_id?"Import holdings":!current.settings.benchmark_run_id?"Choose a benchmark":proposalReady?"Compare proposals":inputReady?"Create proposals":"Review inputs";
+  const nextDescription=inputReady?"Your saved input review matches the current workspace. Review proposal costs and share limits next.":proposalReady?"A completed proposal is available. Compare its estimates and check a manual worksheet.":"Review the remaining source facts and investor choices before calculating.";
+  function continueAnalysis() {if(!current?.snapshot_id){navigate("holdings");return;}const next=current.settings.benchmark_run_id?(inputReady||proposalReady?"proposals":"review"):"benchmark";if(currentWork)setRun(currentWork);setStage(next);if(proposalReady)navigate("worksheets");else{setPage("analysis");writeLocation({page:"analysis",stage:next});}}
+
+  function openWorksheet(id:string) {void perform(async()=>{const c=await client(),value=await c.worksheet(id),parent=await c.run(value.command.run_id);setWorksheet(value);setRun(parent);navigate("worksheets");setMessage("Saved worksheet opened with its original proposal. No recalculation was requested.");});}
+  function openRun(id:string) {void perform(async()=>{const value=await(await client()).run(id);setRun(value);setWorksheet(null);setDiagnosticOpen(true);navigate("worksheets");setMessage("Saved analysis opened. Its original dates and input revision are shown below.");});}
+  return <SecurityLabels value={(preview??selected)?.snapshot.securities??[]}><AppShell page={page} stage={stage} onNavigate={navigate} onStage={changeStage} onRefresh={()=>void perform(async()=>{await refresh();setMessage("Workspace read.");})} refreshing={busy} account={current?selected?.snapshot.account_alias??null:null} date={current?selected?.snapshot.source_as_of??null:null}>
+    <div className="workspace-feedback"><p role="status" aria-label="Workspace status">{message}</p>{!runtimeReady&&<span className="loading-indicator" aria-label="Loading workspace"/>}{error&&<p role="alert">{error}</p>}
+    {pending&&<section aria-label="Pending action" className="pending-action"><strong>The response is unresolved</strong><p>Your original request is retained. Retry it before making another change.</p><button disabled={busy} onClick={()=>void perform(()=>execute(pending),true)}>Retry identical action</button></section>}</div>
+    <div hidden={page!=="overview"} className="workspace-page" aria-label="Overview page">
+      <section className="welcome-panel"><div><span className="eyebrow">{current?.snapshot_id?"YOUR NEXT STEP":"WELCOME TO PROSPER"}</span><h2>{current?.snapshot_id?"Continue your analysis.":"Start with your holdings."}</h2><p>{current?.snapshot_id?nextDescription:"Import a dated holdings snapshot to explore loss opportunities and understand the trade-offs."}</p><div className="action-row"><button className="primary" disabled={disabled} onClick={continueAnalysis}>{nextLabel}<Icon name="arrow"/></button><button className="secondary" onClick={()=>navigate(current?.snapshot_id?"worksheets":"settings")}>{current?.snapshot_id?"Open saved work":"Restore a backup"}</button></div></div><div className="journey-preview"><span>01 - Your holdings</span><span>02 - Your benchmark</span><span>03 - Review & compare</span><span>04 - Save a worksheet</span></div></section>
+      <div className="overview-grid"><section><h3>Portfolio snapshot</h3>{selected&&current?<><p className="summary-value">{selected.snapshot.lots.length} tax lot{selected.snapshot.lots.length===1?"":"s"}</p><p>{new Set([...selected.snapshot.lots,...selected.snapshot.positions].map(row=>row.security_id)).size} reported holding{new Set([...selected.snapshot.lots,...selected.snapshot.positions].map(row=>row.security_id)).size===1?"":"s"} - {selected.snapshot.source_as_of.slice(0,10)}</p><button className="text-button" onClick={()=>navigate("holdings")}>Review holdings &rarr;</button></>:<p>No holdings selected yet.</p>}</section><section><h3>Analysis status</h3><p className="summary-value">{proposalReady?"Proposals ready":inputReady?"Inputs reviewed":current?.settings.benchmark_run_id?"Benchmark selected":"Choose a benchmark"}</p><p>{current?.settings.benchmark_run_id?nextDescription:"Select a benchmark explicitly to guide your analysis."}</p><button className="text-button" onClick={()=>{if(currentWork&&(inputReady||proposalReady))openRun(currentWork.id);else{setStage("benchmark");setPage("analysis");writeLocation({page:"analysis",stage:"benchmark"});}}}>{inputReady?"View saved input review":proposalReady?"Review proposals":"Review benchmark"} &rarr;</button></section><section><h3>Backup & recovery<Help label="About local storage">Original sources, saved analyses and worksheets are stored in the selected workspace on this computer. Use a backup to protect saved work.</Help></h3><p>Protect your original sources and saved work with a local backup.</p><button className="text-button" onClick={()=>navigate("settings")}>Manage backups &rarr;</button></section></div>
+      <SavedWork catalog={catalog} api={client} active={page==="overview"} compact onRun={openRun} onWorksheet={openWorksheet}/>
+    </div>
+    <div hidden={page!=="holdings"} className="workspace-page" aria-label="Holdings page">
+      <button disabled={disabled || !current?.snapshot_id} onClick={() => void perform(async () => { setPreview(await (await client()).preview(current!.snapshot_id!)); setReviewed(false); })}>Review current holdings</button>
+
+            {preview&&preview.id!==current?.snapshot_id && <><p className="notice">Import preview - these holdings are not selected yet.</p><label><input type="checkbox" checked={reviewed} disabled={disabled} onChange={(event) => setReviewed(event.target.checked)} />I reviewed this snapshot and its unknowns</label><button disabled={disabled || !reviewed} onClick={() => mutate({ kind: "select", body: { snapshot_id: preview.id, command_key: crypto.randomUUID(), expected_revision: current!.revision } })}>Select reviewed snapshot</button><button disabled={disabled} onClick={() => void perform(async () => { await (await client()).reject(preview.id); await refresh(); setReviewed(false); setMessage("Preview rejected."); })}>Reject preview</button></>}
+    {(preview??selected) && <Snapshot preview={(preview??selected)!} rounded={rounded} />}
+    {(preview??selected)?.cash_holdings?.length!==0&&(preview??selected) && <CashTreatments preview={(preview??selected)!} current={current} disabled={disabled} onMutate={mutate} />}
+    {(preview??selected) && <HoldingsMapping preview={(preview??selected)!} current={current} disabled={disabled} api={client} onPreview={value=>{setPreview(value);setReviewed(false);setMessage("Holdings mapping preview staged; selected holdings unchanged.");void perform(refresh);}} />}
+
+    <LotControls current={current} disabled={disabled} api={client} onPreview={value => { setPreview(value); setReviewed(false); void perform(refresh); }} onMutate={mutate} preparedMarks={preparedPrices?.revision===current?.revision?preparedPrices?.marks??[]:[]} />
+      <details className="advanced-section"><summary>Advanced import and retained snapshots</summary>    <section aria-label="Import"><h2>Import and review</h2><label>Normalized snapshot JSON file (up to 2 MiB)<input type="file" accept=".json" disabled={disabled} onChange={(event) => setFile(event.target.files?.[0] ?? null)} /></label>
       <button disabled={disabled || !file} onClick={() => void perform(async () => {
         if (!file || file.size > 2 * 1024 * 1024) throw new ClientError(422);
         setReviewed(false); setPreview(await (await client()).stage(await file.text())); await refresh(); setMessage("Preview staged; selected snapshot unchanged.");
       })}>Stage preview</button>
       <label>Retained snapshot<select value="" disabled={disabled} onChange={(event) => { const id = event.target.value; if (id) void perform(async () => { setReviewed(false); setPreview(await (await client()).preview(id)); }); }}><option value="">Choose a snapshot</option>{catalog?.snapshots.map((s) => <option key={s.id} value={s.id}>{s.state} / {s.imported_at} / {s.id}</option>)}</select></label>
       <label><input type="checkbox" checked={rounded} onChange={(event) => setRounded(event.target.checked)} />Round displayed numeric values to 2 decimals</label>
-      {preview && <><label><input type="checkbox" checked={reviewed} disabled={disabled} onChange={(event) => setReviewed(event.target.checked)} />I reviewed this snapshot and its unknowns</label><button disabled={disabled || !reviewed} onClick={() => mutate({ kind: "select", body: { snapshot_id: preview.id, command_key: crypto.randomUUID(), expected_revision: current!.revision } })}>Select reviewed snapshot</button><button disabled={disabled} onClick={() => void perform(async () => { await (await client()).reject(preview.id); await refresh(); setReviewed(false); setMessage("Preview rejected."); })}>Reject preview</button></>}
     </section>
-    <LotControls current={current} disabled={disabled} api={client} onPreview={value => { setPreview(value); setReviewed(false); void perform(refresh); }} onMutate={mutate} />
-    <Worksheets current={current} run={run} catalog={catalog} worksheet={worksheet} onOpen={id=>void perform(async()=>setWorksheet(await (await client()).worksheet(id)))} api={client} onMutate={mutate} disabled={disabled}/>
-    <CandidateControls current={current} disabled={disabled} api={client} onMutate={mutate} saved={run} onRead={setRun} onFinished={refresh} />
-    <InputsControls current={current} disabled={disabled} api={client} onMutate={mutate} />
-    <BenchmarkControls current={current} catalog={catalog} disabled={disabled} api={client} onMutate={mutate} onRefresh={refresh} saved={run} />
-    {preview && <Snapshot preview={preview} rounded={rounded} />}
-    {preview && <CashTreatments preview={preview} current={current} disabled={disabled} onMutate={mutate} />}
-    {preview && <HoldingsMapping preview={preview} current={current} disabled={disabled} api={client} onPreview={value=>{setPreview(value);setReviewed(false);setMessage("Holdings mapping preview staged; selected holdings unchanged.");void perform(refresh);}} />}
-    <section aria-label="Settings"><h2>Explicit settings</h2><p>Record supplied settings as a JSON object. No financial defaults or validation of investor limits is supplied by this foundation.</p><label>Settings JSON<textarea rows={8} value={settings} disabled={disabled} onChange={(e) => { setSettings(e.target.value); setSettingsReviewed(false); }} /></label><button disabled={disabled} onClick={() => { setSettings(JSON.stringify(current!.settings, null, 2)); setSettingsReviewed(false); }}>Load current settings</button><label><input type="checkbox" checked={settingsReviewed} disabled={disabled} onChange={(e) => setSettingsReviewed(e.target.checked)} />I reviewed these settings</label><button disabled={disabled || !settingsReviewed} onClick={() => void perform(async () => {
-      const value: unknown = JSON.parse(settings, (_key, value: unknown) => { if (typeof value === "number" && !Number.isFinite(value)) throw new ClientError(422); return value; }); if (value === null || Array.isArray(value) || typeof value !== "object") throw new ClientError(422);
-      const command: Pending = { kind: "settings", body: { settings: value as SettingsRequest["settings"], command_key: crypto.randomUUID(), expected_revision: current!.revision } };
-      setPending(command); try { await execute(command); } catch (problem) { session.current = null; setError("The settings response is unresolved. Retry the identical pending action."); }
-    })}>Save reviewed settings</button></section>
-    <section aria-label="Saved diagnostics"><h2>Dated diagnostics</h2><p>Saved source quality, conditional lot estimates and history coverage retain their original inputs. Financial qualification remains unavailable.</p><button disabled={disabled || !current?.snapshot_id} onClick={() => mutate({ kind: "diagnostic", body: { run_id: crypto.randomUUID(), expected_revision: current!.revision, as_of: new Date().toISOString() } })}>Save source diagnostics</button><label>Saved diagnostic<select value="" disabled={busy} onChange={(event) => { const id = event.target.value; if (id) void perform(async () => setRun(await (await client()).run(id))); }}><option value="">Choose a saved diagnostic</option>{catalog?.runs.map((id) => <option key={id} value={id}>{id}</option>)}</select></label>{run && <><DiagnosticView run={run} revision={current?.revision} />{run.status === "running" && run.model_version === "lot-opportunities-v1" && run.inputs?.lot_request && <button disabled={disabled} onClick={() => mutate({ kind: "lot-diagnostic", body: run.inputs!.lot_request as unknown as Extract<LotAction, {kind: "lot-diagnostic"}>["body"] })}>Resume saved lot diagnostic</button>}{run.status === "running" && run.model_version === "history-inputs-v1" && run.inputs?.history_request && <button disabled={disabled} onClick={() => mutate({ kind: "history-diagnostic", body: { run_id: run.id, expected_revision: run.input_revision, as_of: run.as_of, request: run.inputs!.history_request as HistoryRequest } })}>Resume saved history diagnostic</button>}{run.status === "running" && run.model_version === "source-quality-v1" && <button disabled={disabled} onClick={() => mutate({ kind: "diagnostic", body: { run_id: run.id, expected_revision: run.input_revision, as_of: run.as_of } })}>Resume saved diagnostic</button>}</>}</section>
-    <section aria-label="Retained history">
+</details>
+
+
+      <div className="step-footer"><p>Next, choose the benchmark for your analysis.</p><button className="primary" disabled={disabled||!current?.snapshot_id} onClick={()=>changeStage("benchmark")}>Continue to benchmark<Icon name="arrow"/></button></div>
+    </div>
+    <div hidden={page!=="analysis"} className="workspace-page" aria-label="Analysis page">
+      <div hidden={stage!=="benchmark"}>    <BenchmarkControls current={current} catalog={catalog} disabled={disabled} api={client} onMutate={mutate} onRefresh={refresh} saved={run} />
+<div className="step-footer"><p>Use the explicitly selected benchmark to prepare your inputs.</p><button className="primary" disabled={disabled||!current?.settings.benchmark_run_id} onClick={()=>changeStage("review")}>Review inputs<Icon name="arrow"/></button></div></div>
+      <div hidden={stage!=="review"}><div className="context-actions"><button className="text-button" onClick={()=>navigate("holdings")}>Review cash, costs and restrictions</button><button className="text-button" onClick={()=>navigate("settings")}>Manage market history</button></div>      <InputPreparation current={current} disabled={disabled} api={client} onMutate={mutate} onReviewPrices={(marks,revision)=>{setPreparedPrices({marks,revision});navigate("holdings");}} />
+      <details><summary>Advanced supplied input configuration</summary><InputsControls current={current} disabled={disabled} api={client} onMutate={mutate} /></details>
+<div className="step-footer"><p>{inputReady?"Current input review saved. Continue with costs and share limits.":"Save a complete input review before creating a proposal. You can inspect the Proposals stage at any time."}</p><button className="primary" disabled={disabled||!inputReady} onClick={()=>changeStage("proposals")}>Continue to proposals<Icon name="arrow"/></button></div></div>
+      <div hidden={stage!=="proposals"}>    <CandidateControls current={current} disabled={disabled} api={client} onMutate={mutate} saved={run} onRead={setRun} onFinished={refresh} />
+{run?.model_version==="candidate-workflow-v1"&&<CandidateView run={run}/>}<button className="text-button" onClick={()=>navigate("worksheets")}>Compare and save a worksheet &rarr;</button></div>
+    </div>
+    <div hidden={page!=="worksheets"} className="workspace-page" aria-label="Worksheets page"><SavedWork catalog={catalog} api={client} active={page==="worksheets"} onRun={openRun} onWorksheet={openWorksheet}/>
+    <Worksheets current={current} run={run} catalog={catalog} worksheet={worksheet} onOpen={openWorksheet} api={client} onMutate={mutate} disabled={disabled}/>
+    <section aria-label="Saved diagnostics"><details open={diagnosticOpen} onToggle={e=>setDiagnosticOpen(e.currentTarget.open)}><summary>Saved analysis details</summary><h2>Saved analysis</h2><p>Saved source quality, conditional lot estimates and history coverage retain their original inputs. Financial qualification remains unavailable.</p><button disabled={disabled || !current?.snapshot_id} onClick={() => mutate({ kind: "diagnostic", body: { run_id: crypto.randomUUID(), expected_revision: current!.revision, as_of: new Date().toISOString() } })}>Save source diagnostics</button><details><summary>Advanced saved-record tools</summary><label>Saved diagnostic<select value="" disabled={busy} onChange={(event) => { const id = event.target.value; if (id) openRun(id); }}><option value="">Choose a saved diagnostic</option>{catalog?.runs.map((id) => <option key={id} value={id}>{id}</option>)}</select></label></details>{run && <>{run.model_version==="modeled-inputs-v1"&&run.input_revision===current?.revision&&run.outputs?.software_inputs_complete===true&&<button onClick={()=>changeStage("proposals")}>Create proposals from this saved review</button>}<DiagnosticView run={run} revision={current?.revision} />{run.status === "running" && run.model_version === "lot-opportunities-v1" && run.inputs?.lot_request && <button disabled={disabled} onClick={() => mutate({ kind: "lot-diagnostic", body: run.inputs!.lot_request as unknown as Extract<LotAction, {kind: "lot-diagnostic"}>["body"] })}>Resume saved lot diagnostic</button>}{run.status === "running" && run.model_version === "history-inputs-v1" && run.inputs?.history_request && <button disabled={disabled} onClick={() => mutate({ kind: "history-diagnostic", body: { run_id: run.id, expected_revision: run.input_revision, as_of: run.as_of, request: run.inputs!.history_request as HistoryRequest } })}>Resume saved history diagnostic</button>}{run.status === "running" && run.model_version === "source-quality-v1" && <button disabled={disabled} onClick={() => mutate({ kind: "diagnostic", body: { run_id: run.id, expected_revision: run.input_revision, as_of: run.as_of } })}>Resume saved diagnostic</button>}</>}</details></section>
+</div>
+    <div hidden={page!=="settings"} className="workspace-page" aria-label="Settings page"><section className="settings-intro"><h2>Workspace & data</h2><p>Manage local work, source data and optional expert controls.</p><button className="secondary" onClick={()=>navigate("holdings")}>Edit cash, costs and restrictions</button></section>
+    <section aria-label="Recovery"><h2>Backup and restore</h2><p>Download the current workspace, including original sources and saved outputs. Restore requires an empty workspace and never overwrites user work. This workspace is {current?.snapshot_id||catalog?.runs.length||catalog?.snapshots.length?"already in use; restore a backup in a separate empty workspace":"empty and available for a current-format backup"}.</p><button disabled={disabled} onClick={() => void perform(async () => {
+      const blob = await (await client()).backup(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "prosper-advisory.sqlite3"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage("Workspace backup downloaded.");
+    })}>Download workspace backup</button><label>Current workspace backup (up to 64 MiB)<input type="file" disabled={disabled} onChange={(e) => setRestoreFile(e.target.files?.[0] ?? null)} /></label><button disabled={disabled || !restoreFile} onClick={() => void perform(async () => {
+      if (!restoreFile || restoreFile.size > 64 * 1024 * 1024) throw new ClientError(422);
+      const command: Pending = { kind: "restore", body: new Uint8Array(await restoreFile.arrayBuffer()) }; setPending(command); try { await execute(command); } catch { session.current = null; setError("Restore response unresolved or refused. Use an empty current workspace; retrying the same backup is safe."); }
+    })}>Restore into empty workspace</button></section>
+<details className="advanced-section"><summary>Market history and source tools</summary>    <section aria-label="Retained history">
       <h2>Retained history and manual refresh</h2>
       <p>Use normalized source responses with explicit identities, calendar, dates and conventions. Compatible observations can be reused. Changed or unverified vintages require a coherent full-window refresh. No provider is selected automatically.</p>
       <p>{catalog?.pending_history_parts.length ?? 0} pending history parts retained. Pending parts do not change active inputs; reselect the original file after restart to resume review. Backups include pending originals.</p>
@@ -207,11 +249,13 @@ export function Review() {
       {alignment && <article aria-label="History coverage"><p>{alignment.complete ? "Required retained observations complete" : "Required history incomplete"}. This coverage result does not establish model or source qualification.</p><ul>{alignment.intervals.map((i,n) => <li key={n}>{i.security_id}: {i.reason}; {i.sessions.join(", ")}</li>)}</ul><ul>{alignment.issues.map((i,n) => <li key={n}>{i.security_id} / {i.session ?? "window"}: {i.code} / {i.reason}</li>)}</ul><p>Full-window validation scope: {JSON.stringify(alignment.validated_at)}</p><HistoryRows table={alignment.rows} /></article>}
       <label><input type="checkbox" disabled={disabled} checked={clearReviewed} onChange={(e) => setClearReviewed(e.target.checked)} />Remove reusable history cache; keep all saved-run inputs and outputs</label><button disabled={disabled || !clearReviewed} onClick={() => mutate({ kind: "history-clear", body: { command_key: crypto.randomUUID(), expected_revision: current!.revision } })}>Clear reusable history cache</button>
     </section>
-    <section aria-label="Recovery"><h2>Backup and restore</h2><p>Download the current workspace, including original sources and saved outputs. Restore accepts an empty workspace and never overwrites user work. Old development backups are unsupported.</p><button disabled={disabled} onClick={() => void perform(async () => {
-      const blob = await (await client()).backup(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "prosper-advisory.sqlite3"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage("Workspace backup downloaded.");
-    })}>Download workspace backup</button><label>Current workspace backup (up to 64 MiB)<input type="file" disabled={disabled} onChange={(e) => setRestoreFile(e.target.files?.[0] ?? null)} /></label><button disabled={disabled || !restoreFile} onClick={() => void perform(async () => {
-      if (!restoreFile || restoreFile.size > 64 * 1024 * 1024) throw new ClientError(422);
-      const command: Pending = { kind: "restore", body: new Uint8Array(await restoreFile.arrayBuffer()) }; setPending(command); try { await execute(command); } catch { session.current = null; setError("Restore response unresolved or refused. Use an empty current workspace; retrying the same backup is safe."); }
-    })}>Restore into empty workspace</button></section>
-  </>;
+</details><DetailsPanel title="Advanced workspace tools" label="Advanced workspace tools" dismissSignal={current?.revision}>    <section aria-label="Current selection"><h2>Selected snapshot and settings</h2><p>Revision {current?.revision ?? "unknown"}; selected snapshot: {current?.snapshot_id ?? "None"}</p><p>Current diagnostic: {current?.current_run_id ?? "None"}</p><pre aria-label="Current settings">{JSON.stringify(current?.settings ?? {}, null, 2)}</pre>
+    </section>
+    <section aria-label="Settings"><h2>Advanced workspace settings</h2><p>Record supplied settings as a JSON object. No financial defaults or validation of investor limits is supplied by this foundation.</p><label>Settings JSON<textarea rows={8} value={settings} disabled={disabled} onChange={(e) => { setSettings(e.target.value); setSettingsReviewed(false); }} /></label><button disabled={disabled} onClick={() => { setSettings(JSON.stringify(current!.settings, null, 2)); setSettingsReviewed(false); }}>Load current settings</button><label><input type="checkbox" checked={settingsReviewed} disabled={disabled} onChange={(e) => setSettingsReviewed(e.target.checked)} />I reviewed these settings</label><button disabled={disabled || !settingsReviewed} onClick={() => void perform(async () => {
+      const value: unknown = JSON.parse(settings, (_key, value: unknown) => { if (typeof value === "number" && !Number.isFinite(value)) throw new ClientError(422); return value; }); if (value === null || Array.isArray(value) || typeof value !== "object") throw new ClientError(422);
+      const command: Pending = { kind: "settings", body: { settings: value as SettingsRequest["settings"], command_key: crypto.randomUUID(), expected_revision: current!.revision } };
+      setPending(command); try { await execute(command); } catch (problem) { session.current = null; setError("The settings response is unresolved. Retry the identical pending action."); }
+    })}>Save reviewed settings</button></section>
+</DetailsPanel></div>
+  </AppShell></SecurityLabels>;
 }

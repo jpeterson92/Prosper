@@ -284,6 +284,9 @@ class CandidateJobs:
                     outputs=result.model_dump(mode="json"),
                     status="partial" if result.outcome in ("checked", "unavailable") else "failed",
                     warnings=result.warnings,
+                    exclusions=tuple(
+                        f for f in frozen.coverage.exclusions if f.code == "history_excluded"
+                    ),
                     candidate_claim=claim,
                 )
             finally:

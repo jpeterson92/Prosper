@@ -37,7 +37,7 @@ from prosper.storage import MAX_BYTES, RESTORE_MARKER, PersistenceError, Runtime
 
 DATABASE_NAME = "advisory-v1.sqlite3"
 APPLICATION_ID = 0x50524144
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 14
 _SCHEMA = (
     "CREATE TABLE sources (sha256 TEXT PRIMARY KEY, original_size INTEGER NOT NULL "
     "CHECK(original_size>0 AND original_size<=16777216), zlib_bytes BLOB NOT NULL) STRICT",
@@ -235,9 +235,12 @@ class AdvisoryStore:
 
         if not isinstance(frozen, FrozenModeledInputs):
             raise ValueError("modeled_inputs_required")
-        result = frozen.model_dump(mode="json", exclude={"alignment"})
+        result = frozen.model_dump(mode="json", exclude={"alignment", "source_alignment"})
         result["alignment_ref"] = (
             self.retain_alignment(frozen.alignment) if frozen.alignment else None
+        )
+        result["source_alignment_ref"] = (
+            self.retain_alignment(frozen.source_alignment) if frozen.source_alignment else None
         )
         return cast(dict[str, JsonValue], result)
 
@@ -256,6 +259,14 @@ class AdvisoryStore:
         values["alignment"] = (
             cast(JsonValue, cls._alignment(connection, str(reference)).model_dump(mode="json"))
             if reference
+            else None
+        )
+        source_reference = values.pop("source_alignment_ref")
+        values["source_alignment"] = (
+            cast(
+                JsonValue, cls._alignment(connection, str(source_reference)).model_dump(mode="json")
+            )
+            if source_reference
             else None
         )
         return FrozenModeledInputs.model_validate_json(json.dumps(values))
@@ -288,12 +299,31 @@ class AdvisoryStore:
         with self._connection() as connection:
             return self._candidate_inputs(connection, value)
 
-    def history_batches(self) -> tuple[HistoryBatch, ...]:
+    def history_batches(
+        self, identities: tuple[str, ...] | None = None
+    ) -> tuple[HistoryBatch, ...]:
         with self._connection() as connection:
             result = []
-            for identity, digest, document in connection.execute(
-                "SELECT id,source_sha256,document FROM history_batches ORDER BY rowid"
-            ):
+            rows = (
+                list(
+                    connection.execute(
+                        "SELECT id,source_sha256,document FROM history_batches ORDER BY rowid"
+                    )
+                )
+                if identities is None
+                else [
+                    connection.execute(
+                        "SELECT id,source_sha256,document FROM history_batches WHERE id=?",
+                        (identity,),
+                    ).fetchone()
+                    for identity in identities
+                ]
+            )
+            if any(row is None for row in rows):
+                raise PersistenceError("selected_history_batch_missing")
+            for row in rows:
+                assert row is not None
+                identity, digest, document = row
                 batch = HistoryBatch.model_validate_json(document)
                 if (
                     hashlib.sha256(encode(batch).encode()).hexdigest() != identity

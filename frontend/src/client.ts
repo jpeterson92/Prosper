@@ -32,6 +32,8 @@ export type BenchmarkReviewContext = components["schemas"]["BenchmarkReviewConte
 export type ModeledUpload = components["schemas"]["ModeledUpload"];
 export type ModeledResult = components["schemas"]["ModeledResult"];
 export type ModeledDiagnostic = components["schemas"]["ModeledDiagnostic"];
+export type AssembledInputs = components["schemas"]["AssembledInputs"];
+export type InputAssemblyContext = components["schemas"]["InputAssemblyContext"];
 export type CandidateStart = components["schemas"]["CandidateStart"];
 export type CandidateOutput = components["schemas"]["CandidateOutput"];
 export type Worksheet = components["schemas"]["Worksheet"];
@@ -57,7 +59,7 @@ function data<T>(result: { data?: T; response: Response; error?: unknown }): T {
 
 // JSON.parse alone discards duplicate object keys before the server can reject
 // them. Check the local history file's object keys while skipping string bodies.
-function historyDocument(raw: string): Record<string, unknown> {
+export function parseJsonObject(raw: string): Record<string, unknown> {
   const value: unknown = JSON.parse(raw);
   const objects: (Set<string> | null)[] = [];
   for (let i = 0; i < raw.length; i++) {
@@ -96,6 +98,14 @@ export async function connect(origin = window.location.origin) {
     async runtime() { return data(await client.GET("/runtime")); },
     async current() {
       const result = data(await client.GET("/api/v1/current")); revision(result.revision); return result;
+    },
+    async prepareRiskPreset(raw: string, overrides = "{}") {
+      const body = `{"upload":${raw},"overrides":${overrides}}`;
+      return data(await client.POST("/api/v1/inputs/risk-preset", { body: body as unknown as components["schemas"]["RiskPresetRequest"], bodySerializer: value => value as unknown as string, headers: {"Content-Type":"application/json"} }));
+    },
+    async inputAssemblyContext() { return data(await client.GET("/api/v1/inputs/context")); },
+    async prepareInputs(raw: string) {
+      return data(await client.POST("/api/v1/inputs/prepare", { body: raw as unknown as components["schemas"]["InputAssemblyRequest"], bodySerializer: value => value as unknown as string, headers: {"Content-Type":"application/json"} }));
     },
     async treatCash(body: CashTreatmentRequest) { return data(await client.POST("/api/v1/holdings/cash-treatment", { body })); },
     async prepareHoldings(body: HoldingsMappingRequest) { return data(await client.POST("/api/v1/holdings/mapping-preview", { body })); },
@@ -143,7 +153,7 @@ export async function connect(origin = window.location.origin) {
     async discardHistory(body: HistoryManifest) { return data(await client.POST("/api/v1/history/discard", { body })); },
     async previewHistory(raw: string): Promise<HistoryReview> {
       let document: Record<string, unknown>;
-      try { document = historyDocument(raw); } catch { throw new ClientError(422); }
+      try { document = parseJsonObject(raw); } catch { throw new ClientError(422); }
       if (Object.keys(document).some(k => !["version","part_count","parts","command_key","expected_revision"].includes(k)) || document.version !== "advisory-history-upload-v2" || !Array.isArray(document.parts) || document.part_count !== document.parts.length || document.parts.length < 1 || document.parts.length > 500) throw new ClientError(422);
       const parts: HistoryReview["parts"] = [];
       for (const part of document.parts) {

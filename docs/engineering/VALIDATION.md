@@ -16,6 +16,8 @@ Ordinary implementation runs affected checks including upstream/downstream/confi
 
 ## Proportional verification design
 
+Disposable experiments under top-level `research/` use the explicit [research exception](../../AGENTS.md#research-exception) and [lighter working agreement](../../research/AGENTS.md). Their scripts/notebooks have optional typing/tests and manually run conclusion-specific checks; no production regression suite, compatibility promise or STATUS packet is required for research-only changes. The remaining production verification rules apply when findings change application code/contracts. Calling the existing core retains its numerical/input checks; exploratory results do not confer model acceptance or change financial authority.
+
 Verification serves a concrete correctness, user-workflow or decision need. Account for agent reasoning/implementation, maintenance, execution and delayed product progress when choosing its scope. In the existing task sketch, name the unresolved question and the cheapest adequate check; this is not a separate document, sizing exercise or approval gate. Reuse current evidence within its actual input/implementation/environment scope. A historical brief's replay/report checklist alone does not justify new tooling or repeated studies.
 
 | Check | Purpose and default placement |

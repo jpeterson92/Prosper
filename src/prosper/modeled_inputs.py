@@ -5,7 +5,8 @@ from datetime import UTC, date, datetime
 from typing import Annotated, Literal, Self
 
 import polars as pl
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator, with_config
+from typing_extensions import TypedDict
 
 from prosper.advisory import decimal_value, number, supplied_sum
 from prosper.advisory_records import (
@@ -22,6 +23,7 @@ from prosper.benchmark import BenchmarkResult
 from prosper.benchmark_drift import weights_at
 from prosper.history import Alignment, HistoryRequest, Profile
 from prosper.lot_records import LotSettings, Mark
+from prosper.modeled_sleeve import ModeledSleeve, excludable, history_codes
 from prosper.record_types import DateText, Identifier, Text, Timestamp
 
 
@@ -62,21 +64,61 @@ class ClassificationInput(Record):
     evidence: SourceFact
 
 
-class InputProfile(Record):
-    variant: Literal["idr-dcc-nl"]
-    model: Profile | None
-    model_reference: Text
+@with_config(ConfigDict(extra="forbid", strict=True))
+class RiskOverrides(TypedDict, total=False):
+    """Explicit expert choices; the fit boundary still enforces supported R1 settings."""
+
+    model: Profile
     lookback_sessions: Annotated[int, Field(ge=1, le=10000)]
     minimum_history_sessions: Annotated[int, Field(ge=1, le=10000)]
     horizon_sessions: Annotated[int, Field(ge=1, le=10000)]
     annualization_sessions: Annotated[int, Field(ge=1, le=10000)]
+    require_full_window_validation: bool
+
+
+class RiskEstimatorSettings(Record):
+    model: Profile | None = Field(
+        default_factory=lambda: Profile(identity="R1", f="0.25", a3="0.17", kappa="10000")
+    )
+    lookback_sessions: Annotated[int, Field(ge=1, le=10000)] = 1260
+    minimum_history_sessions: Annotated[int, Field(ge=1, le=10000)] = 1260
+    horizon_sessions: Annotated[int, Field(ge=1, le=10000)] = 21
+    annualization_sessions: Annotated[int, Field(ge=1, le=10000)] = 252
+    require_full_window_validation: bool = True
+
+
+def standard_risk_settings() -> dict[str, object]:
+    settings = RiskEstimatorSettings()
+    return {key: getattr(settings, key) for key in RiskEstimatorSettings.model_fields}
+
+
+class RiskPreset(Record):
+    identity: Literal["standard-r1-v1"] = "standard-r1-v1"
+    overrides: RiskOverrides = Field(default_factory=lambda: RiskOverrides())
+
+
+class InputCoverageSettings(Record):
     max_mark_age_days: Annotated[int, Field(ge=0, le=36500)]
     max_snapshot_age_days: Annotated[int, Field(ge=0, le=36500)]
     max_benchmark_age_days: Annotated[int, Field(ge=0, le=36500)]
     max_history_age_days: Annotated[int, Field(ge=0, le=36500)]
-    require_full_window_validation: bool
     maximum_universe_size: Annotated[int, Field(ge=1, le=5000)]
     short_history_policy: Literal["block"]
+
+
+class InputProfile(RiskEstimatorSettings, InputCoverageSettings):
+    preset: RiskPreset | None = None
+    variant: Literal["idr-dcc-nl"] = "idr-dcc-nl"
+    model_reference: Text = "Standard R1 v1; exploratory IDR-DCC-NL; unqualified"
+
+    @model_validator(mode="after")
+    def preset_matches(self) -> Self:
+        if self.preset is not None:
+            expected = standard_risk_settings()
+            expected.update(self.preset.overrides)
+            if any(getattr(self, key) != value for key, value in expected.items()):
+                raise ValueError("risk_preset_effective_settings_mismatch")
+        return self
 
 
 LimitName = Literal[
@@ -117,6 +159,24 @@ class InvestorControl(Record):
         return self
 
 
+class InputAssemblyBinding(Record):
+    input_revision: Annotated[int, Field(ge=0, lt=2**63 - 1)]
+    snapshot_id: Digest
+    benchmark_run_id: Identifier
+    history_batch_ids: tuple[Digest, ...] = Field(min_length=1, max_length=500)
+    fact_run_id: Identifier | None
+    source_declarations: tuple[SourceFact, ...]
+    prepared_at: Timestamp
+
+    @model_validator(mode="after")
+    def source_keys(self) -> Self:
+        if len(set(self.history_batch_ids)) != len(self.history_batch_ids) or len(
+            {s.source_sha256 for s in self.source_declarations}
+        ) != len(self.source_declarations):
+            raise ValueError("duplicate_assembly_source")
+        return self
+
+
 class ModeledBundle(Record):
     version: Literal["modeled-inputs-v1"] = "modeled-inputs-v1"
     analysis_date: DateText
@@ -129,6 +189,7 @@ class ModeledBundle(Record):
     history: HistoryRequest
     profile: InputProfile
     investor_controls: tuple[InvestorControl, ...]
+    assembly: InputAssemblyBinding | None = None
 
     @model_validator(mode="after")
     def cardinality(self) -> Self:
@@ -177,6 +238,39 @@ class ModeledDiagnostic(ModeledUpload):
     as_of: Timestamp
 
 
+class RiskPresetRequest(Record):
+    upload: ModeledUpload
+    overrides: RiskOverrides = Field(default_factory=lambda: RiskOverrides())
+
+
+def prepare_risk_preset(request: RiskPresetRequest) -> ModeledUpload:
+    """Materialize estimator settings only; never create sessions, sources or limits."""
+    bundle = request.upload.bundle
+    if bundle.history.profile is not None and bundle.history.profile != bundle.profile.model:
+        raise ValueError("model_profile_missing_or_mismatch")
+    selection = RiskPreset(overrides=request.overrides)
+    settings = standard_risk_settings()
+    settings.update(request.overrides)
+    profile = InputProfile.model_validate(
+        {
+            **{key: getattr(bundle.profile, key) for key in InputProfile.model_fields},
+            **settings,
+            "preset": selection,
+            "model_reference": "Standard R1 v1; exploratory IDR-DCC-NL; unqualified",
+        }
+    )
+    return request.upload.model_copy(
+        update={
+            "bundle": bundle.model_copy(
+                update={
+                    "profile": profile,
+                    "history": bundle.history.model_copy(update={"profile": profile.model}),
+                }
+            )
+        }
+    )
+
+
 IssueScope = Literal[
     "universe",
     "identity",
@@ -218,6 +312,7 @@ class ModeledResult(Record):
     return_cell_count: Annotated[int, Field(ge=0)]
     unavailable_return_count: Annotated[int, Field(ge=0)]
     exclusions: tuple[Finding, ...]
+    sleeve: ModeledSleeve | None = None
     issues: tuple[InputIssue, ...]
     required_sources: tuple[Digest, ...]
     software_inputs_complete: bool
@@ -251,13 +346,54 @@ class FrozenModeledInputs(Record):
     benchmark_run_id: Identifier | None
     lot_settings: LotSettings | None
     alignment: Alignment | None
+    source_alignment: Alignment | None
+    sleeve: ModeledSleeve
     available_sources: tuple[Digest, ...]
     retained_sources: tuple[Digest, ...]
     benchmark_sources: tuple[Digest, ...]
 
+    @model_validator(mode="after")
+    def sleeve_links(self) -> Self:
+        decisions = self.sleeve.decisions
+        if self.sleeve.excluded_ids and any(
+            e.source_sha256 not in self.available_sources for e in self.sleeve.history_evidence
+        ):
+            raise ValueError("history_exclusion_evidence_unavailable")
+        original_ids = tuple(d.security_id for d in decisions)
+        if original_ids != tuple(sorted(set(original_ids))):
+            raise ValueError("history_sleeve_decision_order_invalid")
+        if self.source_alignment:
+            original = self.source_alignment
+            if original.request != history_request(self.bundle, original_ids):
+                raise ValueError("history_sleeve_source_request_mismatch")
+            codes_by_id = history_codes(original, self.sleeve.history_evidence)
+            for decision in decisions:
+                codes = codes_by_id.get(decision.security_id, ())
+                if decision.issue_codes != codes or decision.excluded and not excludable(codes):
+                    raise ValueError("history_sleeve_reason_mismatch")
+        elif any(d.excluded or d.issue_codes for d in decisions):
+            raise ValueError("history_sleeve_source_alignment_required")
+        if self.alignment:
+            retained = self.sleeve.retained_ids
+            if self.source_alignment is None or self.alignment.request != history_request(
+                self.bundle, retained
+            ):
+                raise ValueError("history_sleeve_retained_request_mismatch")
+            expected = self.source_alignment.rows.frame.filter(
+                pl.col("security_id").is_in(retained)
+            )
+            if not self.alignment.rows.frame.equals(expected):
+                raise ValueError("history_sleeve_projection_mismatch")
+        elif self.source_alignment and self.sleeve.retained_ids:
+            raise ValueError("history_sleeve_projection_missing")
+        return self
+
 
 def union(
-    snapshot: ImportSnapshot, benchmark: BenchmarkResult | None, bundle: ModeledBundle
+    snapshot: ImportSnapshot,
+    benchmark: BenchmarkResult | None,
+    bundle: ModeledBundle,
+    excluded_ids: frozenset[str] = frozenset(),
 ) -> tuple[tuple[str, ...], dict[str, list[str]], tuple[Finding, ...]]:
     """Keep unknown/zero/fractional held names; exclude only explicit known classes."""
     securities = {s.id: s for s in snapshot.securities}
@@ -301,6 +437,8 @@ def union(
     for sid in bundle.candidate_security_ids:
         if sid not in snapshot.cash_security_ids | snapshot.excluded_stock_ids:
             roles.setdefault(sid, []).append("candidate")
+    for sid in excluded_ids:
+        roles.pop(sid, None)
     return tuple(sorted(roles)), roles, tuple(exclusions)
 
 
@@ -329,8 +467,21 @@ def evaluate(
     available_sources: frozenset[str],
     benchmark_sources: tuple[str, ...] = (),
     input_revision: int = 0,
+    sleeve: ModeledSleeve | None = None,
 ) -> ModeledResult:
-    ids, roles, exclusions = union(snapshot, benchmark, bundle)
+    ids, roles, exclusions = union(
+        snapshot, benchmark, bundle, sleeve.excluded_ids if sleeve else frozenset()
+    )
+    if sleeve:
+        exclusions += tuple(
+            Finding(
+                code="history_excluded",
+                locator=f"history/{d.security_id}",
+                reason="; ".join(d.issue_codes),
+            )
+            for d in sleeve.decisions
+            if d.excluded
+        )
     issues: list[InputIssue] = []
     used: set[str] = {snapshot.source_sha256}
     used.update(benchmark_sources)
@@ -611,7 +762,14 @@ def evaluate(
             sid: None if unknown or not math.isfinite(qty) else qty
             for sid, qty, unknown in grouped.iter_rows()
         }
-    estimated_weights = weights_at(benchmark, alignment, bundle.analysis_date)
+    estimated_weights = weights_at(
+        benchmark,
+        alignment,
+        bundle.analysis_date,
+        retained_ids=tuple(s for s in benchmark.security_ids if s in ids)
+        if benchmark and sleeve
+        else None,
+    )
     for weight_issue in estimated_weights.issues:
         issue(
             "benchmark",
@@ -788,6 +946,13 @@ def evaluate(
     )
     if alignment:
         used.update(alignment.required_sources)
+        for digest in set(alignment.required_sources) - available_sources:
+            issue(
+                "source",
+                "source_unavailable",
+                digest,
+                "History review evidence is unavailable or corrupt",
+            )
         for error in alignment.issues:
             issue(
                 "history",
@@ -844,11 +1009,13 @@ def evaluate(
         return_cell_count=len(bundle.history.sessions) * len(ids),
         unavailable_return_count=unavailable_count,
         exclusions=exclusions,
+        sleeve=sleeve,
         issues=tuple(issues),
         required_sources=tuple(sorted(used)),
         software_inputs_complete=not issues,
         innovation_inputs_available=innovation_ready
         and not any(i.scope in ("history", "profile") for i in issues),
         warnings=ModeledResult.model_fields["warnings"].default
-        + ((estimated_weights.warning,) if estimated_weights.warning else ()),
+        + ((estimated_weights.warning,) if estimated_weights.warning else ())
+        + (sleeve.warnings if sleeve else ()),
     )

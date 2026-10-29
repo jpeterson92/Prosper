@@ -37,6 +37,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .hypothesis/
+.ipynb_checkpoints/
 .coverage
 htmlcov/
 dist/

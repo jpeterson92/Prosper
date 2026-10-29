@@ -609,7 +609,7 @@ def test_modeled_inputs_protected_preview_saved_diagnostic_and_retry(api: API) -
     status, run = api.request("/api/v1/inputs/diagnostics", "POST", request)
     assert status == 200 and run["outputs"]["risk_available"] is False
     assert api.request("/api/v1/inputs/diagnostics", "POST", request) == (status, run)
-    for route in ("preview", "diagnostics"):
+    for route in ("preview", "diagnostics", "risk-preset"):
         assert api.request(f"/api/v1/inputs/{route}", "POST", {}, authorized=False)[0] == 401
         status, error = api.request(
             f"/api/v1/inputs/{route}", "POST", {"PRIVATE-KEY": "DO-NOT-ECHO"}
@@ -622,6 +622,155 @@ def test_modeled_inputs_protected_preview_saved_diagnostic_and_retry(api: API) -
     broken = json.loads(json.dumps(upload))
     broken["sources"][0]["source_base64"] = "!"
     assert api.request("/api/v1/inputs/preview", "POST", broken)[0] == 422
+
+
+def test_risk_preset_protected_defaults_overrides_and_invalid_request(api: API) -> None:
+    from prosper.modeled_inputs import ModeledUpload
+
+    original = json.loads((SOURCE / "examples/synthetic/modeled-inputs/current.json").read_bytes())
+    normalized = ModeledUpload.model_validate_json(json.dumps(original)).model_dump(mode="json")
+    status, prepared = api.request("/api/v1/inputs/risk-preset", "POST", {"upload": original})
+    assert status == 200
+    assert prepared["bundle"]["profile"]["lookback_sessions"] == 1260
+    raw_request = json.dumps({"upload": original}).encode()
+    assert api.request(
+        "/api/v1/inputs/risk-preset",
+        "POST",
+        b" " * 65536 + raw_request,
+        headers={"Content-Type": "application/json"},
+    ) == (
+        status,
+        prepared,
+    )
+    assert (
+        api.request(
+            "/api/v1/inputs/risk-preset",
+            "POST",
+            raw_request,
+            headers={
+                "Content-Length": str(16 * 1024 * 1024 + 1),
+                "Content-Type": "application/json",
+            },
+        )[0]
+        == 413
+    )
+    duplicate = (
+        b'{"upload":'
+        + json.dumps(original).encode()
+        + b',"overrides":{"horizon_sessions":1,"horizon_sessions":21}}'
+    )
+    assert (
+        api.request(
+            "/api/v1/inputs/risk-preset",
+            "POST",
+            duplicate,
+            headers={"Content-Type": "application/json"},
+        )[0]
+        == 400
+    )
+    assert prepared["bundle"]["profile"]["preset"] == {
+        "identity": "standard-r1-v1",
+        "overrides": {},
+    }
+    assert prepared["bundle"]["investor_controls"] == normalized["bundle"]["investor_controls"]
+    assert prepared["bundle"]["history"]["sessions"] == original["bundle"]["history"]["sessions"]
+    assert api.current()["revision"] == 0  # preparation does not mutate selection
+    minimal = json.loads(json.dumps(original))
+    for key in (
+        "model",
+        "model_reference",
+        "variant",
+        "lookback_sessions",
+        "minimum_history_sessions",
+        "horizon_sessions",
+        "annualization_sessions",
+        "require_full_window_validation",
+    ):
+        del minimal["bundle"]["profile"][key]
+    del minimal["bundle"]["history"]["profile"]
+    assert api.request("/api/v1/inputs/risk-preset", "POST", {"upload": minimal}) == (200, prepared)
+    status, overridden = api.request(
+        "/api/v1/inputs/risk-preset",
+        "POST",
+        {"upload": prepared, "overrides": {"horizon_sessions": 1}},
+    )
+    assert status == 200
+    assert overridden["bundle"]["profile"]["horizon_sessions"] == 1
+    assert overridden["bundle"]["profile"]["preset"]["overrides"] == {"horizon_sessions": 1}
+    for overrides in ({"horizon_sessions": None}, {"max_cost": "100"}, {"horizon_sessions": "1"}):
+        assert (
+            api.request(
+                "/api/v1/inputs/risk-preset", "POST", {"upload": original, "overrides": overrides}
+            )[0]
+            == 422
+        )
+    contradictory = json.loads(json.dumps(original))
+    contradictory["bundle"]["history"]["profile"]["f"] = "0.5"
+    assert api.request("/api/v1/inputs/risk-preset", "POST", {"upload": contradictory})[0] == 422
+
+
+def test_input_assembly_protected_source_selection_and_existing_save_boundary(api: API) -> None:
+    from tests.test_candidate_workflow import seed, service
+    from tests.test_input_assembly import request
+
+    for path, method, auth_body in (("context", "GET", None), ("prepare", "POST", {})):
+        assert api.request(f"/api/v1/inputs/{path}", method, auth_body, authorized=False)[0] == 401
+    workspace = service(api.root)
+    seed(workspace)
+    status, choices = api.request("/api/v1/inputs/context")
+    assert status == 200 and choices["input_revision"] == 4
+    assert choices["fact_run_ids"] == ["inputs"]
+    assert len(choices["history_options"]) == 1
+    body = request(workspace).model_dump(mode="json")
+    status, prepared = api.request("/api/v1/inputs/prepare", "POST", body)
+    assert status == 200 and prepared["upload"] and prepared["coverage"]
+    assert prepared["candidate_security_ids"] == ["security-faaa", "security-fbbb"]
+    assert {i["code"] for i in prepared["issues"]} == {"lot_mark_conflict"}
+    assert prepared["upload"]["bundle"]["assembly"]["history_batch_ids"] == [
+        choices["history_options"][0]["id"]
+    ]
+    assert api.current()["revision"] == 4
+    assert api.request("/api/v1/inputs/preview", "POST", prepared["upload"])[0] == 200
+    # The assembled current contract saves through the existing diagnostics route.
+    saved_request = {
+        **prepared["upload"],
+        "run_id": "assembled-api",
+        "expected_revision": 4,
+        "as_of": body["as_of"],
+    }
+    status, saved = api.request("/api/v1/inputs/diagnostics", "POST", saved_request)
+    assert status == 200 and saved["outputs"]["software_inputs_complete"] is False
+    assert api.request("/api/v1/inputs/diagnostics", "POST", saved_request) == (status, saved)
+    code, error = api.request("/api/v1/inputs/prepare", "POST", {"PRIVATE-KEY": "DO-NOT-ECHO"})
+    assert (
+        code == 422
+        and "PRIVATE-KEY" not in json.dumps(error)
+        and "DO-NOT-ECHO" not in json.dumps(error)
+    )
+    duplicate = b'{"expected_revision":4,"expected_revision":4}'
+    assert (
+        api.request(
+            "/api/v1/inputs/prepare",
+            "POST",
+            duplicate,
+            headers={"Content-Type": "application/json"},
+        )[0]
+        == 400
+    )
+    broken = {**body, "expected_revision": True}
+    assert api.request("/api/v1/inputs/prepare", "POST", broken)[0] == 422
+    too_large: dict[str, str | None] = {
+        "Content-Type": "application/json",
+        "Content-Length": str(16 * 1024 * 1024 + 1),
+    }
+    assert api.request("/api/v1/inputs/prepare", "POST", b"{}", headers=too_large)[0] == 413
+    large = b" " * 65536 + json.dumps(body).encode()
+    assert (
+        api.request(
+            "/api/v1/inputs/prepare", "POST", large, headers={"Content-Type": "application/json"}
+        )[0]
+        == 200
+    )
 
 
 def test_closed_request_size_duplicate_keys_and_safe_errors(api: API) -> None:

@@ -63,6 +63,14 @@ def align(
             combined = pl.concat(selected)
             if combined.select(pl.struct(facts).n_unique().over("session").max()).item() > 1:
                 coherent = False
+                issues.append(
+                    HistoryIssue(
+                        security_id=sid,
+                        session=None,
+                        code="contradictory_observations",
+                        reason="Overlapping observations disagree within the declared vintage",
+                    )
+                )
             chosen = combined.unique(subset="session", keep="last", maintain_order=True)
             used.update(chosen["source_sha256"])
         else:
@@ -123,6 +131,9 @@ def align(
         ]
         if full_used:
             validated[sid] = full_used[-1].validated_at
+            # A checked empty range is evidence too. Pin the full-window
+            # original even when it contributes no observation rows.
+            used.add(full_used[-1].source_sha256)
         if sid in request.manual_security_ids or not coherent:
             intervals.append(
                 Interval(

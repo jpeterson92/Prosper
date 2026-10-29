@@ -1,0 +1,24 @@
+[project]
+name = "prosper-research"
+version = "0.0.0"
+description = "Disposable local experiments using Prosper's calculation core"
+requires-python = ">=3.12,<3.13"
+dependencies = ["prosper-local"]
+
+[tool.uv]
+package = false
+required-version = "==0.13.5"
+build-constraint-dependencies = [
+    "hatchling==1.32.4",
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "trove-classifiers==2026.9.21.13",
+]
+
+[tool.uv.sources]
+prosper-local = { path = "..", editable = true }
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true

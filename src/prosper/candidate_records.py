@@ -100,6 +100,7 @@ class CandidateRequest(Record):
     method: SearchMethod
     snapshot: ImportSnapshot
     retained_snapshots: tuple[ImportSnapshot, ...]
+    history_excluded_ids: tuple[Identifier, ...] = ()
     assets: tuple[CandidateAsset, ...] = Field(min_length=1, max_length=500)
     settings: LotSettings
     risk: RiskInput

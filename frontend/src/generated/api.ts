@@ -272,6 +272,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inputs/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Input Context */
+        get: operations["input_context_api_v1_inputs_context_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inputs/prepare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prepare Inputs */
+        post: operations["prepare_inputs_api_v1_inputs_prepare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inputs/risk-preset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Risk Preset */
+        post: operations["risk_preset_api_v1_inputs_risk_preset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inputs/diagnostics": {
         parameters: {
             query?: never;
@@ -991,6 +1042,22 @@ export interface components {
              */
             warnings: string[];
         };
+        /** AssembledInputs */
+        AssembledInputs: {
+            /** Input Revision */
+            input_revision: number;
+            snapshot_id: components["schemas"]["Digest"] | null;
+            /** Benchmark Run Id */
+            benchmark_run_id: string | null;
+            /** Candidate Security Ids */
+            candidate_security_ids: string[];
+            /** Retained Candidate Security Ids */
+            retained_candidate_security_ids: string[] | null;
+            upload: components["schemas"]["ModeledUpload"] | null;
+            coverage: components["schemas"]["ModeledResult"] | null;
+            /** Issues */
+            issues: components["schemas"]["InputIssue"][];
+        };
         /** BenchmarkDiagnostic */
         BenchmarkDiagnostic: {
             /** Run Id */
@@ -1478,6 +1545,11 @@ export interface components {
             snapshot: components["schemas"]["ImportSnapshot"];
             /** Retained Snapshots */
             retained_snapshots: components["schemas"]["ImportSnapshot"][];
+            /**
+             * History Excluded Ids
+             * @default []
+             */
+            history_excluded_ids: string[];
             /** Assets */
             assets: components["schemas"]["CandidateAsset"][];
             settings: components["schemas"]["LotSettings"];
@@ -1710,6 +1782,22 @@ export interface components {
             ] | null;
             /** Target Symmetry Correction */
             target_symmetry_correction: number | null;
+        };
+        /** CoverageName */
+        CoverageName: {
+            /** Key */
+            key: string;
+            /** Security Id */
+            security_id: string | null;
+            /** Locators */
+            locators: string[];
+            value_usd: components["schemas"]["DecimalFact"];
+            /** Excluded */
+            excluded: boolean;
+            /** Excluded Bps */
+            excluded_bps?: number | null;
+            /** Highlight */
+            highlight?: boolean | null;
         };
         /** CurrentResponse */
         CurrentResponse: {
@@ -1985,6 +2073,33 @@ export interface components {
              */
             findings: string[];
         };
+        /** HistoryCoverageEvidence */
+        HistoryCoverageEvidence: {
+            source_sha256: components["schemas"]["Digest"];
+            /** Contexts */
+            contexts: components["schemas"]["SeriesContext"][];
+            sessions: components["schemas"]["SessionGrid"];
+            /**
+             * Validation Scope
+             * @enum {string}
+             */
+            validation_scope: "requested-interval" | "full-window";
+            /** Collected At */
+            collected_at: string;
+            /** Validated At */
+            validated_at: string;
+        };
+        /** HistoryDecision */
+        HistoryDecision: {
+            /** Security Id */
+            security_id: string;
+            /** Roles */
+            roles: ("held" | "benchmark" | "candidate")[];
+            /** Excluded */
+            excluded: boolean;
+            /** Issue Codes */
+            issue_codes: string[];
+        };
         /** HistoryDiagnosticRequest */
         HistoryDiagnosticRequest: {
             request: components["schemas"]["HistoryRequest"];
@@ -2020,6 +2135,25 @@ export interface components {
             /** Command Key */
             command_key: string;
             expected_revision: components["schemas"]["Revision"];
+        };
+        /** HistoryOption */
+        HistoryOption: {
+            id: components["schemas"]["Digest"];
+            /** Source Name */
+            source_name: string;
+            source_sha256: components["schemas"]["Digest"];
+            /** Contexts */
+            contexts: components["schemas"]["SeriesContext"][];
+            sessions: components["schemas"]["SessionGrid"];
+            /** Collected At */
+            collected_at: string;
+            /** Validated At */
+            validated_at: string;
+            /**
+             * Validation Scope
+             * @enum {string}
+             */
+            validation_scope: "requested-interval" | "full-window";
         };
         /** HistoryPart */
         HistoryPart: {
@@ -2101,6 +2235,28 @@ export interface components {
             row_count: number;
             /** Data */
             data: string;
+        };
+        /** HistoryWindow */
+        HistoryWindow: {
+            /** Batch Ids */
+            batch_ids: components["schemas"]["Digest"][];
+            /** Sessions */
+            sessions: string[];
+            /** Predecessor */
+            predecessor: string;
+            /** Cutoff */
+            cutoff: string;
+            /** Known At */
+            known_at: string;
+            /** Calendar Evidence */
+            calendar_evidence: string;
+            /** Overlap Sessions */
+            overlap_sessions: number;
+            /**
+             * Series Choices
+             * @default []
+             */
+            series_choices: components["schemas"]["SeriesContext"][];
         };
         /** HoldingMappingRow */
         HoldingMappingRow: {
@@ -2231,6 +2387,101 @@ export interface components {
             /** Source Ref */
             source_ref: string;
         };
+        /** InputAssemblyBinding */
+        InputAssemblyBinding: {
+            /** Input Revision */
+            input_revision: number;
+            snapshot_id: components["schemas"]["Digest"];
+            /** Benchmark Run Id */
+            benchmark_run_id: string;
+            /** History Batch Ids */
+            history_batch_ids: components["schemas"]["Digest"][];
+            /** Fact Run Id */
+            fact_run_id: string | null;
+            /** Source Declarations */
+            source_declarations: components["schemas"]["SourceFact"][];
+            /** Prepared At */
+            prepared_at: string;
+        };
+        /** InputAssemblyContext */
+        InputAssemblyContext: {
+            /** Input Revision */
+            input_revision: number;
+            snapshot_id: components["schemas"]["Digest"] | null;
+            /** Benchmark Run Id */
+            benchmark_run_id: string | null;
+            /** Selected Source Sha256 */
+            selected_source_sha256: components["schemas"]["Digest"][];
+            /** Benchmark Security Ids */
+            benchmark_security_ids: string[];
+            /** History Options */
+            history_options: components["schemas"]["HistoryOption"][];
+            /** Fact Run Ids */
+            fact_run_ids: string[];
+        };
+        /** InputAssemblyRequest */
+        InputAssemblyRequest: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Analysis Date */
+            analysis_date: string;
+            /** As Of */
+            as_of: string;
+            history?: components["schemas"]["HistoryWindow"] | null;
+            coverage_settings?: components["schemas"]["InputCoverageSettings"] | null;
+            risk_overrides?: components["schemas"]["RiskOverrides"];
+            /**
+             * Investor Controls
+             * @default []
+             */
+            investor_controls: components["schemas"]["InvestorControl"][];
+            /** Fact Run Id */
+            fact_run_id?: string | null;
+            /**
+             * Source Declarations
+             * @default []
+             */
+            source_declarations: components["schemas"]["SourceFact"][];
+            /**
+             * Securities
+             * @default []
+             */
+            securities: components["schemas"]["SecurityInput"][];
+            /**
+             * Marks
+             * @default []
+             */
+            marks: components["schemas"]["MarkInput"][];
+            taxonomy?: components["schemas"]["TaxonomyDeclaration"] | null;
+            /**
+             * Classifications
+             * @default []
+             */
+            classifications: components["schemas"]["ClassificationInput"][];
+            /**
+             * Sources
+             * @default []
+             */
+            sources: components["schemas"]["InputSource"][];
+        };
+        /** InputCoverageSettings */
+        InputCoverageSettings: {
+            /** Max Mark Age Days */
+            max_mark_age_days: number;
+            /** Max Snapshot Age Days */
+            max_snapshot_age_days: number;
+            /** Max Benchmark Age Days */
+            max_benchmark_age_days: number;
+            /** Max History Age Days */
+            max_history_age_days: number;
+            /** Maximum Universe Size */
+            maximum_universe_size: number;
+            /**
+             * Short History Policy
+             * @constant
+             */
+            short_history_policy: "block";
+        };
         /** InputIssue */
         InputIssue: {
             /**
@@ -2249,22 +2500,6 @@ export interface components {
         };
         /** InputProfile */
         InputProfile: {
-            /**
-             * Variant
-             * @constant
-             */
-            variant: "idr-dcc-nl";
-            model: components["schemas"]["Profile"] | null;
-            /** Model Reference */
-            model_reference: string;
-            /** Lookback Sessions */
-            lookback_sessions: number;
-            /** Minimum History Sessions */
-            minimum_history_sessions: number;
-            /** Horizon Sessions */
-            horizon_sessions: number;
-            /** Annualization Sessions */
-            annualization_sessions: number;
             /** Max Mark Age Days */
             max_mark_age_days: number;
             /** Max Snapshot Age Days */
@@ -2273,8 +2508,6 @@ export interface components {
             max_benchmark_age_days: number;
             /** Max History Age Days */
             max_history_age_days: number;
-            /** Require Full Window Validation */
-            require_full_window_validation: boolean;
             /** Maximum Universe Size */
             maximum_universe_size: number;
             /**
@@ -2282,6 +2515,44 @@ export interface components {
              * @constant
              */
             short_history_policy: "block";
+            model?: components["schemas"]["Profile"] | null;
+            /**
+             * Lookback Sessions
+             * @default 1260
+             */
+            lookback_sessions: number;
+            /**
+             * Minimum History Sessions
+             * @default 1260
+             */
+            minimum_history_sessions: number;
+            /**
+             * Horizon Sessions
+             * @default 21
+             */
+            horizon_sessions: number;
+            /**
+             * Annualization Sessions
+             * @default 252
+             */
+            annualization_sessions: number;
+            /**
+             * Require Full Window Validation
+             * @default true
+             */
+            require_full_window_validation: boolean;
+            preset?: components["schemas"]["RiskPreset"] | null;
+            /**
+             * Variant
+             * @default idr-dcc-nl
+             * @constant
+             */
+            variant: "idr-dcc-nl";
+            /**
+             * Model Reference
+             * @default Standard R1 v1; exploratory IDR-DCC-NL; unqualified
+             */
+            model_reference: string;
         };
         /** InputSource */
         InputSource: {
@@ -2534,6 +2805,7 @@ export interface components {
             profile: components["schemas"]["InputProfile"];
             /** Investor Controls */
             investor_controls: components["schemas"]["InvestorControl"][];
+            assembly?: components["schemas"]["InputAssemblyBinding"] | null;
         };
         /** ModeledDiagnostic */
         ModeledDiagnostic: {
@@ -2569,6 +2841,7 @@ export interface components {
             unavailable_return_count: number;
             /** Exclusions */
             exclusions: components["schemas"]["Finding"][];
+            sleeve?: components["schemas"]["ModeledSleeve"] | null;
             /** Issues */
             issues: components["schemas"]["InputIssue"][];
             /** Required Sources */
@@ -2598,6 +2871,15 @@ export interface components {
              *     ]
              */
             warnings: string[];
+        };
+        /** ModeledSleeve */
+        ModeledSleeve: {
+            /** Decisions */
+            decisions: components["schemas"]["HistoryDecision"][];
+            /** History Evidence */
+            history_evidence: components["schemas"]["HistoryCoverageEvidence"][];
+            portfolio: components["schemas"]["SleeveCoverage"];
+            benchmark: components["schemas"]["SleeveCoverage"] | null;
         };
         /** ModeledUpload */
         ModeledUpload: {
@@ -2869,6 +3151,38 @@ export interface components {
             /** Reference */
             reference: string;
         };
+        /**
+         * RiskOverrides
+         * @description Explicit expert choices; the fit boundary still enforces supported R1 settings.
+         */
+        RiskOverrides: {
+            model?: components["schemas"]["Profile"];
+            /** Lookback Sessions */
+            lookback_sessions?: number;
+            /** Minimum History Sessions */
+            minimum_history_sessions?: number;
+            /** Horizon Sessions */
+            horizon_sessions?: number;
+            /** Annualization Sessions */
+            annualization_sessions?: number;
+            /** Require Full Window Validation */
+            require_full_window_validation?: boolean;
+        };
+        /** RiskPreset */
+        RiskPreset: {
+            /**
+             * Identity
+             * @default standard-r1-v1
+             * @constant
+             */
+            identity: "standard-r1-v1";
+            overrides?: components["schemas"]["RiskOverrides"];
+        };
+        /** RiskPresetRequest */
+        RiskPresetRequest: {
+            upload: components["schemas"]["ModeledUpload"];
+            overrides?: components["schemas"]["RiskOverrides"];
+        };
         /** RowRule */
         RowRule: {
             locator: components["schemas"]["Locator"];
@@ -3074,6 +3388,29 @@ export interface components {
             command_key: string;
             expected_revision: components["schemas"]["Revision"];
         };
+        /** SleeveCoverage */
+        SleeveCoverage: {
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "portfolio" | "benchmark";
+            /** Valuation Date */
+            valuation_date: string;
+            /** Denominator Scope */
+            denominator_scope: string;
+            /** Names */
+            names: components["schemas"]["CoverageName"][];
+            reference_value_usd: components["schemas"]["DecimalFact"];
+            /** Excluded Known Value Usd */
+            excluded_known_value_usd: string;
+            /** Unknown Value Keys */
+            unknown_value_keys: string[];
+            /** Aggregate Excluded Bps */
+            aggregate_excluded_bps: number | null;
+            /** Aggregate Highlight */
+            aggregate_highlight: boolean | null;
+        };
         /** SnapshotEntry */
         SnapshotEntry: {
             id: components["schemas"]["Digest"];
@@ -3219,6 +3556,13 @@ export interface components {
             offset_rate: string;
             /** Reference */
             reference: string;
+        };
+        /** TaxonomyDeclaration */
+        TaxonomyDeclaration: {
+            /** Name */
+            name: string;
+            /** Version */
+            version: string;
         };
         /** Upload */
         Upload: {
@@ -4576,6 +4920,263 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModeledResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    input_context_api_v1_inputs_context_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputAssemblyContext"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    prepare_inputs_api_v1_inputs_prepare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputAssemblyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssembledInputs"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    risk_preset_api_v1_inputs_risk_preset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RiskPresetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModeledUpload"];
                 };
             };
             /** @description Bad Request */

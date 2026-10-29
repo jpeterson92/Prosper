@@ -1,20 +1,22 @@
+import { dismissDetails, navigate, reveal, advancedImport, savedRecords, historyTools, workspaceTools, prepareUpload, sourceDetails } from "../tools/workspace.mjs";
+test.beforeEach(({page})=>page.setDefaultTimeout(10000));
 import { test, expect } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { runtime, root, python } from "../tools/runtime.mjs";
-import { decimalDisplay } from "../src/display.ts";
+import { compactValue, decimalDisplay, percentPreview } from "../src/display.ts";
 
 const raw = await readFile(path.join(root, "examples/synthetic/advisory-workspace.json"));
 const dist = path.join(root, "frontend/dist");
 const status = (page) => page.getByRole("status", { name: "Workspace status" });
 async function open(page, server) {
-  await page.goto(server.origin);
+  await page.goto(server.origin);await advancedImport(page);
   await expect(status(page)).toContainText("Workspace read.", { timeout: 15000 });
 }
 async function stage(page, bytes = raw) {
-  await page.getByLabel("Normalized snapshot JSON file (up to 2 MiB)").setInputFiles({ name: "fictional.json", mimeType: "application/json", buffer: bytes });
+  await prepareUpload(page,"Normalized snapshot JSON file (up to 2 MiB)");await page.getByLabel("Normalized snapshot JSON file (up to 2 MiB)").setInputFiles({ name: "fictional.json", mimeType: "application/json", buffer: bytes });
   await page.getByRole("button", { name: "Stage preview", exact: true }).click();
   await expect(status(page)).toContainText("Preview staged");
 }
@@ -28,6 +30,14 @@ async function api(server, route, body) {
   const response = await fetch(server.origin + route, { method: body ? "POST" : "GET", headers: { Origin: server.origin, Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
   expect(response.ok).toBe(true); return response.json();
 }
+
+test("percentage previews shift decimal text without changing precision or units",()=>{
+  for(const [raw,expected]of [["0.015","1.5%"],["1.0000","100%"],["0","0%"],["-0.0001","-0.01%"],["9007199254740993.0001","900,719,925,474,099,300.01%"],["1e-3","Enter a decimal fraction"]])expect(percentPreview(raw)).toBe(expected);
+});
+
+test("compact amounts preserve signs below the displayed precision", () => {
+  for(const [value,kind,expected] of [["0.00001","number","<0.0001"],["-0.00001","number",">-0.0001"],["0.001","money","<0.01"],["-0.001","money",">-0.01"],[0.000001,"weight","<0.01%"],[-0.000001,"weight",">-0.01%"],[0,"weight","0%"],["-2.355","money","-2.36"]]) expect(compactValue(value,kind)).toBe(expected);
+});
 
 test("display rounding preserves independently specified signs, ties and large integers", () => {
   for (const [value, expected] of [["2.345", "2.34"], ["2.355", "2.36"], ["-2.355", "-2.36"], ["9.999", "10.00"], ["0.005", "0.00"], ["9007199254740993.125", "9,007,199,254,740,993.12"]]) expect(decimalDisplay(value, true)).toBe(expected);
@@ -53,11 +63,11 @@ test("normalized review, explicit settings and immutable dated diagnostics survi
     await page.getByLabel("Round displayed numeric values to 2 decimals").check();
     await expect(review).toContainText("12.50");
     await select(page);
-    await page.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"additional_cash":"100.00","risk_enabled":false}');
+    await workspaceTools(page);await page.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"additional_cash":"100.00","risk_enabled":false}');
     await page.getByLabel("I reviewed these settings").check();
     await page.getByRole("button", { name: "Save reviewed settings" }).click();
     await expect(status(page)).toContainText("revision 2");
-    await page.getByRole("button", { name: "Save source diagnostics" }).click();
+    await savedRecords(page);await page.getByRole("button", { name: "Save source diagnostics" }).click();
     await expect(status(page)).toContainText("Dated source diagnostics saved");
     const saved = page.getByRole("article", { name: "Saved diagnostic" });
     await expect(saved).toContainText('"financial_metrics": null');
@@ -71,11 +81,11 @@ test("normalized review, explicit settings and immutable dated diagnostics survi
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: path.join(results, "workspace-narrow.png"), fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    expect(await page.evaluate(() => [localStorage.length, sessionStorage.length, document.cookie])).toEqual([0, 0, ""]);
+    expect(await page.evaluate(() => [Object.keys(localStorage), localStorage.getItem("prosper-appearance"), sessionStorage.length, document.cookie])).toEqual([["prosper-appearance"], "system", 0, ""]);
     await server.stop(); server = await runtime({ dist, directory });
     await open(page, server);
     expect(await api(server, "/api/v1/current")).toEqual(before);
-    await page.getByRole("combobox", { name: "Saved diagnostic", exact: true }).selectOption(id);
+    await savedRecords(page);await page.getByRole("combobox", { name: "Saved diagnostic", exact: true }).selectOption(id);
     await expect(saved).toContainText("100.00");
     expect(await api(server, `/api/v1/runs/${id}`)).toEqual(original);
     expect(errors).toEqual([]); expect(foreign).toEqual([]);
@@ -97,10 +107,10 @@ for (const kind of ["select", "settings", "diagnostics"]) {
         await page.getByLabel("I reviewed this snapshot and its unknowns").check();
         await page.getByRole("button", { name: "Select reviewed snapshot" }).click();
       } else if (kind === "settings") {
-        await page.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"selected_cash":"42.00"}');
+        await workspaceTools(page);await page.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"selected_cash":"42.00"}');
         await page.getByLabel("I reviewed these settings").check();
         await page.getByRole("button", { name: "Save reviewed settings" }).click();
-      } else await page.getByRole("button", { name: "Save source diagnostics" }).click();
+      } else {await savedRecords(page);await page.getByRole("button", { name: "Save source diagnostics" }).click();}
       await expect(page.getByRole("button", { name: "Retry identical action" })).toBeVisible();
       await page.getByRole("button", { name: "Retry identical action" }).click();
       await expect(page.getByRole("button", { name: "Retry identical action" })).toHaveCount(0);
@@ -117,11 +127,11 @@ test("two windows cannot replace newer settings using a stale reviewed revision"
   try {
     await open(page, server); await stage(page); await select(page);
     const other = await context.newPage(); await open(other, server);
-    await other.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"selected_cash":"25.00"}');
+    await workspaceTools(other);await other.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"selected_cash":"25.00"}');
     await other.getByLabel("I reviewed these settings").check();
     await other.getByRole("button", { name: "Save reviewed settings" }).click();
     await expect(status(other)).toContainText("revision 2");
-    await page.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"selected_cash":"99.00"}');
+    await workspaceTools(page);await page.getByRole("textbox", {name:"Settings JSON",exact:true}).fill('{"selected_cash":"99.00"}');
     await page.getByLabel("I reviewed these settings").check();
     await page.getByRole("button", { name: "Save reviewed settings" }).click();
     await expect(status(page)).toContainText("stale_revision");
@@ -134,25 +144,25 @@ test("download, clean restore and lost restore response preserve saved output an
   const source = await runtime({ dist }); const target = await runtime({ dist });
   try {
     await open(page, source); await stage(page); await select(page);
-    await page.getByRole("button", { name: "Save source diagnostics" }).click();
+    await savedRecords(page);await page.getByRole("button", { name: "Save source diagnostics" }).click();
     await expect(status(page)).toContainText("diagnostics saved");
     const before = await api(source, "/api/v1/current");
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Download workspace backup" }).click();
+    await navigate(page,"Settings");await page.getByRole("button", { name: "Download workspace backup" }).click();
     const download = await downloadPromise; const bytes = await readFile(await download.path());
     await open(page, target);
     let first = true;
     await page.route("**/api/v1/restore", async (route) => {
       if (first) { first = false; await route.fetch(); await route.abort(); } else await route.continue();
     });
-    await page.getByLabel("Current workspace backup (up to 64 MiB)").setInputFiles({ name: "current.sqlite3", mimeType: "application/octet-stream", buffer: bytes });
+    await prepareUpload(page,"Current workspace backup (up to 64 MiB)");await page.getByLabel("Current workspace backup (up to 64 MiB)").setInputFiles({ name: "current.sqlite3", mimeType: "application/octet-stream", buffer: bytes });
     await page.getByRole("button", { name: "Restore into empty workspace" }).click();
     await expect(page.getByRole("button", { name: "Retry identical action" })).toBeVisible();
     await page.getByRole("button", { name: "Retry identical action" }).click();
     await expect(status(page)).toContainText("restored");
     expect(await api(target, "/api/v1/current")).toEqual(before);
     expect(await api(target, `/api/v1/runs/${before.current_run_id}`)).toEqual(await api(source, `/api/v1/runs/${before.current_run_id}`));
-    await page.getByRole("button", { name: "Review selected snapshot" }).click();
+    await navigate(page,"Holdings");await page.getByRole("button", { name: "Review current holdings" }).click();
     await expect(page.getByRole("article", { name: "Snapshot review" })).toContainText("12.5000");
   } finally { await source.stop(); await target.stop(); }
 });
@@ -162,15 +172,15 @@ test("invalid replacement and refused restore keep selected work usable", async 
   try {
     await open(page, server); await stage(page); await select(page);
     const before = await api(server, "/api/v1/current");
-    await page.getByLabel("Normalized snapshot JSON file (up to 2 MiB)").setInputFiles({ name: "bad.json", mimeType: "application/json", buffer: Buffer.from('{"secret":"do-not-echo"}') });
+    await prepareUpload(page,"Normalized snapshot JSON file (up to 2 MiB)");await page.getByLabel("Normalized snapshot JSON file (up to 2 MiB)").setInputFiles({ name: "bad.json", mimeType: "application/json", buffer: Buffer.from('{"secret":"do-not-echo"}') });
     await page.getByRole("button", { name: "Stage preview" }).click();
     await expect(page.getByRole("alert")).toContainText("invalid");
     expect(await api(server, "/api/v1/current")).toEqual(before);
-    await page.getByLabel("Current workspace backup (up to 64 MiB)").setInputFiles({ name: "corrupt.sqlite3", mimeType: "application/octet-stream", buffer: Buffer.from("corrupt") });
+    await prepareUpload(page,"Current workspace backup (up to 64 MiB)");await page.getByLabel("Current workspace backup (up to 64 MiB)").setInputFiles({ name: "corrupt.sqlite3", mimeType: "application/octet-stream", buffer: Buffer.from("corrupt") });
     await page.getByRole("button", { name: "Restore into empty workspace" }).click();
     await expect(status(page)).toContainText("Action refused");
     await expect(page.getByRole("button", { name: "Retry identical action" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Save source diagnostics" })).toBeEnabled();
+    await savedRecords(page);await expect(page.getByRole("button", { name: "Save source diagnostics" })).toBeEnabled();
     expect(await api(server, "/api/v1/current")).toEqual(before);
     await expect(page.locator("body")).not.toContainText("do-not-echo");
   } finally { await server.stop(); }
@@ -185,10 +195,10 @@ for (const kind of ["non-json", "unsafe-revision"]) {
         contentType: kind === "non-json" ? "text/plain" : "application/json",
         body: kind === "non-json" ? "unusable" : '{"revision":9007199254740993,"snapshot_id":null,"settings":{},"current_run_id":null}',
       }));
-      await page.goto(server.origin);
+      await page.goto(server.origin);await advancedImport(page);
       await expect(page.getByRole("alert")).toContainText("local request failed");
       await expect(page.getByRole("button", { name: "Stage preview" })).toBeDisabled();
-      await expect(page.getByRole("button", { name: "Save reviewed settings" })).toBeDisabled();
+      await workspaceTools(page);await expect(page.getByRole("button", { name: "Save reviewed settings" })).toBeDisabled();
     } finally { await server.stop(); }
   });
 }
@@ -213,7 +223,7 @@ s.start_run('interrupted',1,inputs={'diagnostic':'source-quality-v1'},applicatio
   const server = await runtime({ dist, directory });
   try {
     await open(page, server);
-    await page.getByRole("combobox", { name: "Saved diagnostic", exact: true }).selectOption("interrupted");
+    await savedRecords(page);await page.getByRole("combobox", { name: "Saved diagnostic", exact: true }).selectOption("interrupted");
     await expect(page.getByRole("article", { name: "Saved diagnostic" })).toContainText("running");
     await page.getByRole("button", { name: "Resume saved diagnostic" }).click();
     await expect(page.getByRole("article", { name: "Saved diagnostic" })).toContainText("partial");
@@ -233,11 +243,11 @@ test("a successful write with a failed state read preserves the known outcome an
     await expect(status(page)).toContainText("Action result: changed");
     await expect(page.getByRole("alert")).toContainText("Current state could not be refreshed");
     await expect(page.getByRole("button", { name: "Retry identical action" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Save source diagnostics" })).toBeDisabled();
+    await savedRecords(page);await expect(page.getByRole("button", { name: "Save source diagnostics" })).toBeDisabled();
     expect((await api(server, "/api/v1/current")).revision).toBe(1);
     await page.unroute("**/api/v1/current");
-    await page.getByRole("button", { name: "Refresh workspace" }).click();
+    await dismissDetails(page);await page.getByRole("button", { name: "Refresh workspace" }).click();
     await expect(status(page)).toContainText("Workspace read");
-    await expect(page.getByRole("button", { name: "Save source diagnostics" })).toBeEnabled();
+    await savedRecords(page);await expect(page.getByRole("button", { name: "Save source diagnostics" })).toBeEnabled();
   } finally { await server.stop(); }
 });

@@ -1,3 +1,5 @@
+import { dismissDetails, navigate, reveal, advancedImport, savedRecords, historyTools, workspaceTools, prepareUpload, sourceDetails } from "../tools/workspace.mjs";
+test.beforeEach(({page})=>page.setDefaultTimeout(10000));
 import { test, expect } from "@playwright/test";
 import { spawnSync } from "node:child_process";
 import { readFile, mkdir, mkdtemp, writeFile, rename } from "node:fs/promises";
@@ -33,7 +35,7 @@ test("installed artifact serves offline UI, fits in its worker and preserves rec
   try {
     await page.route("**/*",route=>{const url=route.request().url();if(!url.startsWith(source.origin+"/")){external.push(url);return route.abort();}return route.continue();});
     await page.setViewportSize({width:390,height:844});
-    await page.goto(source.origin);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
+    await page.goto(source.origin);await advancedImport(page);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
     await expect(page.getByRole("status",{name:"Workspace purpose"})).toContainText("Exploratory estimates; financial use unauthorized");
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
     expect(await api(source,"/runtime")).toEqual({purpose:"exploratory",financial_use_authorized:false});
@@ -62,8 +64,8 @@ test("installed artifact serves offline UI, fits in its worker and preserves rec
     // have completed here; in-flight cancellation/rollback has focused pytest.
     await source.stop();source=await open({directory});expect(await api(source,"/api/v1/runs/candidate")).toEqual(run);
     await source.interrupt();source=await open({directory});expect(await api(source,"/api/v1/runs/candidate")).toEqual(run);
-    await page.unroute("**/*");await page.goto(source.origin);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
-    await page.getByRole("combobox",{name:"Saved manual worksheet",exact:true}).selectOption("installed-worksheet");await expect(page.getByRole("article",{name:"Saved manual worksheet",exact:true})).toContainText("$2.00");
+    await page.unroute("**/*");await page.goto(source.origin);await advancedImport(page);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
+    await navigate(page,"Worksheets");await reveal(page,"Advanced worksheet lookup");await page.getByRole("combobox",{name:"Saved manual worksheet",exact:true}).selectOption("installed-worksheet");await expect(page.getByRole("article",{name:"Saved manual worksheet",exact:true})).toContainText("$2.00");
     const unauthorized=await fetch(source.origin+"/api/v1/current",{headers:{Origin:source.origin}});expect(unauthorized.status).toBe(401);
     const foreign=await fetch(source.origin+"/session",{method:"POST",headers:{Origin:"http://127.0.0.1:1","X-Prosper-Bootstrap":"1"}});expect(foreign.status).toBe(403);
     target=await open({directory:restoredDirectory});const targetToken=await target.session();
@@ -95,14 +97,14 @@ test("installed minimal CSV opening preserves unknowns, original bytes and recov
   const external=[];
   try {
     await page.route("**/*",route=>{const url=route.request().url();if(!url.startsWith(source.origin+"/")){external.push(url);return route.abort();}return route.continue();});
-    await page.goto(source.origin);
+    await page.goto(source.origin);await advancedImport(page);
     await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
     await expect(page.getByLabel("History file (up to 64 MiB; staged in bounded parts)",{exact:true})).toBeEnabled();
     const raw=await readFile(path.join(fixture,"lifecycle/initial.csv"));
-    await page.getByLabel("Declared combined-lot CSV",{exact:true}).setInputFiles({name:"invented.csv",mimeType:"text/csv",buffer:raw});
+    await prepareUpload(page,"Declared combined-lot CSV");await page.getByLabel("Declared combined-lot CSV",{exact:true}).setInputFiles({name:"invented.csv",mimeType:"text/csv",buffer:raw});
     await page.getByLabel("Source account identifier",{exact:true}).fill("000SYNTH001");
     await page.getByLabel("Source snapshot date",{exact:true}).fill("2026-10-23");
-    await page.getByRole("button",{name:"Review source-shaped lots",exact:true}).click();
+    await page.getByRole("button",{name:"Review imported holdings",exact:true}).click();
     await expect(page.getByRole("status",{name:"Lot input status"})).toContainText("preview staged");
     await expect(page.getByRole("status",{name:"Workspace purpose"})).toContainText("Exploratory estimates");
     const catalog=await api(source,"/api/v1/catalog");const id=catalog.snapshots[0].id;

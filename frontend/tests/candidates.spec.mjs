@@ -1,3 +1,5 @@
+import { dismissDetails, navigate, reveal, advancedImport, savedRecords, historyTools, workspaceTools, prepareUpload, sourceDetails } from "../tools/workspace.mjs";
+test.beforeEach(({page})=>page.setDefaultTimeout(10000));
 import { test, expect } from "@playwright/test";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -18,7 +20,9 @@ async function seedSelected(server) {
   await api(server,"/api/v1/benchmarks/select",{run_id:"benchmark",command_key:"benchmark",expected_revision:1});
   await api(server,"/api/v1/lots/settings",{settings:await load("lot-settings.json"),command_key:"settings",expected_revision:2});
   await refreshHistory(server,await load("history.json"));
-  const inputs=await api(server,"/api/v1/inputs/diagnostics",{...await load("modeled.json"),run_id:"inputs",expected_revision:4,as_of:"2026-10-25T23:00:00Z"});expect(inputs.outputs.software_inputs_complete).toBe(true);
+  const prepared=await api(server,"/api/v1/inputs/risk-preset",{upload:await load("modeled.json")});
+  expect(prepared.bundle.profile.preset).toEqual({identity:"standard-r1-v1",overrides:{}});
+  const inputs=await api(server,"/api/v1/inputs/diagnostics",{...prepared,run_id:"inputs",expected_revision:4,as_of:"2026-10-25T23:00:00Z"});expect(inputs.outputs.software_inputs_complete).toBe(true);
 }
 
 test("source-shaped advisory lifecycle retains original worksheets after a separately supplied refresh",async({page})=>{
@@ -27,11 +31,11 @@ test("source-shaped advisory lifecycle retains original worksheets after a separ
   const initial=await readFile(path.join(lifecycle,"initial.csv"));
   const refreshed=await readFile(path.join(lifecycle,"refreshed.csv"));
   let source=await runtime({dist});const target=await runtime({dist});
-  const open=async server=>{await page.goto(server.origin);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");};
+  const open=async server=>{await page.goto(server.origin);await navigate(page,"Analysis","Proposals");await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");};
   async function importSource(name,bytes) {
-    await page.getByLabel("Declared combined-lot CSV",{exact:true}).setInputFiles({name:`${name}.csv`,mimeType:"text/csv",buffer:bytes});
-    await page.getByLabel("Reviewed lot context JSON",{exact:true}).setInputFiles(path.join(lifecycle,`${name}-context.json`));
-    await page.getByRole("button",{name:"Review source-shaped lots",exact:true}).click();
+    await prepareUpload(page,"Declared combined-lot CSV");await page.getByLabel("Declared combined-lot CSV",{exact:true}).setInputFiles({name:`${name}.csv`,mimeType:"text/csv",buffer:bytes});
+    await prepareUpload(page,"Reviewed lot context JSON");await page.getByLabel("Reviewed lot context JSON",{exact:true}).setInputFiles(path.join(lifecycle,`${name}-context.json`));
+    await page.getByRole("button",{name:"Review imported holdings",exact:true}).click();
     await expect(page.getByRole("article",{name:"Snapshot review",exact:true})).toBeVisible();
     await page.getByLabel("I reviewed this snapshot and its unknowns",{exact:true}).check();
     await page.getByRole("button",{name:"Select reviewed snapshot",exact:true}).click();
@@ -60,11 +64,11 @@ test("source-shaped advisory lifecycle retains original worksheets after a separ
     expect(candidate.outputs.search.best.metrics.price_loss).toBe(4);
     expect(candidate.outputs.search.best.metrics.final_quantities).toEqual([.5,0]);
     expect(candidate.outputs.search.best.metrics.final_cash).toBe(20);
-    await open(source);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate");
+    await open(source);await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate");
     const panel=page.getByRole("region",{name:"Comparison and manual worksheet"});
-    await panel.getByRole("button",{name:"Review candidate 1",exact:true}).click();
+    await panel.getByRole("button",{name:"Review proposal 1",exact:true}).click();
     await panel.getByLabel(`Sell shares ${first.lots[0].id}`,{exact:true}).fill("1");
-    await panel.getByRole("button",{name:"Check revised quantities",exact:true}).click();
+    await panel.getByRole("button",{name:"Check worksheet quantities",exact:true}).click();
     await expect(panel.getByRole("article",{name:"Worksheet final checks",exact:true})).toContainText("$2.00");
     await panel.getByLabel("I confirm no external account changes since this snapshot; after external changes I will import refreshed holdings",{exact:true}).check();
     await panel.getByRole("button",{name:"Save dated manual worksheet",exact:true}).click();
@@ -99,9 +103,9 @@ test("source-shaped advisory lifecycle retains original worksheets after a separ
     expect(await api(target,`/api/v1/previews/${firstState.snapshot_id}`)).toEqual(await api(source,`/api/v1/previews/${firstState.snapshot_id}`));
     expect(await api(target,`/api/v1/previews/${current.snapshot_id}`)).toEqual(await api(source,`/api/v1/previews/${current.snapshot_id}`));
     expect(await api(target,`/api/v1/worksheets/${id}`)).toEqual(saved);expect(await exportText(target,id)).toBe(originalText);
-    await open(target);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate");
-    await expect(panel).toContainText("Historical candidate:");await expect(panel.getByRole("button",{name:"Review candidate 1",exact:true})).toBeDisabled();
-    await page.getByRole("combobox",{name:"Saved manual worksheet",exact:true}).selectOption(id);
+    await open(target);await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate");
+    await expect(panel).toContainText("Historical candidate:");await expect(panel.getByRole("button",{name:"Review proposal 1",exact:true})).toBeDisabled();
+    await navigate(page,"Worksheets");await reveal(page,"Advanced worksheet lookup");await page.getByRole("combobox",{name:"Saved manual worksheet",exact:true}).selectOption(id);
     await expect(panel.getByRole("article",{name:"Saved manual worksheet",exact:true})).toContainText("$2.00");
     const evidence=path.join(root,".local/t010.1.1");await mkdir(evidence,{recursive:true});
     await writeFile(path.join(evidence,"lifecycle-backup.sqlite3"),Buffer.from(bytes));
@@ -114,13 +118,13 @@ test("complete HTTP history to fitted candidate, lost response retry and frozen 
   test.setTimeout(90000);
   const source=await runtime({dist});const target=await runtime({dist});
   try {
-    await seed(source);await page.goto(source.origin);
+    await seed(source);await page.goto(source.origin);await navigate(page,"Analysis","Proposals");
     await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
-    await page.getByLabel("Candidate controls JSON",{exact:true}).setInputFiles(path.join(folder,"command.json"));
+    await prepareUpload(page,"Candidate controls JSON");await page.getByLabel("Candidate controls JSON",{exact:true}).setInputFiles(path.join(folder,"command.json"));
     await page.getByLabel("I reviewed the saved inputs, costs, funding and bounded search controls").check();
     let first=true;const bodies=[];
     await page.route("**/api/v1/candidates/start",async route=>{bodies.push(route.request().postData());if(first){first=false;await route.fetch();await route.abort();}else await route.continue();});
-    await page.getByRole("button",{name:"Calculate exploratory candidate",exact:true}).click();
+    await page.getByRole("button",{name:"Create exploratory proposals",exact:true}).click();
     await expect(page.getByRole("button",{name:"Retry identical action",exact:true})).toBeVisible();
     await page.getByRole("button",{name:"Retry identical action",exact:true}).click();
     const runId=JSON.parse(bodies[0]).run_id;
@@ -145,17 +149,17 @@ test("complete HTTP history to fitted candidate, lost response retry and frozen 
     expect(heuristic.outputs.search.candidates.length).toBeGreaterThan(0);
 
     expect(bodies[0]).toBe(bodies[1]);
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(runId);
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(runId);
     const view=page.getByRole("article",{name:"Checked candidate result",exact:true});
-    await expect(view).toContainText("$4.00");await expect(view).toContainText("Sell 2 whole shares");await expect(view).toContainText("Financial-use authorization: unavailable");
+    await expect(view).toContainText("$4.00");await expect(view.getByRole("table",{name:"Leading checked proposal"}).getByRole("row").filter({hasText:"Sell"})).toContainText("2");await expect(view).toContainText("Financial-use authorization: unavailable");
     await api(source,"/api/v1/history/clear",{command_key:"clear",expected_revision:4});
     expect(await api(source,`/api/v1/runs/${runId}`)).toEqual(run);
     const token=await source.session();const response=await fetch(source.origin+"/api/v1/backup",{headers:{Origin:source.origin,Authorization:`Bearer ${token}`}});expect(response.ok).toBe(true);const bytes=await response.arrayBuffer();
     const targetToken=await target.session();const restored=await fetch(target.origin+"/api/v1/restore",{method:"POST",headers:{Origin:target.origin,Authorization:`Bearer ${targetToken}`,"Content-Type":"application/octet-stream"},body:bytes});expect(restored.ok).toBe(true);
     expect(await api(target,`/api/v1/runs/${runId}`)).toEqual(run);
-    await page.goto(target.origin);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(runId);await expect(view).toContainText("$4.00");
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("heuristic");await expect(view).toContainText("domain not enumerated");await expect(view).toContainText("feasible-incumbent");
+    await page.goto(target.origin);await navigate(page,"Analysis","Proposals");await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(runId);await expect(view).toContainText("$4.00");
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("heuristic");await view.getByRole("button",{name:"Why these results?",exact:true}).click();await expect(page.getByRole("dialog")).toContainText("not enumerated");await expect(page.getByRole("dialog")).toContainText("feasible-incumbent");await dismissDetails(page);
     await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await mkdir(path.join(root,".local/t007.1.2"),{recursive:true});await view.screenshot({path:path.join(root,".local/t007.1.2/candidate-narrow.png")});
   } finally {await source.stop();await target.stop();}
@@ -167,20 +171,20 @@ test("invalid controls are redacted and stale inputs refuse before a worker",asy
     await api(server,"/api/v1/candidates/start",{...controls,PRIVATE_KEY:"DO-NOT-ECHO"},422);
     await api(server,"/api/v1/history/clear",{command_key:"other-window",expected_revision:4});
     await api(server,"/api/v1/candidates/start",controls,409);
-    await page.goto(server.origin);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
-    await page.getByLabel("Candidate controls JSON",{exact:true}).setInputFiles({name:"bad.json",mimeType:"application/json",buffer:Buffer.from('{"PRIVATE_KEY":"DO-NOT-ECHO"}')});await expect(page.getByRole("alert")).toContainText("invalid");await expect(page.locator("body")).not.toContainText("DO-NOT-ECHO");
+    await page.goto(server.origin);await navigate(page,"Analysis","Proposals");await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
+    await prepareUpload(page,"Candidate controls JSON");await page.getByLabel("Candidate controls JSON",{exact:true}).setInputFiles({name:"bad.json",mimeType:"application/json",buffer:Buffer.from('{"PRIVATE_KEY":"DO-NOT-ECHO"}')});await expect(page.getByRole("alert")).toContainText("invalid");await expect(page.locator("body")).not.toContainText("DO-NOT-ECHO");
   }finally{await server.stop();}
 });
 
 test("browser cancellation reaches a saved terminal result without publishing",async({page})=>{
   const server=await runtime({dist});try{
-    await seed(server);await page.goto(server.origin);
+    await seed(server);await page.goto(server.origin);await navigate(page,"Analysis","Proposals");
     await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
-    await page.getByLabel("Candidate controls JSON",{exact:true}).setInputFiles(path.join(folder,"command.json"));
+    await prepareUpload(page,"Candidate controls JSON");await page.getByLabel("Candidate controls JSON",{exact:true}).setInputFiles(path.join(folder,"command.json"));
     await page.getByLabel("I reviewed the saved inputs, costs, funding and bounded search controls").check();
-    await page.getByRole("button",{name:"Calculate exploratory candidate",exact:true}).click();
+    await page.getByRole("button",{name:"Create exploratory proposals",exact:true}).click();
     await page.getByRole("button",{name:"Cancel candidate calculation",exact:true}).click();
-    await expect(page.getByRole("article",{name:"Checked candidate result",exact:true})).toContainText("Outcome: cancelled",{timeout:10000});
+    await expect(page.getByRole("article",{name:"Checked candidate result",exact:true})).toContainText("Calculation cancelled",{timeout:10000});
     const catalog=await api(server,"/api/v1/catalog");const id=catalog.runs.at(-1);
     const state=await api(server,"/api/v1/current");expect(state.current_run_id).not.toBe(id);
     expect((await api(server,`/api/v1/runs/${id}`)).status).toBe("failed");
@@ -194,21 +198,21 @@ test("compare, revise, retry, export and recover dated manual worksheets",async(
   try {
     await seed(source,alias);await api(source,"/api/v1/candidates/start",await load("command.json"));
     await expect.poll(async()=>(await api(source,"/api/v1/runs/candidate")).outputs.outcome,{timeout:30000}).toBe("checked");
-    await page.goto(source.origin);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate",{timeout:10000});
+    await page.goto(source.origin);await navigate(page,"Analysis","Proposals");await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate",{timeout:10000});
     const panel=page.getByRole("region",{name:"Comparison and manual worksheet"});
-    await expect(panel.getByRole("table",{name:"Candidate comparison"})).toContainText("No trade");
-    await expect(panel.getByRole("table",{name:"Candidate comparison"})).toContainText("Candidate 1");
-    await panel.getByRole("button",{name:"Review candidate 1",exact:true}).click({timeout:10000});
+    await expect(panel.getByRole("table",{name:"Candidate comparison"})).toContainText("No changes");
+    await expect(panel.getByRole("table",{name:"Candidate comparison"})).toContainText("Proposal 1");
+    await panel.getByRole("button",{name:"Review proposal 1",exact:true}).click({timeout:10000});
     await panel.getByLabel("Sell shares lot-a",{exact:true}).fill("1");
     await panel.getByLabel("Buy shares security-fbbb",{exact:true}).fill("2");
-    await panel.getByRole("button",{name:"Check revised quantities",exact:true}).click();
+    await panel.getByRole("button",{name:"Check worksheet quantities",exact:true}).click();
     const checks=panel.getByRole("article",{name:"Worksheet final checks",exact:true});
     await expect(checks).toContainText("Refused:");await expect(checks).toContainText("cash");
     await expect(panel.getByRole("button",{name:"Save dated manual worksheet",exact:true})).toBeDisabled();
     await panel.getByLabel("Buy shares security-fbbb",{exact:true}).fill("0");
     await expect(checks).toHaveCount(0);
-    await panel.getByRole("button",{name:"Check revised quantities",exact:true}).click();
+    await panel.getByRole("button",{name:"Check worksheet quantities",exact:true}).click();
     await expect(checks).toContainText("$2.00");await expect(checks).toContainText("$10.00");
     await panel.getByLabel("I confirm no external account changes since this snapshot; after external changes I will import refreshed holdings",{exact:true}).check();
     const bodies=[];let first=true;
@@ -233,9 +237,9 @@ test("compare, revise, retry, export and recover dated manual worksheets",async(
     expect(text).toContain(JSON.stringify(alias));expect(text).toContain('"lot_id": "lot-a"');
     expect(text).toContain('"shares": 1');expect(text).toContain("Financial-use authorization: unavailable");
     expect(text).toContain("refreshed holdings");expect(text).not.toContain("\n<img");
-    await panel.getByRole("button",{name:"Revise saved worksheet quantities",exact:true}).click();
+    await panel.getByRole("button",{name:"Compare and revise",exact:true}).click();await panel.getByRole("button",{name:"Revise saved worksheet quantities",exact:true}).click();
     await panel.getByLabel("Sell shares lot-a",{exact:true}).fill("2");
-    await panel.getByRole("button",{name:"Check revised quantities",exact:true}).click();await expect(checks).toContainText("$4.00");
+    await panel.getByRole("button",{name:"Check worksheet quantities",exact:true}).click();await expect(checks).toContainText("$4.00");
     await panel.getByLabel("I confirm no external account changes since this snapshot; after external changes I will import refreshed holdings",{exact:true}).check();
     await panel.getByRole("button",{name:"Save dated manual worksheet",exact:true}).click();
     await expect.poll(async()=>(await api(source,"/api/v1/catalog")).worksheets.length).toBe(2);
@@ -243,10 +247,10 @@ test("compare, revise, retry, export and recover dated manual worksheets",async(
     expect((await api(source,`/api/v1/worksheets/${secondId}`)).command.parent_id).toBe(id);
     expect(await api(source,`/api/v1/worksheets/${id}`)).toEqual(saved);
     // Native edits create a new candidate run and leave both the old result and worksheet frozen.
-    await page.getByRole("button",{name:"Edit saved candidate controls",exact:true}).click();
+    await navigate(page,"Analysis","Proposals");await page.getByRole("button",{name:"Edit saved candidate controls",exact:true}).click();await reveal(page,"Review or edit prepared proposal controls");
     await page.getByLabel("Maximum modeled cost USD",{exact:true}).fill("0");
     await page.getByLabel("I reviewed the saved inputs, costs, funding and bounded search controls",{exact:true}).check();
-    await page.getByRole("button",{name:"Calculate exploratory candidate",exact:true}).click();
+    await page.getByRole("button",{name:"Create exploratory proposals",exact:true}).click();
     await expect.poll(async()=>{const c=await api(source,"/api/v1/catalog");return c.runs.at(-1);}).not.toBe("candidate");
     const revisedId=(await api(source,"/api/v1/catalog")).runs.at(-1);
     await expect.poll(async()=>(await api(source,`/api/v1/runs/${revisedId}`)).outputs.outcome,{timeout:30000}).toBe("checked");
@@ -256,16 +260,16 @@ test("compare, revise, retry, export and recover dated manual worksheets",async(
     // benchmark targets require 1.25 shares/name. A breached baseline stays a diagnostic.
     const strict=await load("modeled.json");strict.bundle.investor_controls.find(c=>c.name==="tracking_error").value.value="0";
     await api(source,"/api/v1/inputs/diagnostics",{...strict,run_id:"strict-inputs",expected_revision:4,as_of:new Date().toISOString()});
-    await page.getByRole("button",{name:"Edit saved candidate controls",exact:true}).click();
+    await navigate(page,"Analysis","Proposals");await page.getByRole("button",{name:"Edit saved candidate controls",exact:true}).click();await reveal(page,"Review or edit prepared proposal controls");
     await page.getByLabel("Candidate input run ID",{exact:true}).fill("strict-inputs");
     await page.getByLabel("I reviewed the saved inputs, costs, funding and bounded search controls",{exact:true}).check();
-    await page.getByRole("button",{name:"Calculate exploratory candidate",exact:true}).click();
+    await page.getByRole("button",{name:"Create exploratory proposals",exact:true}).click();
     await expect.poll(async()=>(await api(source,"/api/v1/catalog")).runs.at(-1)).not.toBe("strict-inputs");
     const strictId=(await api(source,"/api/v1/catalog")).runs.at(-1);
     await expect.poll(async()=>(await api(source,`/api/v1/runs/${strictId}`)).outputs.outcome,{timeout:30000}).toBe("checked");
-    await expect(panel.getByRole("button",{name:"Review no trade",exact:true})).toBeEnabled();
-    await panel.getByRole("button",{name:"Review no trade",exact:true}).click();
-    await panel.getByRole("button",{name:"Check revised quantities",exact:true}).click();
+    await navigate(page,"Worksheets");await expect(panel.getByRole("button",{name:"Review no changes",exact:true})).toBeEnabled();
+    await panel.getByRole("button",{name:"Review no changes",exact:true}).click();
+    await panel.getByRole("button",{name:"Check worksheet quantities",exact:true}).click();
     await expect(checks).toContainText("Breaches selected limits");await expect(checks).toContainText("no-trade diagnostic");
     await panel.getByLabel("I confirm no external account changes since this snapshot; after external changes I will import refreshed holdings",{exact:true}).check();
     await panel.getByRole("button",{name:"Save dated manual worksheet",exact:true}).click();
@@ -282,13 +286,13 @@ test("compare, revise, retry, export and recover dated manual worksheets",async(
     const token=await source.session();const response=await fetch(source.origin+"/api/v1/backup",{headers:{Origin:source.origin,Authorization:`Bearer ${token}`}});expect(response.ok).toBe(true);
     const targetToken=await target.session();const restored=await fetch(target.origin+"/api/v1/restore",{method:"POST",headers:{Origin:target.origin,Authorization:`Bearer ${targetToken}`,"Content-Type":"application/octet-stream"},body:await response.arrayBuffer()});expect(restored.ok).toBe(true);
     expect(await api(target,`/api/v1/worksheets/${id}`)).toEqual(saved);
-    await page.goto(target.origin);await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
-    await page.getByRole("combobox",{name:"Saved manual worksheet",exact:true}).selectOption(id);
+    await page.goto(target.origin);await navigate(page,"Analysis","Proposals");await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read");
+    await navigate(page,"Worksheets");await reveal(page,"Advanced worksheet lookup");await page.getByRole("combobox",{name:"Saved manual worksheet",exact:true}).selectOption(id);
     await expect(savedView).toContainText("$2.00");
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate",{timeout:10000});
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption("candidate",{timeout:10000});
     await expect(panel).toContainText("Historical candidate:");
-    await expect(panel.getByRole("button",{name:"Review candidate 1",exact:true})).toBeDisabled();
+    await expect(panel.getByRole("button",{name:"Review proposal 1",exact:true})).toBeDisabled();
     await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    await mkdir(path.join(root,".local/t008.1"),{recursive:true});await savedView.screenshot({path:path.join(root,".local/t008.1/worksheet-narrow.png")});
+    await mkdir(path.join(root,".local/t008.1"),{recursive:true});await reveal(page,"Advanced worksheet lookup");await page.getByRole("combobox",{name:"Saved manual worksheet",exact:true}).selectOption(id);await savedView.screenshot({path:path.join(root,".local/t008.1/worksheet-narrow.png")});
   } finally {await source.stop();await target.stop();}
 });

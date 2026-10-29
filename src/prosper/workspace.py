@@ -45,7 +45,7 @@ from prosper.benchmark import (
 )
 from prosper.candidate_workflow import CandidateStart, FrozenCandidate
 from prosper.fidelity_import import normalize
-from prosper.history import Alignment, HistoryRequest
+from prosper.history import Alignment, HistoryBatch, HistoryRequest
 from prosper.history_refresh import align
 from prosper.holdings_mapping import HoldingsMappingRequest
 from prosper.lot_opportunities import ScreeningInputs, evaluate, screening_inputs
@@ -72,6 +72,8 @@ from prosper.modeled_inputs import (
 from prosper.modeled_inputs import (
     union as modeled_union,
 )
+from prosper.modeled_sleeve import project as project_sleeve
+from prosper.modeled_sleeve import review as review_sleeve
 from prosper.risk_inputs import conventions_available
 from prosper.storage import PersistenceError
 
@@ -140,6 +142,15 @@ class Workspace:
         snapshot = self.store.snapshot(str(state["snapshot_id"]))
         settings = cast(dict[str, JsonValue], state["settings"])
         benchmark_id = settings.get("benchmark_run_id")
+        binding = upload.bundle.assembly
+        if binding and (
+            binding.input_revision != state["revision"]
+            or binding.snapshot_id != state["snapshot_id"]
+            or binding.benchmark_run_id != benchmark_id
+        ):
+            raise PersistenceError("stale_revision")
+        if binding and datetime.fromisoformat(binding.prepared_at) > datetime.fromisoformat(as_of):
+            raise PersistenceError("assembly_knowledge_after_analysis")
         benchmark = None
         benchmark_sources = set()
         if isinstance(benchmark_id, str):
@@ -162,7 +173,9 @@ class Workspace:
             lot_settings = None
         ids, _, _ = modeled_union(snapshot, benchmark, upload.bundle)
         request = modeled_history_request(upload.bundle, ids)
-        alignment = self.plan_history(request) if request else None
+        batches = self.store.history_batches(binding.history_batch_ids if binding else None)
+        batches = tuple(b for b in batches if any(c.security_id in ids for c in b.contexts))
+        alignment = self.plan_history(request, batches=batches) if request else None
         evidence = [s.evidence for s in upload.bundle.securities if s.security_id in ids]
         evidence += [m.evidence for m in upload.bundle.marks if m.mark.security_id in ids]
         evidence += [c.evidence for c in upload.bundle.classifications if c.security_id in ids]
@@ -181,17 +194,7 @@ class Workspace:
                     available.add(digest)
                 except PersistenceError:
                     pass
-        frozen = FrozenModeledInputs(
-            bundle=upload.bundle,
-            benchmark=benchmark,
-            benchmark_run_id=str(benchmark_id) if benchmark_id else None,
-            lot_settings=lot_settings,
-            alignment=alignment,
-            available_sources=tuple(sorted(available)),
-            retained_sources=tuple(sorted(available)),
-            benchmark_sources=tuple(sorted(benchmark_sources)),
-        )
-        result = evaluate_inputs(
+        original = evaluate_inputs(
             snapshot,
             benchmark,
             lot_settings,
@@ -201,6 +204,39 @@ class Workspace:
             frozenset(available),
             tuple(sorted(benchmark_sources)),
             int(str(state["revision"])),
+        )
+        sleeve = review_sleeve(
+            snapshot,
+            benchmark,
+            upload.bundle,
+            original,
+            alignment,
+            batches,
+        )
+        retained_alignment = project_sleeve(alignment, sleeve.retained_ids)
+        frozen = FrozenModeledInputs(
+            bundle=upload.bundle,
+            benchmark=benchmark,
+            benchmark_run_id=str(benchmark_id) if benchmark_id else None,
+            lot_settings=lot_settings,
+            alignment=retained_alignment,
+            source_alignment=alignment,
+            sleeve=sleeve,
+            available_sources=tuple(sorted(available)),
+            retained_sources=tuple(sorted(available)),
+            benchmark_sources=tuple(sorted(benchmark_sources)),
+        )
+        result = evaluate_inputs(
+            snapshot,
+            benchmark,
+            lot_settings,
+            upload.bundle,
+            retained_alignment,
+            as_of,
+            frozenset(available),
+            tuple(sorted(benchmark_sources)),
+            int(str(state["revision"])),
+            sleeve,
         )
         return frozen, result
 
@@ -241,6 +277,7 @@ class Workspace:
                 frozenset(frozen.available_sources),
                 frozen.benchmark_sources,
                 saved.input_revision,
+                frozen.sleeve,
             )
         else:
             frozen, result = self._prepare_inputs(command, command.as_of)
@@ -658,8 +695,11 @@ class Workspace:
 
         return preview(self.store, manifest)
 
-    def plan_history(self, request: HistoryRequest) -> Alignment:
-        batches = self.store.history_batches()
+    def plan_history(
+        self, request: HistoryRequest, *, batches: tuple[HistoryBatch, ...] | None = None
+    ) -> Alignment:
+        if batches is None:
+            batches = self.store.history_batches()
         unavailable = set()
         with self.store._connection() as connection:
             for batch in batches:

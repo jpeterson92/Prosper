@@ -4,7 +4,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from prosper import covariance, volatility
 from prosper.advisory import decimal_value
@@ -26,7 +26,7 @@ from prosper.candidate_records import (
 )
 from prosper.candidate_reference import search
 from prosper.innovations import fingerprint
-from prosper.modeled_inputs import FrozenModeledInputs, InvestorControl, ModeledResult
+from prosper.modeled_inputs import FrozenModeledInputs, InvestorControl, ModeledResult, union
 from prosper.record_types import Identifier, Text, Timestamp
 from prosper.risk_inputs import assemble
 from prosper.risk_qualification import profile_issues
@@ -77,6 +77,17 @@ class FrozenCandidate(Record):
     snapshot: ImportSnapshot
     retained_snapshots: tuple[ImportSnapshot, ...]
     required_sources: tuple[Digest, ...]
+
+    @model_validator(mode="after")
+    def sleeve_links(self) -> "FrozenCandidate":
+        ids, _, _ = union(self.snapshot, self.modeled.benchmark, self.modeled.bundle)
+        if (
+            ids != tuple(d.security_id for d in self.modeled.sleeve.decisions)
+            or self.coverage.sleeve != self.modeled.sleeve
+            or self.coverage.security_ids != self.modeled.sleeve.retained_ids
+        ):
+            raise ValueError("candidate_history_sleeve_links_invalid")
+        return self
 
 
 class CandidateOutput(Record):
@@ -147,7 +158,9 @@ def check_output_links(frozen: FrozenCandidate, output: CandidateOutput) -> None
         or request.settings != settings
         or request.limits != limits(frozen)
         or request.risk.security_ids != frozen.coverage.security_ids
-        or request.risk.benchmark_ids != model.benchmark.security_ids
+        or request.risk.benchmark_ids
+        != tuple(s for s in model.benchmark.security_ids if s not in model.sleeve.excluded_ids)
+        or request.history_excluded_ids != tuple(sorted(model.sleeve.excluded_ids))
         or request.risk.benchmark_weights
         != tuple(m.benchmark_weight or 0.0 for m in frozen.coverage.members)
         or request.risk.as_of != model.alignment.request.cutoff
@@ -239,7 +252,15 @@ def prepare(frozen: FrozenCandidate) -> tuple[CandidateRequest | None, tuple[str
     ):
         issues.append("analysis_date_after_run")
     ids = frozen.coverage.security_ids
-    dated_weights = weights_at(model.benchmark, model.alignment, model.bundle.analysis_date)
+    retained_benchmark = tuple(
+        s for s in model.benchmark.security_ids if s not in model.sleeve.excluded_ids
+    )
+    dated_weights = weights_at(
+        model.benchmark,
+        model.alignment,
+        model.bundle.analysis_date,
+        retained_ids=retained_benchmark,
+    )
     issues.extend(f"{i.locator}:{i.code}" for i in dated_weights.issues)
     if dated_weights.weights is None or any(
         member.benchmark_weight != dated_weights.weights.get(member.security_id, 0.0)
@@ -253,7 +274,10 @@ def prepare(frozen: FrozenCandidate) -> tuple[CandidateRequest | None, tuple[str
         or len(frozen.command.controls.sale_bounds) + len(frozen.command.controls.buy_bounds) > 16
     ):
         issues.append("tiny_reference_capacity_unavailable_full_union_retained")
-    if set(frozen.command.controls.buy_bounds) != set(model.bundle.candidate_security_ids):
+    if (
+        set(frozen.command.controls.buy_bounds)
+        != set(model.bundle.candidate_security_ids) - model.sleeve.excluded_ids
+    ):
         issues.append("candidate_buy_domain_mismatch")
     if issues:
         return None, tuple(issues)
@@ -291,11 +315,12 @@ def prepare(frozen: FrozenCandidate) -> tuple[CandidateRequest | None, tuple[str
         max_candidates=frozen.command.controls.max_candidates,
         snapshot=frozen.snapshot,
         retained_snapshots=frozen.retained_snapshots,
+        history_excluded_ids=tuple(sorted(model.sleeve.excluded_ids)),
         assets=assets,
         settings=settings,
         risk=RiskInput(
             security_ids=ids,
-            benchmark_ids=model.benchmark.security_ids,
+            benchmark_ids=retained_benchmark,
             benchmark_weights=tuple(m.benchmark_weight or 0.0 for m in frozen.coverage.members),
             annual_covariance=tuple(tuple(0.0 for _ in ids) for _ in ids),
             units="annualized-simple-return-covariance",
@@ -382,7 +407,16 @@ def calculate(
             search=result,
         )
     dated_weights = weights_at(
-        frozen.modeled.benchmark, frozen.modeled.alignment, frozen.modeled.bundle.analysis_date
+        frozen.modeled.benchmark,
+        frozen.modeled.alignment,
+        frozen.modeled.bundle.analysis_date,
+        retained_ids=tuple(
+            s
+            for s in frozen.modeled.benchmark.security_ids
+            if s not in frozen.modeled.sleeve.excluded_ids
+        )
+        if frozen.modeled.benchmark
+        else (),
     )
     return CandidateOutput(
         outcome="checked",
@@ -390,5 +424,6 @@ def calculate(
         risk=risk,
         search=result,
         warnings=CandidateOutput.model_fields["warnings"].default
-        + ((dated_weights.warning,) if dated_weights.warning else ()),
+        + ((dated_weights.warning,) if dated_weights.warning else ())
+        + frozen.modeled.sleeve.warnings,
     )

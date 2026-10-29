@@ -135,7 +135,20 @@ def input_issues(request: CandidateRequest) -> tuple[str, ...]:
         if s.classification.value in (None, "us-domestic-common-equity")
         and s.id not in snapshot.cash_security_ids
         and s.id not in snapshot.excluded_stock_ids
+        and s.id not in request.history_excluded_ids
     }
+    if len(set(request.history_excluded_ids)) != len(request.history_excluded_ids) or set(
+        request.history_excluded_ids
+    ) & set(ids):
+        issues.append("history_sleeve_membership_invalid")
+    if set(request.buy_bounds) & set(request.history_excluded_ids):
+        issues.append("history_excluded_purchase")
+    if any(
+        request.sale_bounds.get(lot.id, 0)
+        for lot in snapshot.lots
+        if lot.security_id in request.history_excluded_ids
+    ):
+        issues.append("history_excluded_sale")
     rows: tuple[Lot | Position, ...] = (*snapshot.lots, *snapshot.positions)
     held = {r.security_id for r in rows} & included
     if not held <= set(ids):

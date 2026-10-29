@@ -1,3 +1,5 @@
+import { dismissDetails, navigate, reveal, advancedImport, savedRecords, historyTools, workspaceTools, prepareUpload, sourceDetails } from "../tools/workspace.mjs";
+test.beforeEach(({page})=>page.setDefaultTimeout(10000));
 import { test, expect } from "@playwright/test";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -13,11 +15,11 @@ const form=page=>page.getByRole("region",{name:"Prepare benchmark review",exact:
 const result=page=>page.getByRole("article",{name:"Benchmark proxy review",exact:true});
 const status=page=>page.getByRole("status",{name:"Workspace status"});
 async function api(server,route,body) {const token=await server.session();const r=await fetch(server.origin+route,{method:body?"POST":"GET",headers:{Origin:server.origin,Authorization:`Bearer ${token}`,...(body?{"Content-Type":"application/json"}:{})},body:body?JSON.stringify(body):undefined});expect(r.ok).toBe(true);return r.json();}
-async function open(page,server,id) {await page.goto(server.origin);await expect(status(page)).toContainText("Workspace read");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(id);await expect(form(page).getByRole("button",{name:"Preview prepared benchmark review",exact:true})).toBeVisible();}
+async function open(page,server,id) {await page.goto(server.origin);await navigate(page,"Analysis","Benchmark");await expect(status(page)).toContainText("Workspace read");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(id);await expect(form(page).getByRole("button",{name:"Preview prepared benchmark review",exact:true})).toBeVisible();}
 async function metadata(page,review=mapping) {
   const view=form(page);const ev=review.stipulation.fund_assertion;
   if(!await view.getByLabel("Fund metadata file (up to 4 MiB)",{exact:true}).isVisible())await view.getByText("Advanced fund metadata",{exact:true}).click();
-  await view.getByLabel("Fund metadata file (up to 4 MiB)",{exact:true}).setInputFiles({name:"fictional-metadata.txt",mimeType:"text/plain",buffer:Buffer.from(review.metadata_base64,"base64")});
+  await prepareUpload(view,"Fund metadata file (up to 4 MiB)");await view.getByLabel("Fund metadata file (up to 4 MiB)",{exact:true}).setInputFiles({name:"fictional-metadata.txt",mimeType:"text/plain",buffer:Buffer.from(review.metadata_base64,"base64")});
   for(const [label,value] of [["Metadata fund ticker",review.metadata_ticker],["Metadata portfolio ID",review.metadata_port_id],["Metadata fund CUSIP",review.metadata_cusip]])await view.getByRole("combobox",{name:label,exact:true}).selectOption(value);
   await view.getByLabel("Metadata holdings date",{exact:true}).fill(review.metadata_as_of);
   const evidence=view.getByRole("group",{name:"Fund identity evidence",exact:true});
@@ -69,13 +71,13 @@ test("form creates a source-bound reviewed benchmark without review JSON and pre
     expect((await api(server,"/api/v1/current")).settings.benchmark_run_id).toBeUndefined();
     await page.getByLabel("I reviewed fund identity, reporting date, row accounting and exclusions",{exact:true}).check();
     await page.getByRole("button",{name:"Save reviewed benchmark result",exact:true}).click();await expect(status(page)).toContainText("benchmark result saved");
-    await page.getByRole("button",{name:"Select this reviewed benchmark",exact:true}).click();await expect(status(page)).toContainText("revision 2");
+    await navigate(page,"Analysis","Benchmark");await page.getByRole("button",{name:"Select this reviewed benchmark",exact:true}).click();await expect(status(page)).toContainText("revision 2");
     const current=await api(server,"/api/v1/current");const saved=await api(server,`/api/v1/runs/${current.settings.benchmark_run_id}`);
     expect(saved.outputs.equity_value_total).toBe("90000.0");expect(saved.outputs.weights[0]).toBeCloseTo(2/3,14);expect(saved.outputs.weights[1]).toBeCloseTo(1/3,14);expect(saved.outputs.ledger[1].raw_percentage).toBeNull();
-    const download=page.waitForEvent("download");await page.getByRole("button",{name:"Download workspace backup",exact:true}).click();const bytes=await readFile(await (await download).path());
-    await page.goto(target.origin);await expect(status(page)).toContainText("Workspace read");await page.getByLabel("Current workspace backup (up to 64 MiB)",{exact:true}).setInputFiles({name:"workspace.sqlite3",mimeType:"application/octet-stream",buffer:bytes});
+    const download=page.waitForEvent("download");await navigate(page,"Settings");await page.getByRole("button",{name:"Download workspace backup",exact:true}).click();const bytes=await readFile(await (await download).path());
+    await page.goto(target.origin);await navigate(page,"Analysis","Benchmark");await expect(status(page)).toContainText("Workspace read");await prepareUpload(page,"Current workspace backup (up to 64 MiB)");await page.getByLabel("Current workspace backup (up to 64 MiB)",{exact:true}).setInputFiles({name:"workspace.sqlite3",mimeType:"application/octet-stream",buffer:bytes});
     await page.getByRole("button",{name:"Restore into empty workspace",exact:true}).click();await expect(status(page)).toContainText("restored");expect(await api(target,`/api/v1/runs/${saved.id}`)).toEqual(saved);
-    await page.reload();await expect(status(page)).toContainText("Workspace read");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(csv.request.observation_id);
+    await page.reload();await navigate(page,"Analysis","Benchmark");await expect(status(page)).toContainText("Workspace read");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(csv.request.observation_id);
     await expect(form(page).getByRole("combobox",{name:"Metadata fund ticker",exact:true,includeHidden:true})).toHaveValue("");
     await mkdir(path.join(root,".local/mvp13"),{recursive:true});await form(page).screenshot({path:path.join(root,".local/mvp13/review-form.png")});
     await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -104,7 +106,7 @@ test("failed or superseded review-context reads never supply an empty or wrong d
   const server=await runtime({dist});let release=()=>{};try {
     await api(server,"/api/v1/benchmarks/import",csv);await api(server,"/api/v1/benchmarks/import",vanguard);
     await page.route("**/api/v1/benchmarks/review-context",route=>route.abort());
-    await page.goto(server.origin);await expect(status(page)).toContainText("Workspace read");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(csv.request.observation_id);
+    await page.goto(server.origin);await navigate(page,"Analysis","Benchmark");await expect(status(page)).toContainText("Workspace read");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(csv.request.observation_id);
     await expect(form(page).getByRole("alert")).toContainText("No empty source is assumed");await expect(form(page).getByRole("button",{name:"Preview prepared benchmark review",exact:true})).toHaveCount(0);
     await page.unroute("**/api/v1/benchmarks/review-context");await form(page).getByRole("button",{name:"Retry review preparation",exact:true}).click();await expect(form(page)).toContainText("6 retained rows; 6 prepared or edited");
     let started;const waiting=new Promise(resolve=>started=resolve);const gate=new Promise(resolve=>release=resolve);
@@ -164,11 +166,11 @@ test("official metadata and proxy cash prepare without manual fields and survive
     await expect(view.getByLabel("I reviewed this metadata file for the declared fund identity and holdings date",{exact:true})).not.toBeChecked();
     await preview(page);await expect(result(page)).toContainText("estimated-equity-benchmark");
     await page.getByText("Supplied review decisions and evidence",{exact:true}).click();const download=page.waitForEvent("download");await page.getByRole("button",{name:"Download supplied fund metadata",exact:true}).click();expect(await readFile(await (await download).path())).toEqual(raw);
-    await page.getByLabel("I reviewed fund identity, reporting date, row accounting and exclusions",{exact:true}).check();await page.getByRole("button",{name:"Save reviewed benchmark result",exact:true}).click();await expect(status(page)).toContainText("benchmark result saved");await page.getByRole("button",{name:"Select this reviewed benchmark",exact:true}).click();await expect(status(page)).toContainText("revision 2");
+    await page.getByLabel("I reviewed fund identity, reporting date, row accounting and exclusions",{exact:true}).check();await page.getByRole("button",{name:"Save reviewed benchmark result",exact:true}).click();await expect(status(page)).toContainText("benchmark result saved");await navigate(page,"Analysis","Benchmark");await page.getByRole("button",{name:"Select this reviewed benchmark",exact:true}).click();await expect(status(page)).toContainText("revision 2");
     const current=await api(server,"/api/v1/current");const saved=await api(server,`/api/v1/runs/${current.settings.benchmark_run_id}`);expect(saved.outputs.equity_value_total).toBe("90000.0");
-    const backup=page.waitForEvent("download");await page.getByRole("button",{name:"Download workspace backup",exact:true}).click();const bytes=await readFile(await (await backup).path());
-    await page.goto(target.origin);await expect(status(page)).toContainText("Workspace read");await page.getByLabel("Current workspace backup (up to 64 MiB)",{exact:true}).setInputFiles({name:"workspace.sqlite3",mimeType:"application/octet-stream",buffer:bytes});await page.getByRole("button",{name:"Restore into empty workspace",exact:true}).click();await expect(status(page)).toContainText("restored");
-    await page.unroute("**/api/v1/benchmarks/prepare");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(csv.request.observation_id);await expect(form(page).getByRole("region",{name:"Official fund preparation",exact:true})).toContainText("Automatically checked: IVV");expect(await api(target,`/api/v1/runs/${saved.id}`)).toEqual(saved);
+    const backup=page.waitForEvent("download");await navigate(page,"Settings");await page.getByRole("button",{name:"Download workspace backup",exact:true}).click();const bytes=await readFile(await (await backup).path());
+    await page.goto(target.origin);await navigate(page,"Analysis","Benchmark");await expect(status(page)).toContainText("Workspace read");await prepareUpload(page,"Current workspace backup (up to 64 MiB)");await page.getByLabel("Current workspace backup (up to 64 MiB)",{exact:true}).setInputFiles({name:"workspace.sqlite3",mimeType:"application/octet-stream",buffer:bytes});await page.getByRole("button",{name:"Restore into empty workspace",exact:true}).click();await expect(status(page)).toContainText("restored");
+    await page.unroute("**/api/v1/benchmarks/prepare");await navigate(page,"Analysis","Benchmark");await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(csv.request.observation_id);await expect(form(page).getByRole("region",{name:"Official fund preparation",exact:true})).toContainText("Automatically checked: IVV");expect(await api(target,`/api/v1/runs/${saved.id}`)).toEqual(saved);
     await preview(page);await expect(result(page)).toContainText("estimated-equity-benchmark");
     await mkdir(path.join(root,".local/mvp18"),{recursive:true});await form(page).getByRole("region",{name:"Official fund preparation",exact:true}).screenshot({path:path.join(root,".local/mvp18/fictional-preparation.png")});
     await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

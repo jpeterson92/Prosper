@@ -2,7 +2,11 @@ name: Development checks
 
 on:
   push:
+    paths-ignore:
+      - 'research/**'
   pull_request:
+    paths-ignore:
+      - 'research/**'
   workflow_dispatch:
 
 permissions:

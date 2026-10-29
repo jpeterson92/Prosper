@@ -255,6 +255,8 @@ class _RequestBoundary:
                 "/api/v1/history/parts",
                 "/api/v1/history/rows",
                 "/api/v1/inputs/preview",
+                "/api/v1/inputs/prepare",
+                "/api/v1/inputs/risk-preset",
                 "/api/v1/inputs/diagnostics",
             )
             else MAX_BODY_BYTES

@@ -1,3 +1,5 @@
+import { dismissDetails, navigate, reveal, advancedImport, savedRecords, historyTools, workspaceTools, prepareUpload, sourceDetails } from "../tools/workspace.mjs";
+test.beforeEach(({page})=>page.setDefaultTimeout(10000));
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -7,7 +9,7 @@ const dist = path.join(root, "frontend/dist");
 const fixture = JSON.parse(await readFile(path.join(root, "examples/synthetic/benchmark/current-observation.json")));
 const csv = JSON.parse(await readFile(path.join(root, "examples/synthetic/blackrock/current-observation.json")));
 const region = page => page.getByRole("region", {name:"Retained source diagnostics", exact:true});
-async function open(page, server) { await page.goto(server.origin); await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read"); }
+async function open(page, server) { await page.goto(server.origin);await navigate(page,"Analysis","Benchmark"); await expect(page.getByRole("status",{name:"Workspace status"})).toContainText("Workspace read"); }
 async function post(server, body) {
   const token=await server.session();
   const response=await fetch(server.origin+"/api/v1/benchmarks/import",{method:"POST",headers:{Origin:server.origin,Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(body)});
@@ -15,7 +17,7 @@ async function post(server, body) {
 }
 async function inspect(page, identity) {
   await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption(identity);
-  await expect(region(page).getByRole("status")).toContainText("matching source rows");
+  await reveal(page,"View source holdings");await expect(region(page).getByRole("status")).toContainText("matching source rows");
   await expect(page.getByRole("combobox",{name:"Retained benchmark observation",exact:true})).toHaveValue(identity);
 }
 async function apply(page) { await region(page).getByRole("button",{name:"Apply source filters",exact:true}).click(); }
@@ -68,7 +70,7 @@ test("source pages, unavailable observations and failed reads cannot display sta
     many.source_base64=Buffer.from(JSON.stringify(source)).toString("base64");await post(server,many);
     const failed=structuredClone(fixture);failed.request.observation_id="unavailable";failed.http_status=404;await post(server,failed);
     await open(page,server);await inspect(page,"many-rows");
-    await expect(region(page).getByRole("status")).toContainText("showing 1\u201350");
+    await reveal(page,"View source holdings");await expect(region(page).getByRole("status")).toContainText("showing 1\u201350");
     await region(page).getByRole("button",{name:"Next source rows",exact:true}).click();await expect(region(page).getByRole("status")).toContainText("showing 51\u2013100");
     await region(page).getByRole("button",{name:"Next source rows",exact:true}).click();await expect(region(page).getByRole("status")).toContainText("showing 101\u2013123");
     await expect(region(page).getByRole("button",{name:"Next source rows",exact:true})).toBeDisabled();
@@ -83,7 +85,7 @@ test("source pages, unavailable observations and failed reads cannot display sta
     await page.unroute("**/api/v1/benchmarks/rows");await page.route("**/api/v1/benchmarks/rows",route=>route.abort());
     await page.getByRole("combobox",{name:"Retained benchmark observation",exact:true}).selectOption("many-rows");await expect(region(page).getByRole("alert")).toContainText("No empty source is assumed");
     await page.unroute("**/api/v1/benchmarks/rows");await region(page).getByRole("button",{name:"Retry source inspection",exact:true}).click();
-    await expect(region(page).getByRole("status")).toContainText("123 matching source rows");
+    await reveal(page,"View source holdings");await expect(region(page).getByRole("status")).toContainText("123 matching source rows");
   } finally {await server.stop();}
 });
 
@@ -96,7 +98,7 @@ test("failed observation switch keeps the displayed source and picker consistent
     await page.route(route,request=>request.abort());await picker.selectOption(csv.request.observation_id);
     await expect(page.getByRole("region",{name:"Standard benchmark",exact:true}).getByRole("alert")).toContainText("Benchmark request failed");
     await expect(picker).toHaveValue(fixture.request.observation_id);
-    await expect(region(page).getByRole("status")).toContainText("8 matching source rows of 8");
+    await reveal(page,"View source holdings");await expect(region(page).getByRole("status")).toContainText("8 matching source rows of 8");
     await page.unroute(route);await inspect(page,csv.request.observation_id);
     await expect(region(page)).toContainText("csv:record:0:lines:6-7");
   } finally {await server.stop();}

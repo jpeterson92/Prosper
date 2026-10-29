@@ -12,7 +12,13 @@ from prosper.advisory_recovery import backup, restore
 from prosper.advisory_store import DATABASE_NAME, AdvisoryStore
 from prosper.api_contracts import HistoryUpload, LotSettingsRequest, Upload
 from prosper.benchmark import BenchmarkDiagnostic, BenchmarkImport, BenchmarkReview
-from prosper.modeled_inputs import ModeledDiagnostic, ModeledUpload
+from prosper.modeled_inputs import (
+    InputProfile,
+    ModeledDiagnostic,
+    ModeledUpload,
+    RiskPresetRequest,
+    prepare_risk_preset,
+)
 from prosper.storage import PersistenceError, RuntimeBoundary
 from prosper.workspace import Workspace
 
@@ -77,6 +83,104 @@ def command(
             }
         )
     )
+
+
+def test_standard_r1_preserves_facts_and_blocks_short_history(tmp_path: Path) -> None:
+    original = upload()
+    prepared = prepare_risk_preset(RiskPresetRequest(upload=original))
+    profile = prepared.bundle.profile
+    assert profile.preset and profile.preset.identity == "standard-r1-v1"
+    assert profile.preset.overrides == {}
+    assert profile.model and profile.model.model_dump() == {
+        "identity": "R1",
+        "f": "0.25",
+        "a3": "0.17",
+        "kappa": "10000",
+    }
+    assert (profile.lookback_sessions, profile.minimum_history_sessions) == (1260, 1260)
+    assert (profile.horizon_sessions, profile.annualization_sessions) == (21, 252)
+    assert profile.require_full_window_validation
+    # Every source fact/calendar/cutoff/session/limit is identical. Only declared
+    # estimator settings (including their matching history profile) are prepared.
+    assert prepared.sources == original.sources
+    assert prepared.bundle.model_dump(exclude={"profile", "history"}) == original.bundle.model_dump(
+        exclude={"profile", "history"}
+    )
+    assert prepared.bundle.history.model_dump(
+        exclude={"profile"}
+    ) == original.bundle.history.model_dump(exclude={"profile"})
+    for key in (
+        "max_mark_age_days",
+        "max_snapshot_age_days",
+        "max_benchmark_age_days",
+        "max_history_age_days",
+        "maximum_universe_size",
+        "short_history_policy",
+    ):
+        assert getattr(profile, key) == getattr(original.bundle.profile, key)
+    workspace = service(tmp_path / "runtime")
+    seed(workspace)
+    result = workspace.preview_inputs(prepared)
+    assert "history_length_mismatch" in {issue.code for issue in result.issues}
+    assert len(result.sessions) == 3 and len(result.security_ids) == 5
+    assert not result.software_inputs_complete and not result.risk_available
+
+
+@pytest.mark.parametrize("overrides", [{}, {"horizon_sessions": 1}, {"horizon_sessions": 21}])
+def test_preset_and_explicit_overrides_survive_retry_reopen_recovery(
+    tmp_path: Path, overrides: dict[str, int]
+) -> None:
+    prepared = prepare_risk_preset(
+        RiskPresetRequest.model_validate_json(
+            json.dumps({"upload": upload().model_dump(mode="json"), "overrides": overrides})
+        )
+    )
+    workspace = service(tmp_path / "runtime")
+    seed(workspace)
+    request = command(prepared)
+    saved = workspace.diagnose_inputs(request)
+    assert workspace.diagnose_inputs(request) == saved
+    frozen = workspace.store.modeled_inputs(saved.inputs["modeled_inputs"])
+    assert frozen.bundle.profile == prepared.bundle.profile
+    assert frozen.bundle.profile.preset and frozen.bundle.profile.preset.overrides == overrides
+    assert service(tmp_path / "runtime").store.run(saved.id) == saved
+    target = service(tmp_path / "restored")
+    restore(target.store, backup(workspace.store))
+    assert target.store.run(saved.id) == saved
+    assert (
+        target.store.modeled_inputs(saved.inputs["modeled_inputs"]).bundle.profile
+        == prepared.bundle.profile
+    )
+    document = prepared.bundle.profile.model_dump(mode="json")
+    document["horizon_sessions"] = 7
+    with pytest.raises(ValueError, match="risk_preset_effective_settings_mismatch"):
+        InputProfile.model_validate_json(json.dumps(document))
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"horizon_sessions": 0},
+        {"horizon_sessions": "1"},
+        {"horizon_sessions": True},
+        {"model": None},
+        {"lookback_sessions": None},
+        {"tracking_error": "1"},
+        {"require_full_window_validation": "false"},
+    ],
+)
+def test_invalid_risk_overrides_are_refused(overrides: dict[str, object]) -> None:
+    with pytest.raises(ValueError):
+        RiskPresetRequest.model_validate_json(
+            json.dumps({"upload": upload().model_dump(mode="json"), "overrides": overrides})
+        )
+
+
+def test_preset_refuses_contradictory_history_profile() -> None:
+    document = upload().model_dump(mode="json")
+    document["bundle"]["history"]["profile"]["f"] = "0.5"
+    with pytest.raises(ValueError, match="model_profile_missing_or_mismatch"):
+        prepare_risk_preset(RiskPresetRequest.model_validate_json(json.dumps({"upload": document})))
 
 
 def test_complete_union_order_values_and_saved_original_input_recovery(tmp_path: Path) -> None:

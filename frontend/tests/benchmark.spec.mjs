@@ -1,3 +1,5 @@
+import { dismissDetails, navigate, reveal, advancedImport, savedRecords, historyTools, workspaceTools, prepareUpload, sourceDetails } from "../tools/workspace.mjs";
+test.beforeEach(({page})=>page.setDefaultTimeout(10000));
 import { test, expect } from "@playwright/test";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -8,13 +10,13 @@ const holdings = await readFile(path.join(root, "examples/synthetic/advisory-wor
 const observation = await readFile(path.join(root, "examples/synthetic/benchmark/current-observation.json"));
 const review = await readFile(path.join(root, "examples/synthetic/benchmark/current-review.json"));
 const status = page => page.getByRole("status", { name: "Workspace status" });
-async function open(page, server) { await page.goto(server.origin); await expect(status(page)).toContainText("Workspace read"); }
-async function upload(page, label, buffer) { await expect(page.getByLabel(label, {exact:true})).toBeEnabled(); await page.getByLabel(label, {exact:true}).setInputFiles({ name:"fictional.json", mimeType:"application/json", buffer }); }
+async function open(page, server) { await page.goto(server.origin);await navigate(page,"Analysis","Benchmark"); await expect(status(page)).toContainText("Workspace read"); }
+async function upload(page, label, buffer) { await prepareUpload(page,label); await expect(page.getByLabel(label, {exact:true})).toBeEnabled(); await page.getByLabel(label, {exact:true}).setInputFiles({ name:"fictional.json", mimeType:"application/json", buffer }); }
 async function seed(page) {
   await upload(page, "Normalized snapshot JSON file (up to 2 MiB)", holdings);
   await page.getByRole("button", {name:"Stage preview",exact:true}).click(); await expect(status(page)).toContainText("Preview staged");
   await page.getByLabel("I reviewed this snapshot and its unknowns").check(); await page.getByRole("button", {name:"Select reviewed snapshot"}).click(); await expect(status(page)).toContainText("revision 1");
-  await page.getByText("Import saved benchmark response", {exact:true}).click(); await upload(page,"Saved benchmark response JSON",observation);
+  await navigate(page,"Analysis","Benchmark");await page.getByText("Import saved benchmark response", {exact:true}).click(); await upload(page,"Saved benchmark response JSON",observation);
   await expect(page.getByRole("article",{name:"Benchmark observation"})).toContainText("2000-01-03");
   await expect(page.getByRole("combobox",{name:"Retained benchmark observation",exact:true})).toHaveValue(JSON.parse(observation).request.observation_id);
   await upload(page,"Reviewed benchmark mapping and metadata JSON",review);
@@ -29,15 +31,15 @@ test("explicit benchmark review, selection, restart and recovery preserve origin
     await open(page,source); await expect(page.getByRole("button",{name:"Fetch full holdings"})).toBeDisabled(); await seed(page);
     await page.getByRole("button",{name:"Read original benchmark response"}).click(); await expect(page.getByText("Original retained response",{exact:true})).toBeVisible();
     const before=await api(source,"/api/v1/current"); expect(before.settings.benchmark_run_id).toBeUndefined();
-    await save(page); await page.getByRole("button",{name:"Select this reviewed benchmark"}).click(); await expect(status(page)).toContainText("revision 2");
+    await save(page); await navigate(page,"Analysis","Benchmark");await page.getByRole("button",{name:"Select this reviewed benchmark"}).click(); await expect(status(page)).toContainText("revision 2");
     const current=await api(source,"/api/v1/current"); const saved=await api(source,`/api/v1/runs/${current.settings.benchmark_run_id}`);
     expect(saved.outputs.weights[0]).toBeCloseTo(2/3,14); expect(saved.outputs.weights[1]).toBeCloseTo(1/3,14); expect(saved.outputs.ledger[1].raw_percentage).toBe(""); expect(saved.outputs.ledger).toHaveLength(8);
-    await page.reload(); await expect(status(page)).toContainText("Workspace read"); await expect(page.getByRole("region",{name:"Standard benchmark"})).toContainText(current.settings.benchmark_run_id);
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(current.settings.benchmark_run_id);
-    const downloadEvent=page.waitForEvent("download"); await page.getByRole("button",{name:"Download workspace backup"}).click(); const download=await downloadEvent; const bytes=await readFile(await download.path());
+    await page.reload();await navigate(page,"Analysis","Benchmark"); await expect(status(page)).toContainText("Workspace read"); await expect(page.getByRole("region",{name:"Standard benchmark"})).toContainText("Selected: VTI - holdings 2000-01-03");
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(current.settings.benchmark_run_id);
+    const downloadEvent=page.waitForEvent("download"); await navigate(page,"Settings");await page.getByRole("button",{name:"Download workspace backup"}).click(); const download=await downloadEvent; const bytes=await readFile(await download.path());
     await open(page,target); await upload(page,"Current workspace backup (up to 64 MiB)",bytes); await page.getByRole("button",{name:"Restore into empty workspace"}).click(); await expect(status(page)).toContainText("restored");
     expect(await api(target,`/api/v1/runs/${saved.id}`)).toEqual(saved);
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(saved.id); await expect(page.getByRole("button",{name:"Select this reviewed benchmark"})).toBeEnabled();
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(saved.id); await navigate(page,"Analysis","Benchmark");await expect(page.getByRole("button",{name:"Select this reviewed benchmark"})).toBeEnabled();
     await mkdir(path.join(root,".local/t006.1.8.3"),{recursive:true}); await page.getByRole("region",{name:"Standard benchmark"}).screenshot({path:path.join(root,".local/t006.1.8.3/benchmark-desktop.png")});
     await page.setViewportSize({width:390,height:844}); expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true); await page.getByRole("region",{name:"Standard benchmark"}).screenshot({path:path.join(root,".local/t006.1.8.3/benchmark-narrow.png")});
   } finally { await source.stop(); await target.stop(); }
@@ -101,13 +103,13 @@ test("iShares defaults to explicit fund choice and CSV review survives save and 
     await upload(page,"Reviewed benchmark mapping and metadata JSON",Buffer.from(JSON.stringify(mapping)));
     await expect(page.getByRole("article",{name:"Benchmark proxy review",exact:true})).toContainText("6 source rows; 2 included equities; 4 excluded");
     expect((await api(server,"/api/v1/current")).settings.benchmark_run_id).toBeUndefined();
-    await save(page);await page.getByRole("button",{name:"Select this reviewed benchmark",exact:true}).click();await expect(status(page)).toContainText("revision 2");
+    await save(page);await navigate(page,"Analysis","Benchmark");await page.getByRole("button",{name:"Select this reviewed benchmark",exact:true}).click();await expect(status(page)).toContainText("revision 2");
     const state=await api(server,"/api/v1/current");const saved=await api(server,`/api/v1/runs/${state.settings.benchmark_run_id}`);
-    await page.reload();await expect(status(page)).toContainText("Workspace read");
-    await expect(page.getByRole("region",{name:"Standard benchmark",exact:true})).toContainText(saved.id);
+    await page.reload();await navigate(page,"Analysis","Benchmark");await expect(status(page)).toContainText("Workspace read");
+    await expect(page.getByRole("region",{name:"Standard benchmark",exact:true})).toContainText("Selected: IVV - holdings 2026-10-20");
     expect(await api(server,`/api/v1/runs/${saved.id}`)).toEqual(saved);
-    await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(saved.id);
-    await expect(page.getByRole("article",{name:"Benchmark proxy review",exact:true})).toContainText("6 source rows; 2 included equities; 4 excluded");
+    await savedRecords(page);await page.getByRole("combobox",{name:"Saved diagnostic",exact:true}).selectOption(saved.id);
+    await navigate(page,"Analysis","Benchmark");await expect(page.getByRole("article",{name:"Benchmark proxy review",exact:true})).toContainText("6 source rows; 2 included equities; 4 excluded");
   } finally {await server.stop();}
 });
 

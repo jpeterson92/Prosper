@@ -26,6 +26,14 @@ Given your holdings, tax lots and benchmark, it compares potential trades by est
 
 ## A look inside
 
+### A local investment workspace
+
+Move between Overview, Holdings, Analysis and Worksheets without losing your in-session drafts. The next action reflects the current saved inputs. Light, dark and system appearance use the same interface.
+
+![Prosper Overview with a current input review and an explicit next action, using fictional holdings.](docs/assets/investor-overview.png)
+
+<sub>Actual application UI with fictional source records. Navigation and appearance changes do not calculate or save financial inputs.</sub>
+
 ### Compare proposals
 
 See how each proposal changes estimated losses, cash and risk relative to keeping your current holdings.
@@ -34,13 +42,13 @@ See how each proposal changes estimated losses, cash and risk relative to keepin
 
 <sub>Actual application UI with fictional holdings and illustrative settings. Risk and loss figures are unqualified estimates; the example is not an investment recommendation.</sub>
 
-### Adjust quantities and save a worksheet
+### Save and reopen a dated worksheet
 
-Change the proposed share quantities and run the checks again. The saved worksheet includes the trades, estimates, assumptions, dates and warnings.
+Change the proposed share quantities and run the checks again. Compare/revise and saved-worksheet views keep editing separate from the dated result. Saved work retains its original trades, estimates, assumptions, dates and warnings; export does not recalculate it.
 
-![Actual final-check panel for a revised worksheet, using the same fictional portfolio.](docs/assets/worksheet-checks.png)
+![Actual saved worksheet component, using the same fictional portfolio.](docs/assets/worksheet-checks.png)
 
-<sub>Illustrative revision of the portfolio above. The panel reports price/basis loss, cash, costs and risk separately; price loss is not a claim of tax savings.</sub>
+<sub>Actual saved worksheet component, captured without surrounding navigation. Price/basis loss, cash, costs and risk are separate estimates; price loss is not a claim of tax savings.</sub>
 
 ## The investor workflow
 
@@ -48,9 +56,12 @@ Change the proposed share quantities and run the checks again. The saved workshe
 | --- | --- |
 | **1 · Import holdings** | Bring in your current tax lots. Review quantities, cost basis and any missing information. |
 | **2 · Choose a benchmark** | Select a dated benchmark proxy and review its holdings, prices, history and exclusions. |
-| **3 · Compare proposals** | Look at estimated losses, costs, cash and benchmark-relative risk for whole-share trades. |
-| **4 · Review and save** | Adjust quantities, run final checks, and export a dated worksheet. |
-| **5 · Refresh next time** | Import updated holdings after trading or other account changes. Previous worksheets remain available. |
+| **3 · Review inputs** | Review source dates, end-of-day prices, exclusions, unknown values, costs, funding and investor limits. The risk profile uses the Standard R1 preset. |
+| **4 · Compare proposals** | Use native controls for explicit costs and share maximums, then compare estimated loss, cash and benchmark-relative risk with making no changes. |
+| **5 · Review and save** | Adjust quantities, run final checks, and export a dated worksheet. |
+| **6 · Refresh next time** | Import updated holdings after trading or other account changes. Previous worksheets remain available. |
+
+Most source proofs, numerical settings and full records are available through question-mark help, details panels or Advanced sections. Missing consequential facts and material warnings remain visible. Cash/cost/funding and proposal setup use native forms; JSON imports remain an expert tool. Choices of fund, source/date, funding, economic limits and exploratory calculation method remain explicit.
 
 You place the trades at your broker. Prosper uses a refreshed holdings import to reflect subsequent account changes.
 
@@ -69,7 +80,7 @@ flowchart LR
 
 | Layer | Implementation |
 | --- | --- |
-| **Interface** | React + strict TypeScript, with generated API contracts. |
+| **Interface** | React + strict TypeScript, with generated API contracts, native setup forms, accessible help/details and responsive light/dark views. |
 | **Application service** | FastAPI + Pydantic, running locally with authenticated requests and revision checks. |
 | **Portfolio data** | Polars for imports, joins, history alignment and coverage checks. Original files and missing values are retained. |
 | **Quantitative core** | NumPy + SciPy; OHLC-derived innovations, univariate volatility, dynamic conditional correlation and nonlinear covariance shrinkage. |
@@ -82,7 +93,7 @@ The risk model is **IDR-DCC-NL**, described in the [risk-model documentation](do
 
 | Area | Code |
 | --- | --- |
-| Application and UI | [Workspace](src/prosper/workspace.py) · [React interface](frontend/src/review.tsx) |
+| Application and UI | [Workspace](src/prosper/workspace.py) · [React interface](frontend/src/review.tsx) · [Application shell](frontend/src/app-shell.tsx) |
 | Risk estimation | [OHLC innovations](src/prosper/innovations.py) · [Volatility fitting](src/prosper/volatility.py) · [DCC](src/prosper/dcc.py) · [Shrinkage](src/prosper/shrinkage.py) |
 | Trade construction and checks | [Candidate search](src/prosper/candidate_search.py) · [Final validation](src/prosper/candidate_validation.py) · [Reference cases](tests/test_candidate_reference.py) |
 | Data and storage | [Records](src/prosper/advisory_records.py) · [SQLite store](src/prosper/advisory_store.py) · [Recovery](src/prosper/advisory_recovery.py) |
@@ -94,7 +105,7 @@ For a more detailed walkthrough, read the [engineering tour](docs/showcase/ENGIN
 
 **Development prototype.** The current application supports imports, exploratory risk estimates, checked proposals, worksheets and recovery. The screenshots and automated examples use fictional portfolios.
 
-Current work focuses on making setup easier, with standard defaults and clearer review of missing or excluded inputs. Independent tax/model review, calibration, input qualification and release checks are still required before financial use.
+The current local experience includes guided benchmark/input/proposal stages, native investor settings, source-backed EOD preparation, explicit history exclusions, checked manual worksheets and backup/restore. UI checks use fictional portfolios, including exact amounts, stale results, retries and frozen recovery. Owner usability acceptance remains separate from local engineering verification. Independent tax/model review, calibration, input qualification and release checks are still required before financial use.
 
 ## Development
 
@@ -111,6 +122,8 @@ The current development host is **Windows x64**, with Python 3.12, PowerShell an
 ```
 
 See the [development guide](docs/engineering/DEVELOPMENT.md) for launch commands and verification scopes. The [local application guide](docs/guides/LOCAL_ARTIFACT.md) explains workspace initialization, source review and recovery.
+
+For disposable experiments using the Python core, see [local research](research/README.md). It has a separate environment and lighter checks; experimental code and dependencies stay outside the application.
 
 <details>
 <summary><strong>Product, methodology and project documentation</strong></summary>

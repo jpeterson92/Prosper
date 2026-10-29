@@ -30,7 +30,11 @@ class WeightEstimate:
 
 
 def weights_at(
-    benchmark: BenchmarkResult | None, alignment: Alignment | None, target_date: str
+    benchmark: BenchmarkResult | None,
+    alignment: Alignment | None,
+    target_date: str,
+    *,
+    retained_ids: tuple[str, ...] | None = None,
 ) -> WeightEstimate:
     """Require the complete declared daily grid over (source close, target close].
 
@@ -60,6 +64,27 @@ def weights_at(
         return unavailable(
             "benchmark_weights_invalid", "Complete finite source-date weights required"
         )
+    if retained_ids is not None:
+        if (
+            not retained_ids
+            or len(set(retained_ids)) != len(retained_ids)
+            or not set(retained_ids) <= set(ids)
+        ):
+            return unavailable(
+                "benchmark_retained_sleeve_empty_or_invalid",
+                "Nonempty declared retained benchmark sleeve required",
+            )
+        selected = [
+            (sid, weight) for sid, weight in zip(ids, weights, strict=True) if sid in retained_ids
+        ]
+        total = math.fsum(w for _, w in selected)
+        if total <= 0:
+            return unavailable(
+                "benchmark_retained_value_nonpositive",
+                "Retained benchmark needs positive source value",
+            )
+        ids = tuple(s for s, _ in selected)
+        weights = tuple(w / total for _, w in selected)
     source_date = benchmark.effective_date
     if target_date < source_date:
         return unavailable(

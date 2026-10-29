@@ -29,6 +29,10 @@ Shared core: `src/prosper/`; browser: `frontend/`; fictional fixtures: `examples
 
 Use Ruff/strict mypy and existing helpers, normal caches and ignored generated artifacts; no ad hoc global installation. Python workers default to `auto` (`-Workers 0` for serial debugging); browser workers default to four (`-Workers 1` for serial). Do not overlap separate full Python/browser suites. Never hand-edit generated `frontend/src/generated/api.ts` or `frontend/openapi.json`; use `frontend.ps1 -Command contracts` after an intentional API change and verify consumers. [DEVELOPMENT](docs/engineering/DEVELOPMENT.md) owns details.
 
+## Research exception
+
+Owner-requested disposable experiments belong in top-level `research/`, outside the application package and production code/test/tooling scopes. For research-only tasks, [research/AGENTS.md](research/AGENTS.md) replaces the production intake, task-assessment, regression/typing and STATUS/reporting requirements below and above: use the selected experiment's context, a separate environment and proportionate smoke/assertion checks. No production suite, coverage target or compatibility promise is required. Research imports the core; production code, tests, scripts and frontend must not import or require research. Research-only commits skip automatic CI; mixed application changes and explicit full checkpoints keep normal checks. Privacy, financial/data authority and no-subagent defaults still apply. Any change outside research follows the ordinary policy; promote findings into core through a separate scoped application change. Research is an organizational code boundary, never an application input category, launch mode or alternate financial authority.
+
 ## Engineering defaults
 
 - T019 foundation work is complete. Follow the short [MVP route](docs/tasks/REMAINING_WORK_PLAN.md#mvp-delivery-route): actual-input diagnostics, exploratory model-to-worksheet use, then observed improvements. Do not add generic foundation, capacity, packaging or packet-only successors.

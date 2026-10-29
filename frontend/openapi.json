@@ -1317,6 +1317,305 @@
         ]
       }
     },
+    "/api/v1/inputs/context": {
+      "get": {
+        "summary": "Input Context",
+        "operationId": "input_context_api_v1_inputs_context_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputAssemblyContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/inputs/prepare": {
+      "post": {
+        "summary": "Prepare Inputs",
+        "operationId": "prepare_inputs_api_v1_inputs_prepare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputAssemblyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssembledInputs"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/inputs/risk-preset": {
+      "post": {
+        "summary": "Risk Preset",
+        "operationId": "risk_preset_api_v1_inputs_risk_preset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskPresetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModeledUpload"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request Entity Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/inputs/diagnostics": {
       "post": {
         "summary": "Diagnose Inputs",
@@ -5225,6 +5524,99 @@
         ],
         "title": "AnalysisRun"
       },
+      "AssembledInputs": {
+        "properties": {
+          "input_revision": {
+            "type": "integer",
+            "title": "Input Revision"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Digest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "benchmark_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Benchmark Run Id"
+          },
+          "candidate_security_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "type": "array",
+            "title": "Candidate Security Ids"
+          },
+          "retained_candidate_security_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retained Candidate Security Ids"
+          },
+          "upload": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModeledUpload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModeledResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/InputIssue"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "input_revision",
+          "snapshot_id",
+          "benchmark_run_id",
+          "candidate_security_ids",
+          "retained_candidate_security_ids",
+          "upload",
+          "coverage",
+          "issues"
+        ],
+        "title": "AssembledInputs"
+      },
       "BenchmarkDiagnostic": {
         "properties": {
           "run_id": {
@@ -6654,6 +7046,15 @@
             "type": "array",
             "title": "Retained Snapshots"
           },
+          "history_excluded_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "type": "array",
+            "title": "History Excluded Ids",
+            "default": []
+          },
           "assets": {
             "items": {
               "$ref": "#/components/schemas/CandidateAsset"
@@ -7415,6 +7816,76 @@
           "target_symmetry_correction"
         ],
         "title": "CorrelationDiagnostic"
+      },
+      "CoverageName": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Key"
+          },
+          "security_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Security Id"
+          },
+          "locators": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Locators"
+          },
+          "value_usd": {
+            "$ref": "#/components/schemas/DecimalFact"
+          },
+          "excluded": {
+            "type": "boolean",
+            "title": "Excluded"
+          },
+          "excluded_bps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excluded Bps"
+          },
+          "highlight": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlight"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "security_id",
+          "locators",
+          "value_usd",
+          "excluded"
+        ],
+        "title": "CoverageName"
       },
       "CurrentResponse": {
         "properties": {
@@ -8194,6 +8665,93 @@
         ],
         "title": "HistoryBatch"
       },
+      "HistoryCoverageEvidence": {
+        "properties": {
+          "source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "contexts": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesContext"
+            },
+            "type": "array",
+            "title": "Contexts"
+          },
+          "sessions": {
+            "$ref": "#/components/schemas/SessionGrid"
+          },
+          "validation_scope": {
+            "type": "string",
+            "enum": [
+              "requested-interval",
+              "full-window"
+            ],
+            "title": "Validation Scope"
+          },
+          "collected_at": {
+            "type": "string",
+            "title": "Collected At"
+          },
+          "validated_at": {
+            "type": "string",
+            "title": "Validated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_sha256",
+          "contexts",
+          "sessions",
+          "validation_scope",
+          "collected_at",
+          "validated_at"
+        ],
+        "title": "HistoryCoverageEvidence"
+      },
+      "HistoryDecision": {
+        "properties": {
+          "security_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Security Id"
+          },
+          "roles": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "held",
+                "benchmark",
+                "candidate"
+              ]
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "excluded": {
+            "type": "boolean",
+            "title": "Excluded"
+          },
+          "issue_codes": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Issue Codes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "security_id",
+          "roles",
+          "excluded",
+          "issue_codes"
+        ],
+        "title": "HistoryDecision"
+      },
       "HistoryDiagnosticRequest": {
         "properties": {
           "request": {
@@ -8304,6 +8862,61 @@
           "expected_revision"
         ],
         "title": "HistoryManifest"
+      },
+      "HistoryOption": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "source_name": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Source Name"
+          },
+          "source_sha256": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "contexts": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesContext"
+            },
+            "type": "array",
+            "title": "Contexts"
+          },
+          "sessions": {
+            "$ref": "#/components/schemas/SessionGrid"
+          },
+          "collected_at": {
+            "type": "string",
+            "title": "Collected At"
+          },
+          "validated_at": {
+            "type": "string",
+            "title": "Validated At"
+          },
+          "validation_scope": {
+            "type": "string",
+            "enum": [
+              "requested-interval",
+              "full-window"
+            ],
+            "title": "Validation Scope"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source_name",
+          "source_sha256",
+          "contexts",
+          "sessions",
+          "collected_at",
+          "validated_at",
+          "validation_scope"
+        ],
+        "title": "HistoryOption"
       },
       "HistoryPart": {
         "properties": {
@@ -8542,6 +9155,72 @@
           "data"
         ],
         "title": "HistoryTable"
+      },
+      "HistoryWindow": {
+        "properties": {
+          "batch_ids": {
+            "items": {
+              "$ref": "#/components/schemas/Digest"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Batch Ids"
+          },
+          "sessions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Sessions"
+          },
+          "predecessor": {
+            "type": "string",
+            "title": "Predecessor"
+          },
+          "cutoff": {
+            "type": "string",
+            "title": "Cutoff"
+          },
+          "known_at": {
+            "type": "string",
+            "title": "Known At"
+          },
+          "calendar_evidence": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Calendar Evidence"
+          },
+          "overlap_sessions": {
+            "type": "integer",
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Overlap Sessions"
+          },
+          "series_choices": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesContext"
+            },
+            "type": "array",
+            "title": "Series Choices",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "batch_ids",
+          "sessions",
+          "predecessor",
+          "cutoff",
+          "known_at",
+          "calendar_evidence",
+          "overlap_sessions"
+        ],
+        "title": "HistoryWindow"
       },
       "HoldingMappingRow": {
         "properties": {
@@ -8943,6 +9622,309 @@
         ],
         "title": "IndependentPosition"
       },
+      "InputAssemblyBinding": {
+        "properties": {
+          "input_revision": {
+            "type": "integer",
+            "exclusiveMaximum": 9223372036854776000,
+            "minimum": 0,
+            "title": "Input Revision"
+          },
+          "snapshot_id": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "benchmark_run_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+            "title": "Benchmark Run Id"
+          },
+          "history_batch_ids": {
+            "items": {
+              "$ref": "#/components/schemas/Digest"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "History Batch Ids"
+          },
+          "fact_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fact Run Id"
+          },
+          "source_declarations": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFact"
+            },
+            "type": "array",
+            "title": "Source Declarations"
+          },
+          "prepared_at": {
+            "type": "string",
+            "title": "Prepared At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "input_revision",
+          "snapshot_id",
+          "benchmark_run_id",
+          "history_batch_ids",
+          "fact_run_id",
+          "source_declarations",
+          "prepared_at"
+        ],
+        "title": "InputAssemblyBinding"
+      },
+      "InputAssemblyContext": {
+        "properties": {
+          "input_revision": {
+            "type": "integer",
+            "title": "Input Revision"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Digest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "benchmark_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Benchmark Run Id"
+          },
+          "selected_source_sha256": {
+            "items": {
+              "$ref": "#/components/schemas/Digest"
+            },
+            "type": "array",
+            "title": "Selected Source Sha256"
+          },
+          "benchmark_security_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "type": "array",
+            "title": "Benchmark Security Ids"
+          },
+          "history_options": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryOption"
+            },
+            "type": "array",
+            "title": "History Options"
+          },
+          "fact_run_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "type": "array",
+            "title": "Fact Run Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "input_revision",
+          "snapshot_id",
+          "benchmark_run_id",
+          "selected_source_sha256",
+          "benchmark_security_ids",
+          "history_options",
+          "fact_run_ids"
+        ],
+        "title": "InputAssemblyContext"
+      },
+      "InputAssemblyRequest": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "exclusiveMaximum": 9223372036854776000,
+            "minimum": 0,
+            "title": "Expected Revision"
+          },
+          "analysis_date": {
+            "type": "string",
+            "title": "Analysis Date"
+          },
+          "as_of": {
+            "type": "string",
+            "title": "As Of"
+          },
+          "history": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HistoryWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "coverage_settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InputCoverageSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "risk_overrides": {
+            "$ref": "#/components/schemas/RiskOverrides"
+          },
+          "investor_controls": {
+            "items": {
+              "$ref": "#/components/schemas/InvestorControl"
+            },
+            "type": "array",
+            "title": "Investor Controls",
+            "default": []
+          },
+          "fact_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fact Run Id"
+          },
+          "source_declarations": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFact"
+            },
+            "type": "array",
+            "title": "Source Declarations",
+            "default": []
+          },
+          "securities": {
+            "items": {
+              "$ref": "#/components/schemas/SecurityInput"
+            },
+            "type": "array",
+            "title": "Securities",
+            "default": []
+          },
+          "marks": {
+            "items": {
+              "$ref": "#/components/schemas/MarkInput"
+            },
+            "type": "array",
+            "title": "Marks",
+            "default": []
+          },
+          "taxonomy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaxonomyDeclaration"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "classifications": {
+            "items": {
+              "$ref": "#/components/schemas/ClassificationInput"
+            },
+            "type": "array",
+            "title": "Classifications",
+            "default": []
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/InputSource"
+            },
+            "type": "array",
+            "title": "Sources",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "analysis_date",
+          "as_of"
+        ],
+        "title": "InputAssemblyRequest"
+      },
+      "InputCoverageSettings": {
+        "properties": {
+          "max_mark_age_days": {
+            "type": "integer",
+            "maximum": 36500,
+            "minimum": 0,
+            "title": "Max Mark Age Days"
+          },
+          "max_snapshot_age_days": {
+            "type": "integer",
+            "maximum": 36500,
+            "minimum": 0,
+            "title": "Max Snapshot Age Days"
+          },
+          "max_benchmark_age_days": {
+            "type": "integer",
+            "maximum": 36500,
+            "minimum": 0,
+            "title": "Max Benchmark Age Days"
+          },
+          "max_history_age_days": {
+            "type": "integer",
+            "maximum": 36500,
+            "minimum": 0,
+            "title": "Max History Age Days"
+          },
+          "maximum_universe_size": {
+            "type": "integer",
+            "maximum": 5000,
+            "minimum": 1,
+            "title": "Maximum Universe Size"
+          },
+          "short_history_policy": {
+            "type": "string",
+            "const": "block",
+            "title": "Short History Policy"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "max_mark_age_days",
+          "max_snapshot_age_days",
+          "max_benchmark_age_days",
+          "max_history_age_days",
+          "maximum_universe_size",
+          "short_history_policy"
+        ],
+        "title": "InputCoverageSettings"
+      },
       "InputIssue": {
         "properties": {
           "scope": {
@@ -9003,51 +9985,6 @@
       },
       "InputProfile": {
         "properties": {
-          "variant": {
-            "type": "string",
-            "const": "idr-dcc-nl",
-            "title": "Variant"
-          },
-          "model": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Profile"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "model_reference": {
-            "type": "string",
-            "maxLength": 4096,
-            "minLength": 1,
-            "title": "Model Reference"
-          },
-          "lookback_sessions": {
-            "type": "integer",
-            "maximum": 10000,
-            "minimum": 1,
-            "title": "Lookback Sessions"
-          },
-          "minimum_history_sessions": {
-            "type": "integer",
-            "maximum": 10000,
-            "minimum": 1,
-            "title": "Minimum History Sessions"
-          },
-          "horizon_sessions": {
-            "type": "integer",
-            "maximum": 10000,
-            "minimum": 1,
-            "title": "Horizon Sessions"
-          },
-          "annualization_sessions": {
-            "type": "integer",
-            "maximum": 10000,
-            "minimum": 1,
-            "title": "Annualization Sessions"
-          },
           "max_mark_age_days": {
             "type": "integer",
             "maximum": 36500,
@@ -9072,10 +10009,6 @@
             "minimum": 0,
             "title": "Max History Age Days"
           },
-          "require_full_window_validation": {
-            "type": "boolean",
-            "title": "Require Full Window Validation"
-          },
           "maximum_universe_size": {
             "type": "integer",
             "maximum": 5000,
@@ -9086,23 +10019,81 @@
             "type": "string",
             "const": "block",
             "title": "Short History Policy"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Profile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lookback_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Lookback Sessions",
+            "default": 1260
+          },
+          "minimum_history_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Minimum History Sessions",
+            "default": 1260
+          },
+          "horizon_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Horizon Sessions",
+            "default": 21
+          },
+          "annualization_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Annualization Sessions",
+            "default": 252
+          },
+          "require_full_window_validation": {
+            "type": "boolean",
+            "title": "Require Full Window Validation",
+            "default": true
+          },
+          "preset": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskPreset"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "variant": {
+            "type": "string",
+            "const": "idr-dcc-nl",
+            "title": "Variant",
+            "default": "idr-dcc-nl"
+          },
+          "model_reference": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Model Reference",
+            "default": "Standard R1 v1; exploratory IDR-DCC-NL; unqualified"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "variant",
-          "model",
-          "model_reference",
-          "lookback_sessions",
-          "minimum_history_sessions",
-          "horizon_sessions",
-          "annualization_sessions",
           "max_mark_age_days",
           "max_snapshot_age_days",
           "max_benchmark_age_days",
           "max_history_age_days",
-          "require_full_window_validation",
           "maximum_universe_size",
           "short_history_policy"
         ],
@@ -9837,6 +10828,16 @@
             },
             "type": "array",
             "title": "Investor Controls"
+          },
+          "assembly": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InputAssemblyBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -9947,6 +10948,16 @@
             "type": "array",
             "title": "Exclusions"
           },
+          "sleeve": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModeledSleeve"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "issues": {
             "items": {
               "$ref": "#/components/schemas/InputIssue"
@@ -10012,6 +11023,46 @@
           "innovation_inputs_available"
         ],
         "title": "ModeledResult"
+      },
+      "ModeledSleeve": {
+        "properties": {
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryDecision"
+            },
+            "type": "array",
+            "title": "Decisions"
+          },
+          "history_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryCoverageEvidence"
+            },
+            "type": "array",
+            "title": "History Evidence"
+          },
+          "portfolio": {
+            "$ref": "#/components/schemas/SleeveCoverage"
+          },
+          "benchmark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SleeveCoverage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decisions",
+          "history_evidence",
+          "portfolio",
+          "benchmark"
+        ],
+        "title": "ModeledSleeve"
       },
       "ModeledUpload": {
         "properties": {
@@ -10922,6 +11973,77 @@
         ],
         "title": "RiskInput"
       },
+      "RiskOverrides": {
+        "properties": {
+          "model": {
+            "$ref": "#/components/schemas/Profile"
+          },
+          "lookback_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Lookback Sessions"
+          },
+          "minimum_history_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Minimum History Sessions"
+          },
+          "horizon_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Horizon Sessions"
+          },
+          "annualization_sessions": {
+            "type": "integer",
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Annualization Sessions"
+          },
+          "require_full_window_validation": {
+            "type": "boolean",
+            "title": "Require Full Window Validation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RiskOverrides",
+        "description": "Explicit expert choices; the fit boundary still enforces supported R1 settings."
+      },
+      "RiskPreset": {
+        "properties": {
+          "identity": {
+            "type": "string",
+            "const": "standard-r1-v1",
+            "title": "Identity",
+            "default": "standard-r1-v1"
+          },
+          "overrides": {
+            "$ref": "#/components/schemas/RiskOverrides"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RiskPreset"
+      },
+      "RiskPresetRequest": {
+        "properties": {
+          "upload": {
+            "$ref": "#/components/schemas/ModeledUpload"
+          },
+          "overrides": {
+            "$ref": "#/components/schemas/RiskOverrides"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "upload"
+        ],
+        "title": "RiskPresetRequest"
+      },
       "RowRule": {
         "properties": {
           "locator": {
@@ -11578,6 +12700,87 @@
         ],
         "title": "SettingsRequest"
       },
+      "SleeveCoverage": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "portfolio",
+              "benchmark"
+            ],
+            "title": "Scope"
+          },
+          "valuation_date": {
+            "type": "string",
+            "title": "Valuation Date"
+          },
+          "denominator_scope": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Denominator Scope"
+          },
+          "names": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageName"
+            },
+            "type": "array",
+            "title": "Names"
+          },
+          "reference_value_usd": {
+            "$ref": "#/components/schemas/DecimalFact"
+          },
+          "excluded_known_value_usd": {
+            "type": "string",
+            "title": "Excluded Known Value Usd"
+          },
+          "unknown_value_keys": {
+            "items": {
+              "type": "string",
+              "maxLength": 4096,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Unknown Value Keys"
+          },
+          "aggregate_excluded_bps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregate Excluded Bps"
+          },
+          "aggregate_highlight": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregate Highlight"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scope",
+          "valuation_date",
+          "denominator_scope",
+          "names",
+          "reference_value_usd",
+          "excluded_known_value_usd",
+          "unknown_value_keys",
+          "aggregate_excluded_bps",
+          "aggregate_highlight"
+        ],
+        "title": "SleeveCoverage"
+      },
       "SnapshotEntry": {
         "properties": {
           "id": {
@@ -12085,6 +13288,29 @@
           "reference"
         ],
         "title": "TaxScenario"
+      },
+      "TaxonomyDeclaration": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "version"
+        ],
+        "title": "TaxonomyDeclaration"
       },
       "Upload": {
         "properties": {

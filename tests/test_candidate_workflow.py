@@ -26,7 +26,7 @@ from prosper.candidate_workflow import (
     check_output_links,
     prepare,
 )
-from prosper.modeled_inputs import ModeledDiagnostic
+from prosper.modeled_inputs import ModeledDiagnostic, RiskPresetRequest, prepare_risk_preset
 from prosper.risk_inputs import assemble
 from prosper.storage import PersistenceError, RuntimeBoundary
 from prosper.workspace import Workspace
@@ -44,7 +44,7 @@ def service(path: Path) -> Workspace:
     return Workspace(AdvisoryStore(RuntimeBoundary(path)))
 
 
-def seed(w: Workspace) -> None:
+def seed(w: Workspace, *, standard: bool = False) -> None:
     staged = w.stage(Upload.model_validate_json(json.dumps(load("holdings.json"))))
     w.store.select(staged.id, "holdings", 0)
     w.import_benchmark(BenchmarkImport.model_validate_json(json.dumps(load("benchmark.json"))))
@@ -67,11 +67,16 @@ def seed(w: Workspace) -> None:
         )
     )
     w.import_history(HistoryUpload.model_validate_json(json.dumps(load("history.json"))))
+    modeled = load("modeled.json")
+    if standard:
+        modeled = prepare_risk_preset(
+            RiskPresetRequest.model_validate_json(json.dumps({"upload": modeled}))
+        ).model_dump(mode="json")
     result = w.diagnose_inputs(
         ModeledDiagnostic.model_validate_json(
             json.dumps(
                 dict(
-                    **load("modeled.json"),
+                    **modeled,
                     run_id="inputs",
                     expected_revision=4,
                     as_of="2026-10-25T23:00:00Z",
@@ -133,12 +138,14 @@ def test_compact_payload_and_frozen_guard_boundary(
 ) -> None:
     assert (FIXTURES / "history.json").stat().st_size < 2 * 1024 * 1024
     w = service(tmp_path / "runtime")
-    seed(w)
+    seed(w, standard=True)
     stub(monkeypatch)
     try:
         w.start_candidate(command())
         r = wait(w)
         frozen = w.store.candidate_inputs(r.inputs["candidate_inputs"])
+        assert frozen.modeled.bundle.profile.preset is not None
+        assert frozen.modeled.bundle.profile.preset.identity == "standard-r1-v1"
         request, issues = prepare(frozen)
         assert request and not issues
         assert len(frozen.modeled.alignment.cells) == 2520  # type: ignore[union-attr]
@@ -427,6 +434,10 @@ def test_profile_and_full_union_refuse_before_fitting(
     w.candidates.close()
     raw = w.store.candidate_inputs(r.inputs["candidate_inputs"]).model_dump(mode="json")
     raw["modeled"]["bundle"]["profile"]["lookback_sessions"] = 3
+    raw["modeled"]["bundle"]["profile"]["preset"] = {
+        "identity": "standard-r1-v1",
+        "overrides": {"lookback_sessions": 3},
+    }
 
     def forbidden(*args: Any, **kwargs: Any) -> Any:
         raise AssertionError("guard attempted a fit")

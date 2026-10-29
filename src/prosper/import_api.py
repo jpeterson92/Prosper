@@ -60,9 +60,18 @@ from prosper.candidate_workflow import CandidateIdentity, CandidateOutput, Candi
 from prosper.cash_treatment import CashTreatmentRequest
 from prosper.history import Alignment
 from prosper.holdings_mapping import HoldingsMappingRequest
+from prosper.input_assembly import AssembledInputs, InputAssemblyContext, InputAssemblyRequest
+from prosper.input_assembly import assemble as assemble_inputs
+from prosper.input_assembly import context as assembly_context
 from prosper.lot_opportunities import LotResult
 from prosper.lot_records import LotDiagnosticRequest, LotSettings
-from prosper.modeled_inputs import ModeledDiagnostic, ModeledResult, ModeledUpload
+from prosper.modeled_inputs import (
+    ModeledDiagnostic,
+    ModeledResult,
+    ModeledUpload,
+    RiskPresetRequest,
+    prepare_risk_preset,
+)
 from prosper.storage import EvidenceError, PersistenceError
 from prosper.worksheets import Worksheet, WorksheetCheck, WorksheetPreview, WorksheetSave
 from prosper.workspace import Workspace
@@ -102,6 +111,8 @@ BODY_MEDIA_TYPES = {
     "/api/v1/benchmarks/review-context": b"application/json",
     "/api/v1/benchmarks/prepare": b"application/json",
     "/api/v1/inputs/preview": b"application/json",
+    "/api/v1/inputs/prepare": b"application/json",
+    "/api/v1/inputs/risk-preset": b"application/json",
     "/api/v1/inputs/diagnostics": b"application/json",
 }
 CONTROL_BODY_BYTES = 64 * 1024
@@ -262,6 +273,9 @@ def install_import_routes(app: FastAPI, service: Workspace) -> None:
             if code
             in (
                 "history_page_offset_invalid",
+                "model_profile_missing_or_mismatch",
+                "selected_history_batch_missing",
+                "assembly_knowledge_after_analysis",
                 "invalid_source_encoding",
                 "source_checksum_or_size_invalid",
                 "invalid_advisory_backup",
@@ -363,6 +377,21 @@ def install_import_routes(app: FastAPI, service: Workspace) -> None:
     @router.post("/inputs/preview", response_model=ModeledResult)
     def preview_inputs(command: ModeledUpload) -> ModeledResult:
         return service.preview_inputs(command)
+
+    @router.get("/inputs/context", response_model=InputAssemblyContext)
+    def input_context() -> InputAssemblyContext:
+        return assembly_context(service)
+
+    @router.post("/inputs/prepare", response_model=AssembledInputs)
+    def prepare_inputs(command: InputAssemblyRequest) -> AssembledInputs:
+        return assemble_inputs(service, command)
+
+    @router.post("/inputs/risk-preset", response_model=ModeledUpload)
+    def risk_preset(command: RiskPresetRequest) -> ModeledUpload:
+        try:
+            return prepare_risk_preset(command)
+        except ValueError:
+            raise PersistenceError("model_profile_missing_or_mismatch") from None
 
     @router.post("/inputs/diagnostics", response_model=AnalysisRun)
     def diagnose_inputs(command: ModeledDiagnostic) -> AnalysisRun:
